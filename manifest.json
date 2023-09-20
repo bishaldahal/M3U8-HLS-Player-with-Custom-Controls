@@ -1,0 +1,57 @@
+{
+  "manifest_version": 3,
+  "name": "M3U8 Player Extension",
+  "version": "1.0",
+  "description": "Plays .m3u8 URLs in a custom player",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "webNavigation",
+    "declarativeNetRequest",
+    "storage",
+    "unlimitedStorage",
+    "tabs"
+    ],
+  "host_permissions": [
+    "*://*/*",
+    "http://*/*",
+    "https://*/*",
+    "file:///*",
+    "<all_urls>"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "*.html",
+        "*.js",
+        "*.css",
+        "*.png"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "background": {
+    "service_worker": "background.js",
+     "type": "module"
+  },
+  "content_scripts": [
+    {
+      "js": [
+        "content.js"
+      ],
+      "matches": [
+        "*://*/*",
+        "<all_urls>"
+      ]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval' ; object-src 'self' ;"
+  }
+}

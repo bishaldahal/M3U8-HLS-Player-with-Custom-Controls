@@ -1,0 +1,40 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <script type="module" src="npm/hls-player.js"></script>
+    <script type="module" src="npm/hls-controller.js"></script>
+    <style>
+        body {
+            background-color: black;
+        }
+        media-controller  {
+            width: 97vw; /* 100% of viewport width */
+            height: 97vh; /* 100% of viewport height */
+            overflow: hidden; /* Hide scrollbars */
+            }
+    </style>
+</head>
+
+<body>
+    <media-controller >
+    <media-loading-indicator slot="centered-chrome" noautohide></media-loading-indicator>
+    <media-control-bar>
+        <media-play-button></media-play-button>
+        <media-seek-backward-button seekoffset="5"></media-seek-backward-button>
+        <media-seek-forward-button seekoffset="5"></media-seek-forward-button>
+        <media-mute-button></media-mute-button>
+        <media-volume-range></media-volume-range>
+        <media-time-range></media-time-range>
+        <media-time-display showduration></media-time-display>
+        <media-playback-rate-button></media-playback-rate-button>
+        <media-pip-button></media-pip-button>
+        <media-fullscreen-button></media-fullscreen-button>
+    </media-control-bar>
+    </media-controller>
+    <script src="player.js"></script>
+</body>
+
+</html>
