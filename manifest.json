@@ -4,13 +4,7 @@
   "version": "1.0",
   "description": "Plays .m3u8 URLs in a custom player",
   "permissions": [
-    "activeTab",
-    "scripting",
-    "webNavigation",
-    "declarativeNetRequest",
-    "storage",
-    "unlimitedStorage",
-    "tabs"
+    "webNavigation"
     ],
   "host_permissions": [
     "*://*/*",
