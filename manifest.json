@@ -4,7 +4,11 @@
   "version": "1.0",
   "description": "Plays .m3u8 URLs in a custom player",
   "permissions": [
-    "webNavigation"
+    "webNavigation",
+    "tabs",
+    "storage",
+    "activeTab",
+    "declarativeContent"
     ],
   "host_permissions": [
     "*://*/*",
@@ -24,6 +28,12 @@
       "matches": [
         "<all_urls>"
       ]
+    }
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
     }
   ],
   "options_ui": {
