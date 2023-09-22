@@ -3,7 +3,7 @@
     if (details.frameId === 0 && details.url.endsWith('.m3u8')) {
       const playerUrl = chrome.runtime.getURL('player.html') + '#' + details.url;
       console.log("Before Navigation", playerUrl);
-      chrome.tabs.create({ url: playerUrl });
+      chrome.tabs.update({ url: playerUrl });
     }
   }, { urls: ["<all_urls>"] }, ["blocking"]);
 // });
