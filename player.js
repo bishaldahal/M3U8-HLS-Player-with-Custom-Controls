@@ -14,12 +14,74 @@ function play_stream(url) {
     document.body.appendChild(player);
 }
 
-const player = document.querySelector('media-controller');
-
+player=document.querySelector('media-controller');
 var url = window.location.href.split("#")[1];
 play_stream(url);
-
 const video = document.querySelector('hls-video');
+
+
+
+
+
+let resumePosition = 0;
+video.addEventListener('pause', () => {
+  resumePosition = video.currentTime;
+});
+video.addEventListener('play', () => {
+  video.currentTime = resumePosition;
+  if (video.currentTime >= video.duration-5) {
+    video.currentTime = 0;
+  }
+});
+
+
+
+
+
+//  let seekTimeout;
+// const seekStep = 1; // Adjust the seek step (in seconds) as needed
+// const seekInterval = 1000; // Adjust the interval as needed for smooth seeking
+
+// document.addEventListener('keydown', (event) => {
+//     if (event.key === 'ArrowRight') {
+//         // Seek forward continuously while the right arrow key is held down
+//         clearInterval(seekTimeout); // Clear any existing seek timeout
+//         seekTimeout = setInterval(() => {
+//             if (video.currentTime + seekStep < video.duration) {
+//                 video.currentTime += seekStep;
+//                 console.log(video.currentTime);
+//             }
+//         }, seekInterval);
+//     } else if (event.key === 'ArrowLeft') {
+//         // Seek backward continuously while the left arrow key is held down
+//         clearInterval(seekTimeout); // Clear any existing seek timeout
+//         seekTimeout = setInterval(() => {
+//             if (video.currentTime - seekStep > 0) {
+//                 video.currentTime -= seekStep;
+//                 console.log(video.currentTime);
+//             }
+//         }, seekInterval);
+//     }
+// });
+
+// document.addEventListener('keyup', (event) => {
+//     if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+//         // Stop seeking after a brief delay when the arrow key is released
+//         clearInterval(seekTimeout);
+//     }
+// });
+
+
+
+
+
+
+
+
+
+
+
+
 
 player.addEventListener('keydown', (event) => {
     if (event.key === '>') {
@@ -34,6 +96,25 @@ player.addEventListener('keydown', (event) => {
 player.addEventListener('keydown', (event) => {
     if (event.key === '<') {
         video.playbackRate -= 0.1;
+        // Round the playback speed value to two decimal places
+        const roundedPlaybackSpeed = Math.round(video.playbackRate * 100) / 100;
+        // Limit the playback speed to a minimum of 0.1
+        video.playbackRate = Math.max(roundedPlaybackSpeed, 0.1);
+    }
+});
+
+player.addEventListener('keydown', (event) => {
+    if (event.key === '+') {
+        video.playbackRate += 0.5;
+        // Round the playback speed value to two decimal places
+        const roundedPlaybackSpeed = Math.round(video.playbackRate * 100) / 100;
+        // Limit the playback speed to a maximum of 2.0
+        video.playbackRate = Math.min(roundedPlaybackSpeed, 10.0);
+    }
+});
+player.addEventListener('keydown', (event) => {
+    if (event.key === '-') {
+        video.playbackRate -= 0.5;
         // Round the playback speed value to two decimal places
         const roundedPlaybackSpeed = Math.round(video.playbackRate * 100) / 100;
         // Limit the playback speed to a minimum of 0.1
@@ -76,7 +157,7 @@ document.addEventListener('keydown', (event) => {
 
 // Seek backward on J
 player.addEventListener('keydown', (event) => {
-    if (event.key === 'J' || event.key === 'j') {
+    if (event.key === 'J' || event.key === 'j' && !event.ctrlKey && !event.altKey && !event.shiftKey && !event.metaKey) {
         event.preventDefault();
         video.currentTime -= 5;
     }
@@ -84,7 +165,7 @@ player.addEventListener('keydown', (event) => {
 
 // Seek forward on L
 player.addEventListener('keydown', (event) => {
-    if (event.key === 'L' || event.key === 'l') {
+    if (event.key === 'L' || event.key === 'l' && !event.ctrlKey && !event.altKey && !event.shiftKey && !event.metaKey) {
         event.preventDefault();
         video.currentTime += 5;
     }
