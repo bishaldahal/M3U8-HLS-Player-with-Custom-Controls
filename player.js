@@ -65,19 +65,20 @@ player.addEventListener('keydown', (event) => {
         case 'j':
             event.preventDefault();
             video.currentTime -= 5;
+            resumePosition = video.currentTime;
             break;
         case 'L':
         case 'l':
             event.preventDefault();
             video.currentTime += 5;
+            resumePosition = video.currentTime;
             break;
         case ',':
         case '.':
-            const estimatedFrameRate = video.duration / (video.videoWidth * video.videoHeight);
-            const reducedFrameRate = estimatedFrameRate * 100000;
-            video.currentTime = event.key === ',' ? 
-                Math.max(0, video.currentTime - 1 / reducedFrameRate) : 
-                Math.min(video.duration, video.currentTime + 1 / reducedFrameRate);
+            video.pause();
+            video.currentTime = resumePosition;
+            video.currentTime += event.key === ',' ? -1/48 : 1/48;
+            resumePosition = video.currentTime;
             break;
     }
 });
