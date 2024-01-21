@@ -19,6 +19,26 @@ var url = window.location.href.split("#")[1];
 play_stream(url);
 const video = document.querySelector('hls-video');
 
+let mediaTimeDisplay = document.querySelector('media-time-display');
+let mediastreamtype;
+
+video.addEventListener('loadedmetadata', function() {
+mediastreamtype = player.getAttribute("mediastreamtype");
+});
+
+video.addEventListener("timeupdate", function () {
+  if (mediastreamtype == "live") {
+    let totalDuration = mediaTimeDisplay.getAttribute("mediaseekable");
+    let [minutes, seconds, milliseconds] = totalDuration.split(/[:.]/);
+    minutes = parseFloat(minutes) || 0;
+    seconds = parseFloat(seconds) || 0;
+    milliseconds = parseFloat(milliseconds) || 0;
+    let totalSeconds = minutes * 60 + seconds + milliseconds / 1000;
+    mediaTimeDisplay.setAttribute("mediaduration", totalSeconds);
+  }
+});
+
+
 let resumePosition = 0;
 video.addEventListener('pause', () => {
   resumePosition = video.currentTime;
@@ -31,6 +51,8 @@ video.addEventListener('play', () => {
 });
 
 player.addEventListener('keydown', (event) => {
+    // window.addEventListener('load', focusVideo);
+
     if (event.ctrlKey || event.altKey || event.metaKey) {
         return;
     }
@@ -79,6 +101,12 @@ player.addEventListener('keydown', (event) => {
             video.currentTime = resumePosition;
             video.currentTime += event.key === ',' ? -1/48 : 1/48;
             resumePosition = video.currentTime;
+            break;
+        case '0':
+            // Seek to the end of the loaded video
+            if (video.buffered.length > 0) {
+                video.currentTime = video.buffered.end(video.buffered.length - 1);
+            }
             break;
     }
 });
