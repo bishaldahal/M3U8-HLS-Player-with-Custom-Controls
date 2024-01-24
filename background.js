@@ -5,7 +5,7 @@
       console.log("Before Navigation", playerUrl);
       chrome.tabs.update({ url: playerUrl });
     }
-  }, { urls: ["<all_urls>"] }, ["blocking"]);
+  }, { urls: ["<all_urls>","*://*/*.m3u8"] }, ["blocking"]);
 // });
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
