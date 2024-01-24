@@ -27,16 +27,16 @@ mediastreamtype = player.getAttribute("mediastreamtype");
 });
 
 video.addEventListener("timeupdate", function () {
-  if (mediastreamtype == "live") {
-    let totalDuration = mediaTimeDisplay.getAttribute("mediaseekable");
-    let [minutes, seconds, milliseconds] = totalDuration.split(/[:.]/);
-    minutes = parseFloat(minutes) || 0;
-    seconds = parseFloat(seconds) || 0;
-    milliseconds = parseFloat(milliseconds) || 0;
-    let totalSeconds = minutes * 60 + seconds + milliseconds / 1000;
-    mediaTimeDisplay.setAttribute("mediaduration", totalSeconds);
-  }
-});
+    if (mediastreamtype == "live") {
+      let totalDuration = mediaTimeDisplay.getAttribute("mediaseekable");
+      let [, end] = totalDuration.split(":");
+      let [seconds, milliseconds] = end.split(".");
+      seconds = parseFloat(seconds) || 0;
+      milliseconds = parseFloat(milliseconds) || 0;
+      let totalSeconds =  seconds + milliseconds / 1000;
+      mediaTimeDisplay.setAttribute("mediaduration", totalSeconds);
+    }
+  });
 
 
 let resumePosition = 0;
