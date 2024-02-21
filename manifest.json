@@ -1,15 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "M3U8 Player Extension",
+  "name": "M3U8/HLS Player with Custom Controls",
   "version": "1.0",
-  "description": "Plays .m3u8 URLs in a custom player",
+  "description": "An advanced player for M3U8/HLS streams, offering customizable controls and enhanced video playback features. It supports keyboard shortcuts for volume control, playback speed adjustment, precise seeking, picture-in-picture mode, frame-by-frame navigation, and more. It also includes a built-in shortcut guide and supports live streams.",
   "permissions": [
     "webNavigation",
     "tabs",
     "storage",
     "activeTab",
     "declarativeContent"
-    ],
+  ],
   "host_permissions": [
     "*://*/*",
     "http://*/*",
@@ -19,15 +19,8 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": [
-        "*.html",
-        "*.js",
-        "*.css",
-        "*.png"
-      ],
-      "matches": [
-        "<all_urls>"
-      ]
+      "resources": ["*.html", "*.js", "*.css", "*.png"],
+      "matches": ["<all_urls>"]
     }
   ],
   "content_scripts": [
@@ -42,7 +35,7 @@
   },
   "background": {
     "service_worker": "js/background.js",
-     "type": "module"
+    "type": "module"
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval' ; object-src 'self' ;"
