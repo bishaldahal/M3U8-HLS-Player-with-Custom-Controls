@@ -1,0 +1,9 @@
+{
+    "scripts": {
+        "build": "npx javascript-obfuscator original --output js"
+    },
+    "devDependencies": {
+        "javascript-obfuscator": "^4.1.0"
+    },
+    "private": true
+}
