@@ -63,14 +63,12 @@ video.addEventListener("play", () => {
 });
 
 player.addEventListener("keydown", (event) => {
-  // window.addEventListener('load', focusVideo);
 
   if (event.ctrlKey || event.altKey || event.metaKey) {
     return;
   }
-  console.log("event.key", event.key, video.duration);
+
   if (keyToPercentage.hasOwnProperty(event.key) && mediastreamtype !== "live") {
-    console.log("keyToPercentage", keyToPercentage[event.key], video.duration);
     video.currentTime = video.duration * keyToPercentage[event.key];
   }
 
@@ -79,13 +77,6 @@ player.addEventListener("keydown", (event) => {
     // video.readyState === HTMLMediaElement.HAVE_ENOUGH_DATA &&
     mediastreamtype === "live"
   ) {
-    console.log(
-      "keyToPercentage",
-      keyToPercentage[event.key],
-      video.duration,
-      video.buffered,
-      video.readyState
-    );
     let bufferTime = 0;
     let bufferIndex = 0;
     for (let i = 0; i < video.buffered.length; i++) {
