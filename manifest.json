@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "M3U8/HLS Player with Custom Controls",
   "version": "1.0",
-  "description": "An advanced player for M3U8/HLS streams, offering customizable controls and enhanced video playback features. It supports keyboard shortcuts for volume control, playback speed adjustment, precise seeking, picture-in-picture mode, frame-by-frame navigation, and more. It also includes a built-in shortcut guide and supports live streams.",
+  "description": "Advanced M3U8/HLS player with customizable controls. Supports keyboard shortcuts, PIP mode, frame navigation, and live streams.",
   "permissions": [
     "webNavigation",
     "tabs",
