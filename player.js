@@ -76,7 +76,7 @@ player.addEventListener("keydown", (event) => {
 
   if (
     keyToPercentage.hasOwnProperty(event.key) &&
-    video.readyState === HTMLMediaElement.HAVE_ENOUGH_DATA &&
+    // video.readyState === HTMLMediaElement.HAVE_ENOUGH_DATA &&
     mediastreamtype === "live"
   ) {
     console.log(
