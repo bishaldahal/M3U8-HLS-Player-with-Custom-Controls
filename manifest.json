@@ -33,7 +33,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "js": ["js/content.js"]
     }
   ],
   "options_ui": {
@@ -41,7 +41,7 @@
     "open_in_tab": true
   },
   "background": {
-    "service_worker": "background.js",
+    "service_worker": "js/background.js",
      "type": "module"
   },
   "content_security_policy": {
