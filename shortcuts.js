@@ -11,6 +11,18 @@ const keyToPercentage = {
   9: 0.9,
 };
 
+let modal = document.getElementById("keyboard-shortcuts");
+
+document.addEventListener("keydown", function (event) {
+  if (event.key === "?") {
+    if (modal.style.display === "block") {
+      modal.style.display = "none";
+    } else {
+      modal.style.display = "block";
+    }
+  }
+});
+
 player.addEventListener("keydown", (event) => {
   if (event.ctrlKey || event.altKey || event.metaKey) {
     return;

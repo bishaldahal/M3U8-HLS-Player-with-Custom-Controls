@@ -1,28 +1,76 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title></title>
     <script type="module" src="npm/hls-player.js"></script>
     <script type="module" src="npm/hls-controller.js"></script>
     <script type="module" src="shortcuts.js"></script>
     <style>
-        body {
-            background-color: black;
-        }
-        media-controller  {
-            width: 97vw; /* 100% of viewport width */
-            height: 97vh; /* 100% of viewport height */
-            overflow: hidden; /* Hide scrollbars */
-            }
-    </style>
-</head>
+      body {
+        background-color: black;
+      }
+      media-controller {
+        width: 97vw; /* 100% of viewport width */
+        height: 97vh; /* 100% of viewport height */
+        overflow: hidden; /* Hide scrollbars */
+      }
 
-<body>
-    <media-controller noautoseektolive >
-    <media-loading-indicator slot="centered-chrome"></media-loading-indicator> <!-- noautohide -->
-    <media-control-bar>
+      .keyboard-shortcuts {
+        display: none;
+        background-color: rgb(33, 33, 33);
+        color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        max-height: 80%;
+        overflow: auto;
+        z-index: 1000;
+      }
+
+      .shortcuts-list {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+
+      .shortcuts-list li {
+        margin-bottom: 10px;
+        width: calc(33.333% - 10px);
+      }
+
+      .shortcuts-list li:nth-child(3n + 1) {
+        clear: left;
+      }
+
+      .shortcuts-list kbd {
+        display: inline-block;
+        background-color: #ddd;
+        border-radius: 3px;
+        padding: 5px 8px;
+        margin-right: 5px;
+      }
+
+      .shortcuts-list span {
+        display: inline-block;
+        vertical-align: middle;
+        line-height: 24px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <media-controller noautoseektolive>
+      <media-loading-indicator slot="centered-chrome"></media-loading-indicator>
+      <!-- noautohide -->
+      <media-control-bar>
         <media-play-button></media-play-button>
         <media-seek-backward-button seekoffset="5"></media-seek-backward-button>
         <media-seek-forward-button seekoffset="5"></media-seek-forward-button>
@@ -33,9 +81,85 @@
         <media-playback-rate-button></media-playback-rate-button>
         <media-pip-button></media-pip-button>
         <media-fullscreen-button></media-fullscreen-button>
-    </media-control-bar>
+      </media-control-bar>
     </media-controller>
-    <script src="player.js"></script>
-</body>
 
+    <div class="keyboard-shortcuts" id="keyboard-shortcuts">
+      <h2>Keyboard Shortcuts</h2>
+      <ul class="shortcuts-list">
+        <li class="play-pause">
+          <kbd>k</kbd>
+          <span>Toggle play/pause</span>
+        </li>
+        <li class="rewind">
+          <kbd>j</kbd>
+          <span>Rewind 10 seconds</span>
+        </li>
+        <li class="fast-forward">
+          <kbd>l</kbd>
+          <span>Fast forward 10 seconds</span>
+        </li>
+        <li class="previous-video">
+          <kbd>P (SHIFT + p)</kbd>
+          <span>Previous video</span>
+        </li>
+        <li class="next-video">
+          <kbd>N (SHIFT + n)</kbd>
+          <span>Next video</span>
+        </li>
+        <li class="previous-frame">
+          <kbd>< (SHIFT + ,)</kbd>
+          <span>Previous frame (while paused)</span>
+        </li>
+        <li class="next-frame">
+          <kbd>>(SHIFT + .)</kbd>
+          <span>Next frame (while paused)</span>
+        </li>
+        <li class="decrease-rate">
+          <kbd>0..9</kbd>
+          <span>Decrease playback rate</span>
+        </li>
+        <li class="increase-rate">
+          <kbd>CONTROL + →</kbd>
+          <span>Increase playback rate</span>
+        </li>
+        <li class="seek">
+          <kbd>CONTROL + ←</kbd>
+          <span
+            >Seek to specific point in the video (7 advances to 70% of
+            duration)</span
+          >
+        </li>
+        <li class="prev-chapter">
+          <kbd>Seek to previous chapter</kbd>
+          <span>-</span>
+        </li>
+        <li class="next-chapter">
+          <kbd>Seek to next chapter</kbd>
+          <span>-</span>
+        </li>
+        <li class="fullscreen">
+          <kbd>f</kbd>
+          <span>Toggle full screen</span>
+        </li>
+        <li class="theatre-mode">
+          <kbd>t</kbd>
+          <span>Toggle theatre mode</span>
+        </li>
+        <li class="miniplayer">
+          <kbd>i</kbd>
+          <span>Toggle miniplayer</span>
+        </li>
+        <li class="close-miniplayer">
+          <kbd>ESCAPE</kbd>
+          <span>Close miniplayer or current dialogue</span>
+        </li>
+        <li class="mute">
+          <kbd>m</kbd>
+          <span>Toggle mute</span>
+        </li>
+      </ul>
+    </div>
+    <script src="player.js"></script>
+  </body>
 </html>
