@@ -14,6 +14,7 @@ const keyToPercentage = {
 let modal = document.getElementById("keyboard-shortcuts");
 
 document.addEventListener("keydown", function (event) {
+    console.log("Document keydown event", event.key);
   if (event.key === "?") {
     if (modal.style.display === "block") {
       modal.style.display = "none";
@@ -21,6 +22,11 @@ document.addEventListener("keydown", function (event) {
       modal.style.display = "block";
     }
   }
+});
+
+let button = document.getElementById("close-shortcuts");
+button.addEventListener("click", function () {
+  modal.style.display = "none";
 });
 
 player.addEventListener("keydown", (event) => {
