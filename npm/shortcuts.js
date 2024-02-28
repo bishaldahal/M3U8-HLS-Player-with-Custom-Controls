@@ -118,7 +118,12 @@ player.addEventListener("keydown", (event) => {
   switch (event.key) {
     case ">":
     case "+":
+      if (video.playbackRate === 0.1 && event.key === "+") {
+        video.playbackRate = 0.5;
+      }
+      else{
       video.playbackRate += event.key === ">" ? 0.1 : 0.5;
+      }
       roundedPlaybackSpeed = Math.round(video.playbackRate * 100) / 100;
       video.playbackRate = Math.min(roundedPlaybackSpeed, 10.0);
       break;
