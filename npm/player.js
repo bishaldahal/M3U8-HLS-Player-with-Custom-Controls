@@ -14,7 +14,7 @@ function play_stream(url) {
   document.body.appendChild(player);
 }
 
-player = document.querySelector("media-controller");
+let player = document.querySelector("media-controller");
 var url = window.location.href.split("#")[1];
 play_stream(url);
 const video = document.querySelector("hls-video");
