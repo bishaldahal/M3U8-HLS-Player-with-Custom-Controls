@@ -9,7 +9,7 @@
 // });
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  if (request.command == 'CMD_PLAY_M3U8') {
+  if (request.command == 'PLAY_M3U8') {
     var playerUrl = chrome.runtime.getURL('player.html') + "#" + request.url;
     console.log("onMessage", playerUrl);
     chrome.tabs.create({ url: playerUrl });

@@ -1,7 +1,7 @@
 var enabled = true;
 
 chrome.extension.onMessage.addListener(function (request, sender, sendResponse) {
-    if (request.command == 'CMD_PLAY_M3U8') {
+    if (request.command == 'PLAY_M3U8') {
         var playerUrl = chrome.extension.getURL('player.html') + "#" + request.url
         chrome.tabs.create({url: playerUrl});
     }
