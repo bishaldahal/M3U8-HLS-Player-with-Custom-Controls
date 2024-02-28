@@ -22,7 +22,7 @@ for (const file of oldZipFiles) {
 
 // Define the 7z command
 // const command = `"Z:\\Programs\\7-Zip\\7z" a -tzip -r "${outputFile}" . -x!node_modules -x!.vscode -x!original -x!package.json -x!package-lock.json -x!README.md -x!extension.zip -x!.git -x!.gitignore`;
-const command = `7z a -tzip -r "${outputFile}" . -x!node_modules -x!.vscode -x!original -x!package.json -x!package-lock.json -x!README.md -x!extension.zip -x!.git -x!.gitignore`;
+const command = `7z a -tzip -r "${outputFile}" . -x!node_modules -x!.vscode -x!original -x!package.json -x!package-lock.json -x!README.md -x!extension.zip -x!.git -x!.gitignore -x!build_scripts -x!build -x!.github -x!.gitattributes -x!LICENSE -x!.vscode`;
 
 // Execute the command
 execSync(command, { stdio: 'inherit' });
