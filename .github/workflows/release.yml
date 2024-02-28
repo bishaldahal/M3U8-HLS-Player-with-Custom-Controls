@@ -27,7 +27,7 @@ jobs:
         run: |
           npm run build
           npm run zip
-          echo "ZIP_FILE=$(ls build | grep .zip)" >> $GITHUB_ENV
+          echo "ZIP_FILE=$(ls build  | grep .zip)" >> $GITHUB_ENV
 
       - name: Create Release
         id: create_release
