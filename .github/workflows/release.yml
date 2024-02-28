@@ -46,6 +46,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/$(ls build | grep .zip)
-          asset_name: $(ls build | grep .zip)
+          asset_path: ./build/$(ls | grep .zip)
+          asset_name: $(ls | grep .zip)
           asset_content_type: application/zip
