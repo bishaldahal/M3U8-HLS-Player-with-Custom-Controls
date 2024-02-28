@@ -23,9 +23,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build and zip
+      - name: Minify and zip
         run: |
-          npm run build
+          npm run minify
           npm run zip
           echo "ZIP_FILE=$(ls build  | grep .zip)" >> $GITHUB_ENV
 
