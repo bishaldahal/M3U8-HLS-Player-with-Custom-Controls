@@ -129,8 +129,8 @@ player.addEventListener("keydown", (event) => {
       break;
     case "<":
     case "-":
-      video.playbackRate -= event.key === "<" ? 0.1 : 0.5;
-      roundedPlaybackSpeed = Math.round(video.playbackRate * 100) / 100;
+      let newPlaybackRate = video.playbackRate - (event.key === "<" ? 0.1 : 0.5);
+      roundedPlaybackSpeed = Math.round(newPlaybackRate * 100) / 100;
       video.playbackRate = Math.max(roundedPlaybackSpeed, 0.1);
       break;
     case "ArrowUp":
