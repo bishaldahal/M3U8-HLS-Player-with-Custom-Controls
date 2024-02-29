@@ -81,6 +81,18 @@ button.addEventListener("click", function () {
   modal.style.display = "none";
 });
 
+video.addEventListener('dblclick', () => {
+  if (!document.fullscreenElement) {
+    if (video.requestFullscreen) {
+      video.requestFullscreen();
+    }
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  }
+});
+
 player.addEventListener("keydown", (event) => {
   if (event.ctrlKey || event.altKey || event.metaKey) {
     return;
