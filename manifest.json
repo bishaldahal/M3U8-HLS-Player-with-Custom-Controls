@@ -1,5 +1,5 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 2,
   "name": "M3U8/HLS Player with Custom Controls",
   "version": "1.0",
   "description": "Advanced M3U8/HLS player with customizable controls. Supports keyboard shortcuts, PIP mode, frame navigation, and live streams.",
@@ -7,22 +7,9 @@
     "webNavigation",
     "tabs",
     "storage",
-    "activeTab",
-    "declarativeContent"
+    "activeTab"
   ],
-  "host_permissions": [
-    "*://*/*",
-    "http://*/*",
-    "https://*/*",
-    "file:///*",
-    "<all_urls>"
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": ["*.html", "*.js", "*.css", "*.png"],
-      "matches": ["<all_urls>"]
-    }
-  ],
+  "web_accessible_resources": ["*.html", "*.js", "*.css", "*.png"],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
@@ -34,12 +21,10 @@
     "open_in_tab": true
   },
   "background": {
-    "service_worker": "js/background.js",
-    "type": "module"
+    "scripts": ["js/background.js"],
+    "persistent": true
   },
-  "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval' ; object-src 'self' ;"
-  },
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
   "icons": {
     "16": "icon16.png",
     "19": "icon19.png",
