@@ -9,7 +9,7 @@ const formattedDate = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate
 
 // Define the output directory and filename
 const outputDir = path.resolve(__dirname, '..', 'build');
-const outputFile = path.join(outputDir, `${extensionName}-${formattedDate}.zip`);
+const outputFile = path.join(outputDir, `${extensionName} (Chromium) -${formattedDate}.zip`);
 
 // Ensure the output directory exists
 fs.mkdirSync(outputDir, { recursive: true });
