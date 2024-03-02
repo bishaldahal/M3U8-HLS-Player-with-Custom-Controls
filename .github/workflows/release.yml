@@ -56,6 +56,9 @@ jobs:
           draft: false
           prerelease: false
 
+      - name: List build directory
+        run: ls -la ./build
+        
       - name: Upload Release from master
         id: upload-release-asset1
         uses: actions/upload-release-asset@main
