@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: 'master'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -27,7 +29,21 @@ jobs:
         run: |
           npm run minify
           npm run zip
-          echo "ZIP_FILE=$(ls build  | grep .zip)" >> $GITHUB_ENV
+          echo "ZIP_FILE1=$(ls build  | grep .zip)" >> $GITHUB_ENV
+
+      - name: Checkout second branch
+        uses: actions/checkout@v4
+        with:
+          ref: 'firefox'
+
+      - name: Install dependencies for second branch
+        run: npm ci
+
+      - name: Minify and zip for second branch
+        run: |
+          npm run minify
+          npm run zip
+          echo "ZIP_FILE2=$(ls build  | grep .zip)" >> $GITHUB_ENV
 
       - name: Create Release
         id: create_release
@@ -40,13 +56,24 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload Release
-        id: upload-release-asset
+      - name: Upload Release from master
+        id: upload-release-asset1
         uses: actions/upload-release-asset@main
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/${{ env.ZIP_FILE }}
-          asset_name: ${{ env.ZIP_FILE }}
+          asset_path: ./build/${{ env.ZIP_FILE1 }}
+          asset_name: ${{ env.ZIP_FILE1 }}
+          asset_content_type: application/zip
+
+      - name: Upload Release from firefox
+        id: upload-release-asset2
+        uses: actions/upload-release-asset@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/${{ env.ZIP_FILE2 }}
+          asset_name: ${{ env.ZIP_FILE2 }}
           asset_content_type: application/zip
