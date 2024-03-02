@@ -7,7 +7,12 @@
     "webNavigation",
     "tabs",
     "storage",
-    "activeTab"
+    "activeTab",
+    "*://*/*",
+    "http://*/*",
+    "https://*/*",
+    "file:///*",
+    "<all_urls>"
   ],
   "web_accessible_resources": ["*.html", "*.js", "*.css", "*.png"],
   "content_scripts": [
