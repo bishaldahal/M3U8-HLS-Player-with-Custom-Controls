@@ -1,6 +1,6 @@
 /**
- * Bundled by jsDelivr using Rollup v2.79.1 and Terser v5.19.0.
- * Original file: /npm/media-tracks@0.2.3/dist/index.js
+ * Bundled by jsDelivr using Rollup v2.79.1 and Terser v5.19.2.
+ * Original file: https://cdn.jsdelivr.net/npm/media-tracks/+esm
  *
  * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
  */
