@@ -27,7 +27,7 @@ jobs:
       run: npm run release:minify
 
     - name: Publish to Edge store
-      run: node publish.js
+      run: npm run publish
       env:
         CLIENT_ID: ${{ secrets.CLIENT_ID }}
         CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
