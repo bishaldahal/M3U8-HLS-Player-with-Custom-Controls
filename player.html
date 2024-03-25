@@ -15,7 +15,8 @@
         media-controller {
             width: 97vw;
             height: 97vh;
-            overflow: hidden; /* Hide scrollbars */
+            overflow: hidden;
+            /* Hide scrollbars */
         }
 
         .keyboard-shortcuts {
@@ -118,14 +119,34 @@
             font-size: 1rem;
             cursor: pointer;
         }
+
+        media-captions-menu-button {
+            display: none;
+        }
+
+        media-captions-menu-button[mediasubtitleslist] {
+            display: block;
+        }
+
+        media-audio-track-menu-button[mediaaudiotrackunavailable] {
+            display: none;
+        }
+
+        media-audio-track-menu-button {
+            display: block;
+        }
     </style>
 </head>
 
 <body>
     <media-controller noautoseektolive>
         <media-loading-indicator slot="centered-chrome"></media-loading-indicator>
+        <media-audio-track-menu hidden anchor="auto"></media-audio-track-menu>
+        <media-rendition-menu hidden anchor="auto"></media-rendition-menu>
+        <media-captions-menu hidden anchor="auto"></media-captions-menu>
         <media-control-bar>
             <media-play-button></media-play-button>
+            <!-- <media-live-button></media-live-button> -->
             <media-seek-backward-button seekoffset="5"></media-seek-backward-button>
             <media-seek-forward-button seekoffset="5"></media-seek-forward-button>
             <media-mute-button></media-mute-button>
@@ -133,6 +154,9 @@
             <media-time-range></media-time-range>
             <media-time-display showduration remaining></media-time-display>
             <media-playback-rate-button></media-playback-rate-button>
+            <media-audio-track-menu-button></media-audio-track-menu-button>
+            <media-rendition-menu-button></media-rendition-menu-button>
+            <media-captions-menu-button></media-captions-menu-button>
             <media-pip-button></media-pip-button>
             <media-fullscreen-button></media-fullscreen-button>
         </media-control-bar>
