@@ -35,6 +35,7 @@ video.addEventListener("timeupdate", function () {
     milliseconds = parseFloat(milliseconds) || 0;
     let totalSeconds = seconds + milliseconds / 1000;
     mediaTimeDisplay.setAttribute("mediaduration", totalSeconds);
+    mediaTimeDisplay.setAttribute("remaining", "");
   }
 });
 
