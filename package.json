@@ -7,6 +7,7 @@
     "obsfuscate": "npx javascript-obfuscator js --output js",
     "zip": "node build_scripts/zip.js",
     "publish": "node build_scripts/publish.js",
+    "generate:source": "node build_scripts/generate_source_firefox.js",
     "release:minify": "npm run minify && npm run zip",
     "release:obfuscate": "npm run obsfuscate && npm run zip",
     "minify": "npx terser npm/player.js npm/shortcuts.js -c sequences=true,dead_code=true,conditionals=true,booleans=true,unused=true,if_return=true,join_vars=true,drop_console=true -m toplevel=true -o js/player.min.js"
