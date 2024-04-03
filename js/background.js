@@ -5,7 +5,7 @@ browser.webNavigation.onBeforeNavigate.addListener((details) => {
     !details.url.startsWith(browser.runtime.getURL(""))
   ) {
     const playerUrl = browser.runtime.getURL("player.html") + "#" + details.url;
-    console.log("Before Navigation", playerUrl);
+    // console.log("Before Navigation", playerUrl);
     browser.tabs.update(details.tabId, { url: playerUrl });
   }
 });
@@ -13,7 +13,7 @@ browser.webNavigation.onBeforeNavigate.addListener((details) => {
 browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.command == "PLAY_M3U8") {
     var playerUrl = browser.runtime.getURL("player.html") + "#" + request.url;
-    console.log("onMessage", playerUrl);
+    // console.log("onMessage", playerUrl);
     browser.tabs.create({ url: playerUrl });
   }
 });
