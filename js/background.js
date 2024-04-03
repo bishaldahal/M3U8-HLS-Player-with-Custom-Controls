@@ -1,7 +1,7 @@
 browser.webNavigation.onBeforeNavigate.addListener((details) => {
   if (
     details.frameId === 0 &&
-    details.url.endsWith(".m3u8") &&
+    new URL(details.url).pathname.endsWith(".m3u8") &&
     !details.url.startsWith(browser.runtime.getURL(""))
   ) {
     const playerUrl = browser.runtime.getURL("player.html") + "#" + details.url;
