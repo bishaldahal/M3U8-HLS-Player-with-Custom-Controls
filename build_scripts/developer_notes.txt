@@ -1,2 +1,2 @@
-Some Bug Fixes
-Nothing Major
+Support titles passing as url params
+Fix the m3u8 URL not being recognized
