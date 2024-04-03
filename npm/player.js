@@ -1,12 +1,17 @@
 function play_stream(url) {
-  var m3u8Url = decodeURIComponent(url);
-  console.log(m3u8Url);
+  var m3u8Url = new URL(url);
+  const title = m3u8Url.searchParams.get("extTitle");
+  m3u8Url.searchParams.delete("extTitle");
+  //Set the title of the page
+  if (title) {
+    document.title = title;
+  }
   // Create the video element
   const video = document.createElement("hls-video");
   video.setAttribute("slot", "media");
   video.setAttribute("crossorigin", "");
   video.setAttribute("autoplay", "");
-  video.setAttribute("src", m3u8Url);
+  video.setAttribute("src", m3u8Url.href);
   // Append the video element to the media controller
   player.appendChild(video);
 
