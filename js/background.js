@@ -1,6 +1,6 @@
 // chrome.runtime.onInstalled.addListener(() => {
   chrome.webNavigation.onBeforeNavigate.addListener((details) => {
-    if (details.frameId === 0 && details.url.endsWith('.m3u8')) {
+    if (details.frameId === 0 && new URL(details.url).pathname.endsWith(".m3u8")) {
       const playerUrl = chrome.runtime.getURL('player.html') + '#' + details.url;
       console.log("Before Navigation", playerUrl);
       chrome.tabs.update({ url: playerUrl });
