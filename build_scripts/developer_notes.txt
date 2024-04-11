@@ -1,2 +1,3 @@
+Fix the controls being hidden in Fullscreen mode
 Support titles passing as url params
 Fix the m3u8 URL not being recognized
