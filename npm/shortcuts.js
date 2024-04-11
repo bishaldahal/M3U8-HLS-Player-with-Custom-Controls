@@ -81,10 +81,10 @@ button.addEventListener("click", function () {
   modal.style.display = "none";
 });
 
-video.addEventListener('dblclick', () => {
+player.addEventListener('dblclick', () => {
   if (!document.fullscreenElement) {
-    if (video.requestFullscreen) {
-      video.requestFullscreen();
+    if (player.requestFullscreen) {
+      player.requestFullscreen();
     }
   } else {
     if (document.exitFullscreen) {
