@@ -15,7 +15,7 @@
     "@plasmo-corp/ewu": "^0.6.0",
     "javascript-obfuscator": "^4.1.0",
     "terser": "^5.28.1",
-    "web-ext": "^7.11.0"
+    "web-ext": "^8.1.0"
   },
   "private": true
 }
