@@ -2,6 +2,11 @@
 
 Advanced M3U8/HLS player with customizable controls. Supports keyboard shortcuts, PIP mode, frame navigation, and live streams.
 
+### 📦 Store Downloads
+
+[![Microsoft Edge](https://img.shields.io/badge/Edge-Available_on_Edge_Store-0078D4?style=for-the-badge&logo=microsoftedge&logoColor=white)](https://microsoftedge.microsoft.com/addons/detail/m3u8hls-player-with-cust/bmlnobfgkikeejhbbdlhjinbmdcfgaef)
+[![Firefox](https://img.shields.io/badge/Firefox-Available_on_Firefox_Addons-FF7139?style=for-the-badge&logo=firefox&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/m3u8-hls-player-with-shortcuts/)
+
 ## Features
 
 - Customizable controls
