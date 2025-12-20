@@ -40,6 +40,10 @@
       ]
     }
   ],
+  "action": {
+    "default_title": "M3U8/HLS Player",
+    "default_popup": "popup.html"
+  },
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true

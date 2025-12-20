@@ -113,6 +113,7 @@ function handlePlaybackSpeed(key) {
   }
   
   video.playbackRate = newRate;
+  // Settings are auto-saved via ratechange event in player.js
 }
 
 /**

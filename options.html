@@ -1,13 +1,624 @@
 <!DOCTYPE html>
 <html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>HLS Player - Settings</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      color: #fff;
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      color: #888;
+      font-size: 14px;
+    }
+
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .card-icon {
+      font-size: 24px;
+    }
+
+    .card-title {
+      color: #fff;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .setting-group {
+      margin-bottom: 24px;
+    }
+
+    .setting-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .setting-label {
+      display: block;
+      color: #bbb;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .setting-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 12px 16px;
+      transition: all 0.2s;
+    }
+
+    .setting-control:focus-within {
+      border-color: #58a6ff;
+      background: rgba(88, 166, 255, 0.1);
+    }
+
+    .setting-control input[type="range"] {
+      flex: 1;
+      height: 6px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    .setting-control input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #58a6ff;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(88, 166, 255, 0.5);
+    }
+
+    .setting-control input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #58a6ff;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 2px 8px rgba(88, 166, 255, 0.5);
+    }
+
+    .setting-control input[type="number"] {
+      width: 80px;
+      padding: 8px 12px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #c9d1d9;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .setting-control input[type="number"]:focus {
+      outline: none;
+      border-color: #58a6ff;
+    }
+
+    .setting-value {
+      min-width: 50px;
+      text-align: right;
+      color: #58a6ff;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    button {
+      flex: 1;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      background: #238636;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #2ea043;
+    }
+
+    .btn-secondary {
+      background: #21262d;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+    }
+
+    .btn-secondary:hover {
+      background: #30363d;
+    }
+
+    .btn-danger {
+      background: #da3633;
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      background: #f85149;
+    }
+
+    /* History styles */
+    .history-list {
+      max-height: 500px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+
+    .history-list::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .history-list::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+    }
+
+    .history-list::-webkit-scrollbar-thumb {
+      background: #30363d;
+      border-radius: 4px;
+    }
+
+    .history-list::-webkit-scrollbar-thumb:hover {
+      background: #484f58;
+    }
+
+    .history-empty {
+      color: #6e7681;
+      text-align: center;
+      padding: 60px 20px;
+      font-size: 14px;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+    }
+
+    .history-item:hover {
+      background: #161b22;
+      border-color: #58a6ff;
+      transform: translateX(4px);
+    }
+
+    .history-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .history-title {
+      font-weight: 600;
+      font-size: 15px;
+      color: #fff;
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-url {
+      font-size: 11px;
+      color: #58a6ff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 6px;
+      font-family: 'Courier New', monospace;
+      opacity: 0.8;
+    }
+
+    .history-meta {
+      font-size: 12px;
+      color: #888;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .history-time {
+      color: #666;
+    }
+
+    .history-progress {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .history-progress-bar {
+      height: 100%;
+      background: #58a6ff;
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+
+    .history-actions {
+      display: flex;
+      gap: 8px;
+      margin-left: 16px;
+    }
+
+    .history-actions button {
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      font-size: 16px;
+      border-radius: 10px;
+      flex: none;
+    }
+
+    .btn-play {
+      background: #238636;
+      color: #fff;
+    }
+
+    .btn-play:hover {
+      background: #2ea043;
+    }
+
+    .btn-delete {
+      background: #21262d;
+      color: #8b949e;
+      border: 1px solid #30363d;
+    }
+
+    .btn-delete:hover {
+      background: #da3633;
+      color: #fff;
+      border-color: #da3633;
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      transform: translateX(400px);
+      background: #238636;
+      color: #fff;
+      padding: 16px 24px;
+      border-radius: 8px;
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      z-index: 1000;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      font-weight: 500;
+      border: 1px solid #2ea043;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    /* Toggle switch */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #30363d;
+      transition: 0.3s;
+      border-radius: 24px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #8b949e;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: #238636;
+    }
+
+    .toggle-switch input:checked + .toggle-slider:before {
+      background-color: #fff;
+      transform: translateX(24px);
+    }
+
+    /* Speed presets */
+    .speed-presets {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .speed-preset {
+      padding: 6px 12px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #c9d1d9;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .speed-preset:hover {
+      background: #30363d;
+      border-color: #58a6ff;
+    }
+
+    .speed-preset.active {
+      background: #58a6ff;
+      border-color: #58a6ff;
+      color: #fff;
+    }
+
+    .speed-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .speed-btn {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #c9d1d9;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .speed-btn:hover {
+      background: #30363d;
+      border-color: #58a6ff;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .speed-btn:active {
+      transform: scale(0.95);
+    }
+
+    .speed-display {
+      min-width: 60px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: #58a6ff;
+    }
+
+    .speed-reset {
+      padding: 6px 12px;
+      height: 36px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #c9d1d9;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .speed-reset:hover {
+      background: #30363d;
+      border-color: #58a6ff;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+    }
+
+    .toggle-label {
+      color: #c9d1d9;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
 <body>
   <div class="container">
-    <h2>Options</h2>
-    <label for="playback-speed">Playback Speed:</label>
-    <input type="number" id="playback-speed" min="0.1" max="5" step="0.1">
-    <br>
-    <label for="volume">Volume:</label>
-    <input type="range" id="volume" min="0" max="1" step="0.01">
+    <div class="header">
+      <img src="./icons/icon.svg" alt="App Icon" width="96" height="96">
+      <h1>HLS Player Settings</h1>
+      <p>Customize your streaming experience</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">🎛️</span>
+        <h2 class="card-title">Playback Settings</h2>
+      </div>
+
+      <div class="setting-group">
+        <label class="setting-label">Volume Level</label>
+        <div class="setting-control">
+          <span>🔈</span>
+          <input type="range" id="volume" min="0" max="1" step="0.01" value="1">
+          <span class="setting-value" id="volume-label">100%</span>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <label class="setting-label">Playback Speed</label>
+        <div class="setting-control">
+          <span>⏩</span>
+          <div class="speed-controls">
+            <button class="speed-btn" id="speed-decrease">−</button>
+            <span class="speed-display" id="speed-display">1.0×</span>
+            <button class="speed-btn" id="speed-increase">+</button>
+            <button class="speed-reset" id="speed-reset">Reset</button>
+          </div>
+        </div>
+        <div class="speed-presets">
+          <button class="speed-preset" data-speed="0.5">0.5×</button>
+          <button class="speed-preset" data-speed="0.75">0.75×</button>
+          <button class="speed-preset active" data-speed="1">1×</button>
+          <button class="speed-preset" data-speed="1.25">1.25×</button>
+          <button class="speed-preset" data-speed="1.5">1.5×</button>
+          <button class="speed-preset" data-speed="2">2×</button>
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button id="save-settings" class="btn-primary">
+          <span>💾</span>
+          <span>Save Settings</span>
+        </button>
+        <button id="reset-settings" class="btn-secondary">
+          <span>🔄</span>
+          <span>Reset to Defaults</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">📺</span>
+        <h2 class="card-title">Watch History</h2>
+      </div>
+
+      <div class="setting-group">
+        <div class="toggle-row">
+          <span class="toggle-label">Save watch history</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="save-history" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div id="history-list" class="history-list">
+        <div class="history-empty">Loading history...</div>
+      </div>
+
+      <div class="btn-group">
+        <button id="clear-history" class="btn-danger">
+          <span>🗑️</span>
+          <span>Clear All History</span>
+        </button>
+      </div>
+    </div>
   </div>
+
+  <script src="js/settings.js"></script>
+  <script src="js/options.js"></script>
 </body>
+
 </html>
