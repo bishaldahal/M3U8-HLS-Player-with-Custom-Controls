@@ -56,6 +56,19 @@
       background: #2ea043;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     }
+    .btn-secondary {
+      background: #21262d;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+    }
+    .btn-secondary:hover {
+      background: #30363d;
+      border-color: #58a6ff;
+    }
+    .btn-group {
+      display: flex;
+      gap: 12px;
+    }
     .history-header {
       padding: 12px 16px 8px;
       color: #888;
@@ -126,10 +139,16 @@
   </div>
   
   <div class="section">
-    <button id="open-options" class="btn">
-      <span class="icon">⚙️</span>
-      <span>Open Settings</span>
-    </button>
+    <div class="btn-group">
+      <button id="open-options" class="btn">
+        <span class="icon">⚙️</span>
+        <span>Settings</span>
+      </button>
+      <button id="open-shortcuts" class="btn-secondary">
+        <span class="icon">⌨️</span>
+        <span>Shortcuts</span>
+      </button>
+    </div>
   </div>
   
   <div class="history-header">Recent History</div>
@@ -137,6 +156,7 @@
     <div class="history-empty">Loading...</div>
   </div>
   
+  <script src="js/utils.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/popup.js"></script>
 </body>

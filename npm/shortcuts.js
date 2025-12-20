@@ -3,31 +3,46 @@
  * Handles all keyboard interactions and shortcuts documentation
  */
 
-// Keyboard shortcut definitions
-const SHORTCUTS = [
-  { key: '<', description: 'Decrease playback speed by 0.1' },
-  { key: '>', description: 'Increase playback speed by 0.1' },
-  { key: '-', description: 'Decrease playback speed by 0.5' },
-  { key: '+', description: 'Increase playback speed by 0.5' },
-  { key: 'ArrowDown (↓)', description: 'Decrease volume by 0.1' },
-  { key: 'ArrowUp (↑)', description: 'Increase volume by 0.1' },
-  { key: 'ArrowLeft (←)', description: 'Seek backward 10 seconds' },
-  { key: 'ArrowRight (→)', description: 'Seek forward 10 seconds' },
-  { key: 'p', description: 'Request Picture in Picture' },
-  { key: 'P', description: 'Exit Picture in Picture' },
-  { key: 'j', description: 'Seek backward 5 seconds' },
-  { key: 'Space / k', description: 'Toggle play/pause' },
-  { key: 'l', description: 'Seek forward 5 seconds' },
-  { key: ',', description: 'Previous frame' },
-  { key: '.', description: 'Next frame' },
-  { key: 'Home', description: 'Seek to the beginning of the video' },
-  { key: 'End', description: 'Seek to the end of the video' },
-  { key: '0-9', description: 'Seek to a percentage of the video' },
-  { key: 'Esc', description: 'Close keyboard shortcuts' },
-  { key: '?', description: 'Toggle keyboard shortcuts' },
-  { key: 'f', description: 'Toggle fullscreen' },
-  { key: 'm', description: 'Toggle mute' },
-];
+// Keyboard shortcut definitions organized by category
+const SHORTCUTS_BY_CATEGORY = {
+  'Playback Control': [
+    { key: 'Space / k', description: 'Toggle play/pause' },
+    { key: 'Home', description: 'Seek to the beginning' },
+    { key: 'End', description: 'Seek to the end' },
+    { key: '0-9', description: 'Seek to percentage (0%-90%)' },
+  ],
+  'Navigation': [
+    { key: 'ArrowLeft (←)', description: 'Seek backward 10 seconds' },
+    { key: 'ArrowRight (→)', description: 'Seek forward 10 seconds' },
+    { key: 'j', description: 'Seek backward 5 seconds' },
+    { key: 'l', description: 'Seek forward 5 seconds' },
+  ],
+  'Playback Speed': [
+    { key: '<', description: 'Decrease speed by 0.1' },
+    { key: '>', description: 'Increase speed by 0.1' },
+    { key: '-', description: 'Decrease speed by 0.5' },
+    { key: '+', description: 'Increase speed by 0.5' },
+  ],
+  'Volume Control': [
+    { key: 'ArrowUp (↑)', description: 'Increase volume by 0.1' },
+    { key: 'ArrowDown (↓)', description: 'Decrease volume by 0.1' },
+    { key: 'm', description: 'Toggle mute' },
+  ],
+  'Frame Navigation': [
+    { key: ',', description: 'Previous frame' },
+    { key: '.', description: 'Next frame' },
+  ],
+  'View Controls': [
+    { key: 'f', description: 'Toggle fullscreen' },
+    { key: 'p', description: 'Enter Picture in Picture' },
+    { key: 'P', description: 'Exit Picture in Picture' },
+    { key: '?', description: 'Toggle keyboard shortcuts' },
+    { key: 'Esc', description: 'Close shortcuts panel' },
+  ],
+};
+
+// Legacy flat array for backward compatibility
+const SHORTCUTS = Object.values(SHORTCUTS_BY_CATEGORY).flat();
 
 // Number key to percentage mapping
 const KEY_TO_PERCENTAGE = {
@@ -36,32 +51,102 @@ const KEY_TO_PERCENTAGE = {
 };
 
 /**
- * Generate HTML documentation for keyboard shortcuts
- * @param {Array} shortcuts - Array of shortcut definitions
- * @returns {HTMLElement} - UL element containing shortcuts
+ * Generate HTML documentation for keyboard shortcuts with categories
+ * @param {Object} shortcutsByCategory - Object with categories as keys and shortcuts arrays as values
+ * @returns {HTMLElement} - Container element with categorized shortcuts
  */
-function generateShortcutsDocumentation(shortcuts) {
-  const shortcutsList = document.createElement('ul');
+function generateShortcutsDocumentation(shortcutsByCategory) {
+  const container = document.createElement('div');
   
-  shortcuts.forEach((shortcut) => {
-    const li = document.createElement('li');
-    const code = document.createElement('code');
+  Object.entries(shortcutsByCategory).forEach(([category, shortcuts]) => {
+    const categoryDiv = document.createElement('div');
+    categoryDiv.className = 'shortcuts-category';
+    categoryDiv.dataset.category = category;
     
-    const keyBinding = document.createElement('span');
-    keyBinding.className = 'key-binding';
+    const categoryTitle = document.createElement('h3');
+    categoryTitle.className = 'category-title';
+    categoryTitle.textContent = category;
+    categoryDiv.appendChild(categoryTitle);
     
-    const key = document.createElement('span');
-    key.className = 'key';
-    key.textContent = shortcut.key;
+    const shortcutsList = document.createElement('ul');
+    // Use full-width for categories with 2 or fewer items
+    if (shortcuts.length <= 2) {
+      shortcutsList.className = 'full-width';
+    }
     
-    keyBinding.appendChild(key);
-    code.appendChild(keyBinding);
-    code.insertAdjacentText('beforeend', ` ${shortcut.description}`);
-    li.appendChild(code);
-    shortcutsList.appendChild(li);
+    shortcuts.forEach((shortcut) => {
+      const li = document.createElement('li');
+      li.dataset.searchText = `${shortcut.key} ${shortcut.description}`.toLowerCase();
+      
+      const code = document.createElement('code');
+      
+      const descSpan = document.createElement('span');
+      descSpan.className = 'shortcut-desc';
+      descSpan.textContent = shortcut.description;
+      
+      const keyBinding = document.createElement('span');
+      keyBinding.className = 'key-binding';
+      
+      const key = document.createElement('span');
+      key.className = 'key';
+      key.textContent = shortcut.key;
+      
+      keyBinding.appendChild(key);
+      code.appendChild(descSpan);
+      code.appendChild(keyBinding);
+      li.appendChild(code);
+      shortcutsList.appendChild(li);
+    });
+    
+    categoryDiv.appendChild(shortcutsList);
+    container.appendChild(categoryDiv);
   });
   
-  return shortcutsList;
+  return container;
+}
+
+/**
+ * Setup search functionality for shortcuts
+ */
+function setupShortcutsSearch() {
+  const searchInput = document.getElementById('shortcuts-search');
+  const categories = document.querySelectorAll('.shortcuts-category');
+  
+  if (!searchInput) return;
+  
+  searchInput.addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase().trim();
+    
+    categories.forEach(category => {
+      const items = category.querySelectorAll('li');
+      let visibleCount = 0;
+      
+      items.forEach(item => {
+        const searchText = item.dataset.searchText || '';
+        if (!query || searchText.includes(query)) {
+          item.style.display = '';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+      
+      // Hide category if no visible items
+      category.style.display = visibleCount > 0 ? '' : 'none';
+    });
+  });
+  
+  // Focus search on modal open
+  const modal = document.getElementById('keyboard-shortcuts');
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.attributeName === 'style' && modal.style.display === 'block') {
+        setTimeout(() => searchInput.focus(), 50);
+      }
+    });
+  });
+  
+  observer.observe(modal, { attributes: true });
 }
 
 /**
@@ -144,6 +229,9 @@ function setupKeyboardHandlers() {
     }
     if (event.key === 'Escape') {
       modal.style.display = 'none';
+      // Clear search when closing
+      const searchInput = document.getElementById('shortcuts-search');
+      if (searchInput) searchInput.value = '';
     }
     focusVideo();
   });
@@ -151,6 +239,9 @@ function setupKeyboardHandlers() {
   // Close button handler
   closeButton.addEventListener('click', () => {
     modal.style.display = 'none';
+    // Clear search when closing
+    const searchInput = document.getElementById('shortcuts-search');
+    if (searchInput) searchInput.value = '';
   });
   
   // Double-click fullscreen toggle
@@ -232,23 +323,36 @@ function setupKeyboardHandlers() {
  * Initialize shortcuts module
  */
 function initShortcuts() {
-  // Generate and append shortcuts documentation
-  const shortcutsContainer = document.getElementById('keyboard-shortcuts');
+  // Check if we're in player.html context (has player/video variables)
+  const isPlayerContext = typeof player !== 'undefined' && typeof video !== 'undefined';
+  
+  // Handle player.html modal (with shortcuts-list container and search)
+  const shortcutsContainer = document.getElementById('shortcuts-list');
   if (shortcutsContainer) {
-    shortcutsContainer.appendChild(generateShortcutsDocumentation(SHORTCUTS));
+    shortcutsContainer.appendChild(generateShortcutsDocumentation(SHORTCUTS_BY_CATEGORY));
+    setupShortcutsSearch();
   }
   
-  // Setup keyboard handlers (wait for player to be ready)
-  if (player && video) {
+  // Handle standalone shortcuts.html page (with shortcuts-container)
+  const standaloneContainer = document.getElementById('shortcuts-container');
+  if (standaloneContainer && !shortcutsContainer) {
+    standaloneContainer.appendChild(generateShortcutsDocumentation(SHORTCUTS_BY_CATEGORY));
+  }
+  
+  // Setup keyboard handlers only if in player context
+  if (isPlayerContext) {
     setupKeyboardHandlers();
-  } else {
-    // Wait for player initialization
+  } else if (shortcutsContainer && !isPlayerContext) {
+    // In player.html but player not ready yet - wait for initialization
     const checkInterval = setInterval(() => {
-      if (player && video) {
+      if (typeof player !== 'undefined' && typeof video !== 'undefined') {
         clearInterval(checkInterval);
         setupKeyboardHandlers();
       }
     }, 100);
+    
+    // Stop checking after 5 seconds to prevent infinite loop
+    setTimeout(() => clearInterval(checkInterval), 5000);
   }
 }
 

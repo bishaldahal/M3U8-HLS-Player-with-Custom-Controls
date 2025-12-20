@@ -415,11 +415,11 @@
       border-radius: 50%;
     }
 
-    .toggle-switch input:checked + .toggle-slider {
+    .toggle-switch input:checked+.toggle-slider {
       background-color: #238636;
     }
 
-    .toggle-switch input:checked + .toggle-slider:before {
+    .toggle-switch input:checked+.toggle-slider:before {
       background-color: #fff;
       transform: translateX(24px);
     }
@@ -561,18 +561,28 @@
           <span>⏩</span>
           <div class="speed-controls">
             <button class="speed-btn" id="speed-decrease">−</button>
-            <span class="speed-display" id="speed-display">1.0×</span>
+            <span class="speed-display" id="speed-display">1.0x</span>
             <button class="speed-btn" id="speed-increase">+</button>
             <button class="speed-reset" id="speed-reset">Reset</button>
           </div>
         </div>
         <div class="speed-presets">
-          <button class="speed-preset" data-speed="0.5">0.5×</button>
-          <button class="speed-preset" data-speed="0.75">0.75×</button>
-          <button class="speed-preset active" data-speed="1">1×</button>
-          <button class="speed-preset" data-speed="1.25">1.25×</button>
-          <button class="speed-preset" data-speed="1.5">1.5×</button>
-          <button class="speed-preset" data-speed="2">2×</button>
+          <button class="speed-preset" data-speed="0.5">0.5x</button>
+          <button class="speed-preset" data-speed="0.75">0.75x</button>
+          <button class="speed-preset active" data-speed="1">1x</button>
+          <button class="speed-preset" data-speed="1.25">1.25x</button>
+          <button class="speed-preset" data-speed="1.5">1.5x</button>
+          <button class="speed-preset" data-speed="2">2x</button>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <div class="toggle-row">
+          <span class="toggle-label">Save watch history</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="save-history" checked>
+            <span class="toggle-slider"></span>
+          </label>
         </div>
       </div>
 
@@ -594,16 +604,6 @@
         <h2 class="card-title">Watch History</h2>
       </div>
 
-      <div class="setting-group">
-        <div class="toggle-row">
-          <span class="toggle-label">Save watch history</span>
-          <label class="toggle-switch">
-            <input type="checkbox" id="save-history" checked>
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-      </div>
-
       <div id="history-list" class="history-list">
         <div class="history-empty">Loading history...</div>
       </div>
@@ -617,6 +617,7 @@
     </div>
   </div>
 
+  <script src="js/utils.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/options.js"></script>
 </body>

@@ -9,7 +9,8 @@
     "obsfuscate": "npx javascript-obfuscator js --output js",
     "zip": "node build_scripts/zip.js",
     "publish": "node build_scripts/publish.js",
-    "build": "npm run download-deps && npm run minify",
+    "copy": "node build_scripts/build.js",
+    "build": "npm run download-deps && npm run copy && npm run minify",
     "release:minify": "npm run build && npm run zip",
     "release:obfuscate": "npm run obsfuscate && npm run zip",
     "minify": "npx terser npm/player.js npm/shortcuts.js -c sequences=true,dead_code=true,conditionals=true,booleans=true,unused=true,if_return=true,join_vars=true,drop_console=true -m toplevel=true -o js/player.min.js"

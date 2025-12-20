@@ -6,40 +6,6 @@
 // DOM Elements
 let historyList;
 
-/**
- * Format seconds to MM:SS or HH:MM:SS
- */
-function formatTime(seconds) {
-  if (!seconds || seconds <= 0) return '0:00';
-  
-  const hrs = Math.floor(seconds / 3600);
-  const mins = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-  
-  if (hrs > 0) {
-    return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  }
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-}
-
-/**
- * Format timestamp to relative time
- */
-function formatRelativeTime(timestamp) {
-  const now = Date.now();
-  const diff = now - timestamp;
-  
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-  
-  if (minutes < 1) return 'Just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days < 7) return `${days}d ago`;
-  
-  return new Date(timestamp).toLocaleDateString();
-}
 
 /**
  * Load and display recent watch history
@@ -95,6 +61,13 @@ function init() {
   // Open options button
   document.getElementById('open-options').addEventListener('click', () => {
     chrome.runtime.openOptionsPage();
+    window.close();
+  });
+  
+  // Open shortcuts button
+  document.getElementById('open-shortcuts').addEventListener('click', () => {
+    const shortcutsUrl = chrome.runtime.getURL('shortcuts.html');
+    chrome.tabs.create({ url: shortcutsUrl });
     window.close();
   });
   
