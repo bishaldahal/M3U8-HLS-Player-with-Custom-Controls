@@ -4,6 +4,7 @@ js/vendor/
 build/
 js/
 *.zip
+manifest.json
 
 # Keep platform-specific manifests but track them
 # manifest.json is auto-generated during build
