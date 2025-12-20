@@ -13,9 +13,9 @@ const VENDOR_DIR = join(__dirname, '..', 'js', 'vendor');
 
 // CDN URLs for dependencies
 const DEPENDENCIES = {
-  'hls.js': 'https://cdn.jsdelivr.net/npm/hls.js@1.5.7/+esm',
+  'hls.js': 'https://cdn.jsdelivr.net/npm/hls.js/+esm',
   'custom-media-element.js': 'https://cdn.jsdelivr.net/npm/custom-media-element/+esm',
-  'media-chrome.js': 'https://cdn.jsdelivr.net/npm/media-chrome@3.1.1/+esm',
+  'media-chrome.js': 'https://cdn.jsdelivr.net/npm/media-chrome@3.1.1/+esm', // Pinned to 3.1.1 for compatibility
   'hls-video-element.js': 'https://cdn.jsdelivr.net/npm/hls-video-element/+esm',
   'media-tracks.js': 'https://cdn.jsdelivr.net/npm/media-tracks/+esm',
 };
