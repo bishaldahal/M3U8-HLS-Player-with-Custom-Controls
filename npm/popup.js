@@ -34,7 +34,7 @@ async function loadHistoryUI() {
     
     item.innerHTML = `
       <div class="history-info">
-        <div class="history-title" title="${entry.url}">${entry.title}</div>
+        <div class="history-title" title="${escapeHtml(entry.url)}">${escapeHtml(entry.title)}</div>
         <div class="history-meta">
           ${entry.duration > 0 
             ? `${formatTime(entry.currentTime)} / ${formatTime(entry.duration)}`
@@ -53,6 +53,15 @@ async function loadHistoryUI() {
     
     historyList.appendChild(item);
   });
+}
+
+/**
+ * Escape HTML to prevent XSS
+ */
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 /**

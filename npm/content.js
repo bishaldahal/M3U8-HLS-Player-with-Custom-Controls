@@ -52,15 +52,24 @@ if (isM3U8Url(window.location.href)) {
     command: 'PLAY_M3U8', 
     url: window.location.href 
   }).then(() => {
-    // Show a message while redirecting
-    document.body.innerHTML = `
-      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; background: #1a1a1a; color: white;">
-        <div style="text-align: center;">
-          <h2>Opening M3U8 Stream...</h2>
-          <p>Redirecting to HLS Player</p>
-        </div>
-      </div>
-    `;
+    // Show a message while redirecting - safe static content
+    document.body.innerHTML = '';
+    const container = document.createElement('div');
+    container.style.cssText = 'display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; background: #1a1a1a; color: white;';
+    
+    const content = document.createElement('div');
+    content.style.textAlign = 'center';
+    
+    const h2 = document.createElement('h2');
+    h2.textContent = 'Opening M3U8 Stream...';
+    
+    const p = document.createElement('p');
+    p.textContent = 'Redirecting to HLS Player';
+    
+    content.appendChild(h2);
+    content.appendChild(p);
+    container.appendChild(content);
+    document.body.appendChild(container);
   }).catch(error => {
     console.error('Error opening M3U8 stream:', error);
   });

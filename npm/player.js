@@ -46,13 +46,27 @@ function playStream(url) {
     return videoElement;
   } catch (error) {
     console.error('Failed to play stream:', error);
-    document.body.innerHTML = `
-      <div style="color: white; padding: 20px; font-family: sans-serif;">
-        <h1>Error Loading Stream</h1>
-        <p>Failed to parse URL: ${error.message}</p>
-        <p>URL: ${url}</p>
-      </div>
-    `;
+    
+    // Create error display safely without XSS vulnerability
+    const errorDiv = document.createElement('div');
+    errorDiv.style.cssText = 'color: white; padding: 20px; font-family: sans-serif;';
+    
+    const h1 = document.createElement('h1');
+    h1.textContent = 'Error Loading Stream';
+    
+    const p1 = document.createElement('p');
+    p1.textContent = `Failed to parse URL: ${error.message}`;
+    
+    const p2 = document.createElement('p');
+    p2.textContent = `URL: ${url}`;
+    
+    errorDiv.appendChild(h1);
+    errorDiv.appendChild(p1);
+    errorDiv.appendChild(p2);
+    
+    document.body.innerHTML = '';
+    document.body.appendChild(errorDiv);
+    
     return null;
   }
 }
