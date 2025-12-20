@@ -3,6 +3,9 @@
  * Quick access to recent history and settings
  */
 
+// Cross-browser compatibility: Use browser API if available, fall back to chrome
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+
 // DOM Elements
 let historyList;
 
@@ -43,8 +46,8 @@ async function loadHistoryUI() {
     
     // Click to play
     item.addEventListener('click', () => {
-      const playerUrl = chrome.runtime.getURL('player.html');
-      chrome.tabs.create({ url: `${playerUrl}#${entry.url}` });
+      const playerUrl = browserAPI.runtime.getURL('player.html');
+      browserAPI.tabs.create({ url: `${playerUrl}#${entry.url}` });
       window.close();
     });
     
@@ -60,14 +63,14 @@ function init() {
   
   // Open options button
   document.getElementById('open-options').addEventListener('click', () => {
-    chrome.runtime.openOptionsPage();
+    browserAPI.runtime.openOptionsPage();
     window.close();
   });
   
   // Open shortcuts button
   document.getElementById('open-shortcuts').addEventListener('click', () => {
-    const shortcutsUrl = chrome.runtime.getURL('shortcuts.html');
-    chrome.tabs.create({ url: shortcutsUrl });
+    const shortcutsUrl = browserAPI.runtime.getURL('shortcuts.html');
+    browserAPI.tabs.create({ url: shortcutsUrl });
     window.close();
   });
   

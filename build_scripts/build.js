@@ -13,6 +13,8 @@ const rootDir = path.join(__dirname, '..');
 
 // Files to copy from npm/ to js/
 const FILES_TO_COPY = [
+  'background.js',
+  'content.js',
   'settings.js',
   'options.js',
   'popup.js',

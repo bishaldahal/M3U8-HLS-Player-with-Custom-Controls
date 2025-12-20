@@ -17,9 +17,29 @@ Advanced M3U8/HLS player with customizable controls. Supports keyboard shortcuts
 
 ## Installation
 
-1. Go to the [Releases](https://github.com/bishaldahal/Customized-m3u8-Video-Player-Extension/releases) section of this repository.
-2. Download the latest release zip file.
-3. Unzip the downloaded file.
+### From Store
+- [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/m3u8hls-player-with-cust/bmlnobfgkikeejhbbdlhjinbmdcfgaef)
+- [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/m3u8-hls-player-with-shortcuts/)
+
+### From Source
+
+```bash
+git clone https://github.com/bishaldahal/Customized-m3u8-Video-Player-Extension.git
+cd Customized-m3u8-Video-Player-Extension
+npm install
+npm run build:chrome    # or npm run build:firefox
+```
+
+Load unpacked: Chrome (`chrome://extensions`) or Firefox (`about:debugging`)
+
+## Development
+
+```bash
+npm run build              # Build source files
+npm run build:chrome       # Build + package for Chrome/Edge
+npm run build:firefox      # Build + package for Firefox
+npm run build:all          # Build both platforms
+```
 
 ## Usage
 

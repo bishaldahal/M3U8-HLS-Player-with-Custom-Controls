@@ -3,6 +3,9 @@
  * Handles settings UI and watch history management
  */
 
+// Cross-browser compatibility: Use browser API if available, fall back to chrome
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+
 // DOM Elements
 let volumeInput, saveBtn, resetBtn;
 let historyList, clearHistoryBtn, saveHistoryToggle;
@@ -186,8 +189,8 @@ async function loadHistoryUI() {
       
       // Play button
       item.querySelector('.btn-play').addEventListener('click', () => {
-        const playerUrl = chrome.runtime.getURL('player.html');
-        chrome.tabs.create({ url: `${playerUrl}#${entry.url}` });
+        const playerUrl = browserAPI.runtime.getURL('player.html');
+        browserAPI.tabs.create({ url: `${playerUrl}#${entry.url}` });
       });
       
       // Delete button

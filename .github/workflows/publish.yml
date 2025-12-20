@@ -1,0 +1,49 @@
+name: Publish Extension
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build Chrome
+      run: npm run build:chrome
+    
+    - name: Build Firefox
+      run: npm run build:firefox
+    
+    - name: Publish to Edge Store
+      run: node build_scripts/publish.js chrome
+      env:
+        CLIENT_ID: ${{ secrets.CLIENT_ID }}
+        CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+        PRODUCT_ID: ${{ secrets.PRODUCT_ID }}
+        ACCESS_TOKEN_URL: ${{ secrets.ACCESS_TOKEN_URL }}
+    
+    - name: Publish to Firefox
+      run: node build_scripts/publish.js firefox
+      env:
+        WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+        WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          build/*.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

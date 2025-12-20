@@ -16,14 +16,17 @@ const DEFAULT_SETTINGS = {
 const MAX_HISTORY_ENTRIES = 50;
 
 /**
- * Get storage API (chrome.storage or fallback to localStorage wrapper)
+ * Get storage API (chrome.storage or browser.storage or fallback to localStorage wrapper)
  */
 function getStorage() {
-  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+  // Try browser API first (Firefox), then chrome API
+  const browserAPI = typeof browser !== 'undefined' ? browser : (typeof chrome !== 'undefined' ? chrome : null);
+  
+  if (browserAPI && browserAPI.storage && browserAPI.storage.local) {
     return {
-      get: (keys) => chrome.storage.local.get(keys),
-      set: (items) => chrome.storage.local.set(items),
-      remove: (keys) => chrome.storage.local.remove(keys),
+      get: (keys) => browserAPI.storage.local.get(keys),
+      set: (items) => browserAPI.storage.local.set(items),
+      remove: (keys) => browserAPI.storage.local.remove(keys),
     };
   }
   // Fallback for non-extension contexts

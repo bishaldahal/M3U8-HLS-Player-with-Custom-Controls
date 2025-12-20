@@ -7,8 +7,7 @@
     "webNavigation",
     "tabs",
     "storage",
-    "activeTab",
-    "declarativeContent"
+    "activeTab"
   ],
   "host_permissions": [
     "*://*/*",
@@ -49,8 +48,7 @@
     "open_in_tab": true
   },
   "background": {
-    "service_worker": "js/background.js",
-    "type": "module"
+    "scripts": ["js/background.js"]
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval' ; object-src 'self' ;"
@@ -60,5 +58,10 @@
     "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
+  },
+  "browser_specific_settings": {
+  "gecko": {
+    "id": "1dcebb07-6afe-48b8-9b52-2dd1d15979e4"
   }
+}
 }
