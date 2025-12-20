@@ -1,14 +1,21 @@
-const fs = require('fs');
-const path = require('path');
-const archiver = require('archiver');
-const extensionName = require("../manifest.json").name.replace(/[\s\/]/g, "-");
+import fs from 'fs';
+import path from 'path';
+import archiver from 'archiver';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const projectRoot = path.resolve(__dirname, '..');
+const manifest = JSON.parse(fs.readFileSync(path.join(projectRoot, 'manifest.json'), 'utf8'));
+const extensionName = manifest.name.replace(/[\s\/]/g, "-");
 
 // Get current date
 const date = new Date();
 const formattedDate = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
 
 // Define the output directory and filename
-const outputDir = path.resolve(__dirname, '..', 'build');
+const outputDir = path.join(projectRoot, 'build');
 const outputFile = path.join(outputDir, `${extensionName}.Chromium.-${formattedDate}.zip`);
 
 // Ensure the output directory exists
@@ -19,8 +26,6 @@ const oldZipFiles = fs.readdirSync(outputDir).filter(file => file.endsWith('.zip
 for (const file of oldZipFiles) {
   fs.unlinkSync(path.join(outputDir, file));
 }
-
-const projectRoot = path.resolve(__dirname, '..');
 
 // Create output stream
 const output = fs.createWriteStream(outputFile);
@@ -64,7 +69,9 @@ archive.glob('**', {
     '.github/**',
     '.gitattributes',
     'LICENSE',
-    '.DS_Store'
+    '.DS_Store',
+    'manifest-chrome.json',
+    'manifest-firefox.json'
   ]
 });
 
