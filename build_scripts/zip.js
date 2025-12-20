@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const archiver = require('archiver');
 const extensionName = require("../manifest.json").name.replace(/[\s\/]/g, "-");
 
 // Get current date
@@ -20,9 +20,52 @@ for (const file of oldZipFiles) {
   fs.unlinkSync(path.join(outputDir, file));
 }
 
-// Define the 7z command
-// const command = `"Z:\\Programs\\7-Zip\\7z" a -tzip -r "${outputFile}" . -x!node_modules -x!.vscode -x!original -x!package.json -x!package-lock.json -x!README.md -x!extension.zip -x!.git -x!.gitignore`;
-const command = `7z a -tzip -r "${outputFile}" . -x!node_modules -x!.vscode -x!npm -x!package.json -x!package-lock.json -x!README.md -x!extension.zip -x!.git -x!.gitignore -x!build_scripts -x!build -x!.github -x!.gitattributes -x!LICENSE -x!.vscode`;
+const projectRoot = path.resolve(__dirname, '..');
 
-// Execute the command
-execSync(command, { stdio: 'inherit' });
+// Create output stream
+const output = fs.createWriteStream(outputFile);
+const archive = archiver('zip', {
+  zlib: { level: 9 }
+});
+
+// Handle stream events
+output.on('close', () => {
+  console.log(`Successfully created: ${outputFile} (${archive.pointer()} bytes)`);
+});
+
+archive.on('error', (err) => {
+  console.error('Archive error:', err);
+  process.exit(1);
+});
+
+output.on('error', (err) => {
+  console.error('Output error:', err);
+  process.exit(1);
+});
+
+// Pipe archive to output
+archive.pipe(output);
+
+// Add files with glob patterns to exclude specific items
+archive.glob('**', {
+  cwd: projectRoot,
+  ignore: [
+    'node_modules/**',
+    '.vscode/**',
+    'npm/**',
+    'package.json',
+    'package-lock.json',
+    'README.md',
+    'extension.zip',
+    '.git/**',
+    '.gitignore',
+    'build_scripts/**',
+    'build/**',
+    '.github/**',
+    '.gitattributes',
+    'LICENSE',
+    '.DS_Store'
+  ]
+});
+
+archive.finalize();
