@@ -45,6 +45,7 @@ if (platform === "firefox") {
         artifactsDir: outputDir,
         apiKey: WEB_EXT_API_KEY,
         apiSecret: WEB_EXT_API_SECRET,
+        amoBaseUrl: "https://addons.mozilla.org/api/v5/",
         channel: "listed",
         uploadSource: true,
         approvalNotes: "Automated release ${{ github.ref_name }} - ${{ github.sha }}. See changelog for details."
