@@ -1,2 +1,11 @@
 node_modules
 js/player.min.js
+js/vendor/
+build/
+js/
+*.zip
+manifest.json
+icons/icon*.png
+
+# Keep platform-specific manifests but track them
+# manifest.json is auto-generated during build
