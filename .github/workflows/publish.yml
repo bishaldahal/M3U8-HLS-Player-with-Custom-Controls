@@ -35,6 +35,7 @@ jobs:
     
     - name: Publish to Firefox
       run: node build_scripts/publish.js firefox
+      timeout-minutes: 2
       env:
         WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
         WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}

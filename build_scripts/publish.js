@@ -46,7 +46,7 @@ if (platform === "firefox") {
         apiKey: WEB_EXT_API_KEY,
         apiSecret: WEB_EXT_API_SECRET,
         amoBaseUrl: "https://addons.mozilla.org/api/v5/",
-        channel: "unlisted",
+        channel: "listed",
         uploadSource: true,
         approvalNotes: "Automated release ${{ github.ref_name }} - ${{ github.sha }}. See changelog for details."
       })
