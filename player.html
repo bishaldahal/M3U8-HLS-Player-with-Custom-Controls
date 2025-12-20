@@ -1,11 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8" />
-    <title></title>
-    <script type="module" src="js/hls-player.js"></script>
-    <script type="module" src="js/hls-controller.js"></script>
+    <title>HLS Player</title>
+    <!-- Vendor libraries - hls-video-element imports its dependencies internally -->
+    <script type="module" src="js/vendor/hls-video-element.js"></script>
+    <script type="module" src="js/vendor/media-chrome.js"></script>
+    <!-- Player application code -->
     <script type="module" src="js/player.min.js"></script>
     <style>
         body {

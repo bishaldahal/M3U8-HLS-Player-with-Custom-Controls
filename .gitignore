@@ -1,4 +1,5 @@
 node_modules
 js/player.min.js
+js/vendor/
 build/
 *.zip

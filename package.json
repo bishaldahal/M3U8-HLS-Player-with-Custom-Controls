@@ -1,13 +1,16 @@
 {
   "name": "m3u8-hls-player-with-custom-keyboard-shortcuts",
   "displayName": "M3U8-HLS Player with Custom Keyboard Shortcuts",
-  "version": "1.3.1",
+  "version": "1.3.2",
+  "type": "module",
   "scripts": {
+    "download-deps": "node build_scripts/download-deps.js",
     "start:chrome": "web-ext run -t chromium",
     "obsfuscate": "npx javascript-obfuscator js --output js",
     "zip": "node build_scripts/zip.js",
     "publish": "node build_scripts/publish.js",
-    "release:minify": "npm run minify && npm run zip",
+    "build": "npm run download-deps && npm run minify",
+    "release:minify": "npm run build && npm run zip",
     "release:obfuscate": "npm run obsfuscate && npm run zip",
     "minify": "npx terser npm/player.js npm/shortcuts.js -c sequences=true,dead_code=true,conditionals=true,booleans=true,unused=true,if_return=true,join_vars=true,drop_console=true -m toplevel=true -o js/player.min.js"
   },
