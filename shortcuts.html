@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>HLS Player - Keyboard Shortcuts</title>
+  <link rel="stylesheet" href="css/theme.css">
   <style>
     * {
       box-sizing: border-box;
@@ -12,8 +13,8 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: #0d1117;
-      color: #c9d1d9;
+      background: var(--bg-primary);
+      color: var(--text-secondary);
       min-height: 100vh;
       padding: 40px 20px;
     }
@@ -25,32 +26,36 @@
 
     .header {
       text-align: center;
-      margin-bottom: 40px;
+      margin-bottom: 48px;
     }
 
     .header h1 {
-      color: #fff;
-      font-size: 32px;
-      font-weight: 600;
-      margin-bottom: 8px;
+      color: var(--text-primary);
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .header p {
-      color: #8b949e;
-      font-size: 14px;
+      color: var(--text-muted);
+      font-size: 15px;
     }
 
     .shortcuts-category {
-      margin-bottom: 32px;
+      margin-bottom: 36px;
     }
 
     .category-title {
       font-size: 16px;
       font-weight: 600;
-      color: #58a6ff;
-      margin-bottom: 12px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid #21262d;
+      color: var(--accent-blue);
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
     }
 
     ul {
@@ -59,7 +64,7 @@
       margin: 0;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 10px;
+      gap: 12px;
     }
 
     ul.full-width {
@@ -75,18 +80,19 @@
       flex-direction: row;
       justify-content: space-between;
       align-items: center;
-      padding: 14px 18px;
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 8px;
+      padding: 16px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
       font-size: 14px;
-      color: #c9d1d9;
-      transition: all 0.2s;
+      color: var(--text-secondary);
+      transition: all 0.25s;
     }
 
     code:hover {
-      background: #1c2128;
-      border-color: #58a6ff;
+      background: var(--bg-hover);
+      border-color: var(--accent-blue);
+      transform: translateX(4px);
     }
 
     .shortcut-desc {
@@ -96,42 +102,55 @@
     .key-binding {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
 
     .key-binding .key {
       display: inline-block;
-      padding: 4px 10px;
-      background: #21262d;
-      border: 1px solid #30363d;
-      border-radius: 6px;
-      color: #c9d1d9;
-      font: 12px 'Monaco', 'Courier New', monospace;
+      padding: 6px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      font: 12px 'Monaco', 'Menlo', 'Consolas', monospace;
       font-weight: 600;
-      min-width: 28px;
+      min-width: 32px;
       text-align: center;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     }
 
     .key-binding .modifier {
-      background: #58a6ff;
-      border-color: #58a6ff;
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
       color: #fff;
     }
 
     .note {
-      margin-top: 40px;
-      padding: 20px;
-      background: rgba(88, 166, 255, 0.1);
-      border: 1px solid rgba(88, 166, 255, 0.3);
-      border-radius: 8px;
-      color: #8b949e;
-      font-size: 13px;
-      line-height: 1.6;
+      margin-top: 48px;
+      padding: 24px;
+      background: rgba(59, 130, 246, 0.08);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 12px;
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.7;
     }
 
     .note strong {
-      color: #58a6ff;
+      color: var(--accent-blue);
+    }
+
+    .note .key {
+      display: inline-block;
+      padding: 4px 10px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      font: 12px 'Monaco', 'Menlo', 'Consolas', monospace;
+      font-weight: 600;
+      margin: 0 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
   </style>
 </head>
@@ -145,10 +164,12 @@
     <div id="shortcuts-container"></div>
 
     <div class="note">
-      <strong>💡 Pro Tip:</strong> Press <span class="key" style="display: inline-block; padding: 4px 8px; margin: 0 4px;">?</span> while watching a video to quickly view these shortcuts. All keyboard controls work when the video player is focused.
+      <strong>💡 Pro Tip:</strong> Press <span class="key">?</span> while watching a video to quickly view these shortcuts. All keyboard controls work when the video player is focused.
     </div>
   </div>
 
+  <script src="js/utils.js"></script>
+  <script src="js/settings.js"></script>
   <script src="js/shortcuts.js"></script>
 </body>
 </html>

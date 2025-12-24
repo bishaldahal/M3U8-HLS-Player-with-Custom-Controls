@@ -1,19 +1,48 @@
 # M3U8/HLS Player with Custom Controls
 
-Advanced M3U8/HLS player with customizable controls. Supports keyboard shortcuts, PIP mode, frame navigation, and live streams.
+Advanced M3U8/HLS player with customizable controls. Supports keyboard shortcuts, PIP mode, frame navigation, live streams, and stream debugging.
 
 ### 📦 Store Downloads
 
 [![Microsoft Edge](https://img.shields.io/badge/Edge-Available_on_Edge_Store-0078D4?style=for-the-badge&logo=microsoftedge&logoColor=white)](https://microsoftedge.microsoft.com/addons/detail/m3u8hls-player-with-cust/bmlnobfgkikeejhbbdlhjinbmdcfgaef)
 [![Firefox](https://img.shields.io/badge/Firefox-Available_on_Firefox_Addons-FF7139?style=for-the-badge&logo=firefox&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/m3u8-hls-player-with-shortcuts/)
 
-## Features
+## ✨ Features
 
-- Customizable controls
-- Keyboard shortcuts
-- Picture in Picture (PIP) mode
-- Frame navigation
-- Support for live streams
+### Core Playback
+- 🎬 **HLS/M3U8 Stream Support** - Play any M3U8/HLS stream with full controls
+- 🖼️ **Picture in Picture (PIP)** - Watch while multitasking
+- ⏭️ **Frame-by-Frame Navigation** - Step through video frame by frame
+- 📺 **Live Stream Support** - Full support for live HLS streams
+- 🔄 **Resume Playback** - Automatically resume where you left off
+
+### Advanced Controls
+- ⌨️ **30+ Keyboard Shortcuts** - Full control without touching the mouse
+- 🎚️ **Variable Playback Speed** - From 0.1x to 10x speed
+- 🔊 **Volume Controls** - Fine-grained volume adjustment
+
+### Developer Tools
+- 📊 **Stream Stats Overlay** - YouTube-like "Stats for Nerds" (Press `i`)
+  - Resolution, bitrate, framerate, codecs
+  - Dropped frames, buffer health
+  - Network latency, download speed
+  - Quality levels, stream type
+
+### Quality of Life
+- 🔗 **Manual URL Input** - Paste any M3U8 URL directly in popup
+- 📜 **Watch History** - Track recently watched streams with search/filter
+- ⚙️ **Persistent Settings** - Volume, speed, and preferences saved automatically
+- 🔔 **Toast Notifications** - Non-intrusive feedback for all actions
+
+## 🔒 Privacy
+
+This extension:
+- ✅ **No data collection** - Your viewing history stays on your device
+- ✅ **No analytics** - We don't track what you watch
+- ✅ **Local storage only** - Settings and history stored in browser's local storage
+- ✅ **Open source** - Full transparency, audit the code yourself
+
+**Why `<all_urls>` permission?** The extension needs to intercept M3U8 links on any website to open them in the player. This is the minimum permission required for universal link interception.
 
 ## Installation
 
@@ -72,8 +101,9 @@ Here are the keyboard shortcuts supported by this extension:
 | `,` | Previous frame | `l` | Seek forward 5 seconds |
 | `.` | Next frame | `Home` | Seek to the beginning of the video |
 | `0-9` | Seek to a percentage of the video | `End` | Seek to the end of the video |
-| `Esc` | Close keyboard shortcuts | `?` | Toggle keyboard shortcuts |
-| `f` | Toggle fullscreen | `m` | Toggle mute |
+| `i` | Toggle stream stats overlay | `?` | Toggle keyboard shortcuts |
+| `Esc` | Close overlays/panels | `f` | Toggle fullscreen |
+| `m` | Toggle mute | | |
 
 ## Contributing
 

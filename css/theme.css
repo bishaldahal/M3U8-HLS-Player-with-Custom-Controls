@@ -1,0 +1,59 @@
+/**
+ * HLS Player Extension - Dark Theme
+ * Warm amber/orange accent colors
+ */
+
+:root {
+  /* Background */
+  --bg-primary: #0c0f10;        /* Deep main background */
+  --bg-secondary: #111417;      /* Secondary sections */
+  --bg-card: #15191c;           /* Setting groups/cards */
+  --bg-input: #191d21;          /* Inputs/toggles */
+  --bg-hover: #242a2e;
+
+  /* Text */
+  --text-primary: #ffffff;      /* Headings/labels */
+  --text-secondary: #e2e8f0;    /* Descriptions/body */
+  --text-muted: #64748b;
+
+  /* Accents */
+  --accent-primary: #f97316;    /* Vibrant orange primary (buttons, toggles) */
+  --accent-secondary: #fb923c;  /* Lighter orange for hover/active */
+  --accent-tertiary: #ea580c;   /* Deeper orange for depth */
+  --accent-cyan: #f97316;       /* Links (using primary orange) */
+  --accent-success: #10b981;    /* Keep emerald for success indicators */
+  --accent-warning: #f97316;    /* Amber/orange warning (reinforced) */
+  --accent-danger: #ef4444;     /* Red danger */
+
+  /* Legacy variable mappings for compatibility */
+  --accent-blue: var(--accent-primary);  /* Mapped to orange */
+  --accent-purple: var(--accent-tertiary);
+  --accent-green: var(--accent-success);
+  --accent-red: var(--accent-danger);
+  --accent-orange: var(--accent-warning);
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-tertiary) 100%);
+  --gradient-button: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+  --gradient-danger: linear-gradient(135deg, var(--accent-danger) 0%, #dc2626 100%);
+  --gradient-progress: linear-gradient(135deg, var(--accent-secondary) 0%, var(--accent-primary) 100%);
+
+  /* Borders */
+  --border-color: #273033;      /* Subtle dividers */
+  --border-hover: var(--accent-primary);
+
+  /* Shadows */
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 16px rgba(249, 115, 22, 0.2);
+  --shadow-button: 0 4px 12px rgba(249, 115, 22, 0.3);
+  --shadow-button-hover: 0 6px 18px rgba(249, 115, 22, 0.4);
+  --shadow-danger: 0 4px 12px rgba(239, 68, 68, 0.3);
+  --shadow-danger-hover: 0 6px 18px rgba(239, 68, 68, 0.4);
+
+  /* Components */
+  --slider-thumb: var(--accent-primary);
+  --toggle-active: var(--accent-primary);
+  --progress-bar: var(--gradient-progress);
+  --link-color: var(--accent-primary);
+  --recording-color: var(--accent-primary);  /* Warm orange for recording indicator */
+}

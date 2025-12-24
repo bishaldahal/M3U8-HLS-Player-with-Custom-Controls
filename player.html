@@ -8,11 +8,20 @@
     <script type="module" src="js/vendor/hls-video-element.js"></script>
     <script type="module" src="js/vendor/media-chrome.js"></script>
     <!-- Player application code -->
+    <script src="js/utils.js"></script>
     <script src="js/settings.js"></script>
     <script type="module" src="js/player.min.js"></script>
+    <script src="js/shortcuts.js"></script>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+        
         body {
             background-color: black;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
         media-controller {
@@ -20,6 +29,314 @@
             height: 97vh;
             overflow: hidden;
             /* Hide scrollbars */
+        }
+        
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            color: #fff;
+            transition: opacity 0.3s ease;
+        }
+        
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #30363d;
+            border-top-color: #58a6ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            margin-top: 16px;
+            font-size: 14px;
+            color: #8b949e;
+        }
+        
+        .loading-url {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #6e7681;
+            max-width: 80%;
+            text-align: center;
+            word-break: break-all;
+        }
+        
+        /* Error overlay */
+        .error-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 101;
+            color: #fff;
+            padding: 40px;
+        }
+        
+        .error-overlay.show {
+            display: flex;
+        }
+        
+        .error-icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+        }
+        
+        .error-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #f85149;
+        }
+        
+        .error-message {
+            font-size: 14px;
+            color: #8b949e;
+            text-align: center;
+            max-width: 500px;
+            margin-bottom: 8px;
+        }
+        
+        .error-url {
+            font-size: 12px;
+            color: #6e7681;
+            font-family: monospace;
+            word-break: break-all;
+            max-width: 80%;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .error-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .error-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .error-btn-primary {
+            background: #238636;
+            color: #fff;
+        }
+        
+        .error-btn-primary:hover {
+            background: #2ea043;
+        }
+        
+        .error-btn-secondary {
+            background: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+        }
+        
+        .error-btn-secondary:hover {
+            background: #30363d;
+        }
+        
+        /* Toast notification */
+        .player-toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(22, 27, 34, 0.95);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 50;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+            border: 1px solid #30363d;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .player-toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        .toast-message {
+            flex: 1;
+        }
+        
+        .toast-action {
+            padding: 6px 12px;
+            background: #58a6ff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .toast-action:hover {
+            background: #79b8ff;
+        }
+        
+        /* Stream Stats Overlay (YouTube-like "Stats for nerds") */
+        .stats-overlay {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            padding: 16px 20px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            z-index: 60;
+            min-width: 320px;
+            max-width: 450px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+            user-select: text;
+        }
+        
+        .stats-overlay.show {
+            display: block;
+        }
+        
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        
+        .stats-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #58a6ff;
+            letter-spacing: 0.5px;
+        }
+        
+        .stats-close {
+            background: none;
+            border: none;
+            color: #8b949e;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0 4px;
+            line-height: 1;
+        }
+        
+        .stats-close:hover {
+            color: #fff;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 16px;
+        }
+        
+        .stats-row {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .stats-row.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .stats-label {
+            color: #8b949e;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stats-value {
+            color: #e6edf3;
+            font-size: 12px;
+            font-weight: 500;
+            word-break: break-all;
+        }
+        
+        .stats-value.good {
+            color: #3fb950;
+        }
+        
+        .stats-value.warning {
+            color: #d29922;
+        }
+        
+        .stats-value.bad {
+            color: #f85149;
+        }
+        
+        .stats-buffer-bar {
+            height: 6px;
+            background: #21262d;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        
+        .stats-buffer-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #238636, #3fb950);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        .stats-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stats-section-title {
+            color: #58a6ff;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .keyboard-shortcuts {
@@ -216,26 +533,124 @@
 </head>
 
 <body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" role="status" aria-live="polite">
+        <div class="loading-spinner" aria-hidden="true"></div>
+        <div class="loading-text">Loading stream...</div>
+        <div id="loading-url" class="loading-url"></div>
+    </div>
+    
+    <!-- Error Overlay -->
+    <div id="error-overlay" class="error-overlay" role="alert" aria-live="assertive">
+        <div class="error-icon" aria-hidden="true">⚠️</div>
+        <div class="error-title">Failed to Load Stream</div>
+        <div id="error-message" class="error-message"></div>
+        <div id="error-url" class="error-url"></div>
+        <div class="error-actions">
+            <button id="retry-btn" class="error-btn error-btn-primary">Retry</button>
+            <button id="copy-url-btn" class="error-btn error-btn-secondary">Copy URL</button>
+        </div>
+    </div>
+    
+    <!-- Resume Toast -->
+    <div id="player-toast" class="player-toast" role="status" aria-live="polite">
+        <span class="toast-message" id="toast-message"></span>
+        <button id="toast-action" class="toast-action" style="display: none;"></button>
+    </div>
+    
+    <!-- Stream Stats Overlay (toggle with 'i' key) -->
+    <div id="stats-overlay" class="stats-overlay" role="complementary" aria-label="Stream statistics">
+        <div class="stats-header">
+            <span class="stats-title">📊 Stats for Nerds</span>
+            <button class="stats-close" id="stats-close" aria-label="Close stats">×</button>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stats-row">
+                <span class="stats-label">Resolution</span>
+                <span class="stats-value" id="stat-resolution">--</span>
+            </div>
+            <div class="stats-row">
+                <span class="stats-label">Current Bitrate</span>
+                <span class="stats-value" id="stat-bitrate">--</span>
+            </div>
+            <div class="stats-row">
+                <span class="stats-label">Framerate</span>
+                <span class="stats-value" id="stat-framerate">--</span>
+            </div>
+            <div class="stats-row">
+                <span class="stats-label">Codecs</span>
+                <span class="stats-value" id="stat-codecs">--</span>
+            </div>
+            <div class="stats-row">
+                <span class="stats-label">Dropped Frames</span>
+                <span class="stats-value" id="stat-dropped">--</span>
+            </div>
+            <div class="stats-row">
+                <span class="stats-label">Buffer Health</span>
+                <span class="stats-value" id="stat-buffer">--</span>
+            </div>
+        </div>
+        
+        <div class="stats-section">
+            <div class="stats-section-title">Network</div>
+            <div class="stats-grid">
+                <div class="stats-row">
+                    <span class="stats-label">Latency</span>
+                    <span class="stats-value" id="stat-latency">--</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Download Speed</span>
+                    <span class="stats-value" id="stat-bandwidth">--</span>
+                </div>
+                <div class="stats-row full-width">
+                    <span class="stats-label">Buffer Range</span>
+                    <div class="stats-buffer-bar">
+                        <div class="stats-buffer-fill" id="stat-buffer-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-section">
+            <div class="stats-section-title">Stream Info</div>
+            <div class="stats-grid">
+                <div class="stats-row">
+                    <span class="stats-label">Stream Type</span>
+                    <span class="stats-value" id="stat-type">--</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Quality Levels</span>
+                    <span class="stats-value" id="stat-levels">--</span>
+                </div>
+                <div class="stats-row full-width">
+                    <span class="stats-label">Viewport</span>
+                    <span class="stats-value" id="stat-viewport">--</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <media-controller noautoseektolive defaultsubtitles>
         <media-loading-indicator slot="centered-chrome"></media-loading-indicator>
         <media-audio-track-menu hidden anchor="auto"></media-audio-track-menu>
         <media-rendition-menu hidden anchor="auto"></media-rendition-menu>
         <media-captions-menu hidden anchor="auto"></media-captions-menu>
         <media-control-bar>
-            <media-play-button></media-play-button>
+            <media-play-button aria-label="Play or pause"></media-play-button>
             <!-- <media-live-button></media-live-button> -->
-            <media-seek-backward-button seekoffset="5"></media-seek-backward-button>
-            <media-seek-forward-button seekoffset="5"></media-seek-forward-button>
-            <media-mute-button></media-mute-button>
-            <media-volume-range></media-volume-range>
-            <media-time-range></media-time-range>
-            <media-time-display showduration></media-time-display>
-            <media-playback-rate-button></media-playback-rate-button>
-            <media-audio-track-menu-button></media-audio-track-menu-button>
-            <media-rendition-menu-button></media-rendition-menu-button>
-            <media-captions-menu-button></media-captions-menu-button>
-            <media-pip-button></media-pip-button>
-            <media-fullscreen-button></media-fullscreen-button>
+            <media-seek-backward-button seekoffset="5" aria-label="Seek backward 5 seconds"></media-seek-backward-button>
+            <media-seek-forward-button seekoffset="5" aria-label="Seek forward 5 seconds"></media-seek-forward-button>
+            <media-mute-button aria-label="Mute or unmute"></media-mute-button>
+            <media-volume-range aria-label="Volume"></media-volume-range>
+            <media-time-range aria-label="Seek"></media-time-range>
+            <media-time-display showduration aria-label="Playback time"></media-time-display>
+            <media-playback-rate-button aria-label="Playback speed"></media-playback-rate-button>
+            <media-audio-track-menu-button aria-label="Audio tracks"></media-audio-track-menu-button>
+            <media-rendition-menu-button aria-label="Quality"></media-rendition-menu-button>
+            <media-captions-menu-button aria-label="Subtitles"></media-captions-menu-button>
+            <media-pip-button aria-label="Picture in picture"></media-pip-button>
+            <media-fullscreen-button aria-label="Fullscreen"></media-fullscreen-button>
         </media-control-bar>
     </media-controller>
 

@@ -1,95 +1,117 @@
-/**
- * HLS Video Player - Popup UI
- * Quick access to recent history and settings
- */
+// HLS Video Player - Popup UI
 
-// Cross-browser compatibility: Use browser API if available, fall back to chrome
-const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+let historyList, urlInput, playUrlBtn, urlError, toast;
 
-// DOM Elements
-let historyList;
+function showToast(message, isError = false) {
+  if (!toast) return;
+  toast.textContent = message;
+  toast.classList.toggle('error', isError);
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
 
-
-/**
- * Load and display recent watch history
- */
-async function loadHistoryUI() {
-  if (!window.PlayerSettings) return;
+function playFromInput() {
+  const result = validateUrl(urlInput.value);
   
-  const history = await window.PlayerSettings.loadHistory();
+  if (!result.valid) {
+    urlError.textContent = result.error;
+    urlError.classList.add('show');
+    urlInput.classList.add('error');
+    return;
+  }
+  
+  urlError.classList.remove('show');
+  urlInput.classList.remove('error');
+  
+  if (!result.isM3u8) {
+    showToast('Note: URL may not be a valid HLS stream');
+  }
+  
+  browserAPI.tabs.create({ url: `${browserAPI.runtime.getURL('player.html')}#${result.url}` });
+  window.close();
+}
+
+async function loadHistoryUI() {
+  const { loadHistory } = window.PlayerSettings;
+  const history = await loadHistory();
   
   historyList.innerHTML = '';
   
-  if (history.length === 0) {
+  if (!history?.length) {
     historyList.innerHTML = '<div class="history-empty">No recent streams</div>';
     return;
   }
   
-  // Show only recent 5 items in popup
-  const recent = history.slice(0, 5);
-  
-  recent.forEach((entry) => {
+  history.slice(0, 5).forEach(entry => {
     const item = document.createElement('div');
     item.className = 'history-item';
+    item.setAttribute('role', 'listitem');
+    item.tabIndex = 0;
+    
+    const timeStr = entry.duration > 0
+      ? `${formatTime(entry.currentTime)} / ${formatTime(entry.duration)}`
+      : `${formatTime(entry.currentTime)} (Live)`;
     
     item.innerHTML = `
       <div class="history-info">
         <div class="history-title" title="${escapeHtml(entry.url)}">${escapeHtml(entry.title)}</div>
-        <div class="history-meta">
-          ${entry.duration > 0 
-            ? `${formatTime(entry.currentTime)} / ${formatTime(entry.duration)}`
-            : `${formatTime(entry.currentTime)} (Live)`
-          } • ${formatRelativeTime(entry.timestamp)}
-        </div>
+        <div class="history-meta">${timeStr} • ${formatRelativeTime(entry.timestamp)}</div>
       </div>
     `;
     
-    // Click to play
-    item.addEventListener('click', () => {
-      const playerUrl = browserAPI.runtime.getURL('player.html');
-      browserAPI.tabs.create({ url: `${playerUrl}#${entry.url}` });
+    const openPlayer = () => {
+      browserAPI.tabs.create({ url: `${browserAPI.runtime.getURL('player.html')}#${entry.url}` });
       window.close();
+    };
+    
+    item.addEventListener('click', openPlayer);
+    item.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openPlayer();
+      }
     });
     
     historyList.appendChild(item);
   });
 }
 
-/**
- * Escape HTML to prevent XSS
- */
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-/**
- * Initialize popup
- */
 function init() {
   historyList = document.getElementById('history-list');
+  urlInput = document.getElementById('url-input');
+  playUrlBtn = document.getElementById('play-url-btn');
+  urlError = document.getElementById('url-error');
+  toast = document.getElementById('toast');
   
-  // Open options button
-  document.getElementById('open-options').addEventListener('click', () => {
+  playUrlBtn?.addEventListener('click', playFromInput);
+  
+  urlInput?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') playFromInput();
+  });
+  
+  urlInput?.addEventListener('input', () => {
+    urlError?.classList.remove('show');
+    urlInput.classList.remove('error');
+  });
+  
+  document.getElementById('open-options')?.addEventListener('click', () => {
     browserAPI.runtime.openOptionsPage();
     window.close();
   });
   
-  // Open shortcuts button
-  document.getElementById('open-shortcuts').addEventListener('click', () => {
-    const shortcutsUrl = browserAPI.runtime.getURL('shortcuts.html');
-    browserAPI.tabs.create({ url: shortcutsUrl });
+  document.getElementById('open-shortcuts')?.addEventListener('click', () => {
+    browserAPI.tabs.create({ url: browserAPI.runtime.getURL('shortcuts.html') });
     window.close();
   });
   
-  // Load history
+  document.getElementById('view-all-history')?.addEventListener('click', e => {
+    e.preventDefault();
+    browserAPI.runtime.openOptionsPage();
+    window.close();
+  });
+  
   loadHistoryUI();
+  urlInput?.focus();
 }
 
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
+document.addEventListener('DOMContentLoaded', init);

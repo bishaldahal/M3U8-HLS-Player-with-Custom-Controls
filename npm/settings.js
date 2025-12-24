@@ -1,228 +1,149 @@
-/**
- * HLS Video Player - Settings & History Management
- * Handles persistent storage for player preferences and watch history
- */
+// HLS Video Player - Settings & History Management
 
-// Default settings
+const storage = browserAPI.storage.local;
+
 const DEFAULT_SETTINGS = {
   volume: 1.0,
   muted: false,
   playbackRate: 1.0,
-  preferredQuality: 'auto', // 'auto', 'highest', 'lowest'
-  saveHistory: true, // Enable history saving by default
+  saveHistory: true,
+  customShortcuts: {}
 };
 
-// Maximum history entries to keep (LRU)
-const MAX_HISTORY_ENTRIES = 50;
+const DEFAULT_SHORTCUTS = {
+  playPause: { key: ' ', display: 'Space', description: 'Play/Pause', category: 'Playback' },
+  playPauseAlt: { key: 'k', display: 'K', description: 'Play/Pause (alt)', category: 'Playback' },
+  seekStart: { key: 'Home', display: 'Home', description: 'Seek to beginning', category: 'Playback' },
+  seekEnd: { key: 'End', display: 'End', description: 'Seek to end', category: 'Playback' },
+  seekBack10: { key: 'ArrowLeft', display: '←', description: 'Seek back 10s', category: 'Navigation' },
+  seekForward10: { key: 'ArrowRight', display: '→', description: 'Seek forward 10s', category: 'Navigation' },
+  seekBack5: { key: 'j', display: 'J', description: 'Seek back 5s', category: 'Navigation' },
+  seekForward5: { key: 'l', display: 'L', description: 'Seek forward 5s', category: 'Navigation' },
+  speedDown01: { key: '<', display: '<', description: 'Speed -0.1', category: 'Speed' },
+  speedUp01: { key: '>', display: '>', description: 'Speed +0.1', category: 'Speed' },
+  speedDown05: { key: '-', display: '-', description: 'Speed -0.5', category: 'Speed' },
+  speedUp05: { key: '+', display: '+', description: 'Speed +0.5', category: 'Speed' },
+  volumeUp: { key: 'ArrowUp', display: '↑', description: 'Volume up', category: 'Volume' },
+  volumeDown: { key: 'ArrowDown', display: '↓', description: 'Volume down', category: 'Volume' },
+  mute: { key: 'm', display: 'M', description: 'Mute/Unmute', category: 'Volume' },
+  framePrev: { key: ',', display: ',', description: 'Previous frame', category: 'Frame' },
+  frameNext: { key: '.', display: '.', description: 'Next frame', category: 'Frame' },
+  fullscreen: { key: 'f', display: 'F', description: 'Fullscreen', category: 'View' },
+  pipEnter: { key: 'p', display: 'P', description: 'Enter PiP', category: 'View' },
+  pipExit: { key: 'P', display: 'Shift+P', description: 'Exit PiP', category: 'View' },
+  stats: { key: 'i', display: 'I', description: 'Toggle stats', category: 'View' },
+  shortcuts: { key: '?', display: '?', description: 'Show shortcuts', category: 'View' }
+};
 
-/**
- * Get storage API (chrome.storage or browser.storage or fallback to localStorage wrapper)
- */
-function getStorage() {
-  // Try browser API first (Firefox), then chrome API
-  const browserAPI = typeof browser !== 'undefined' ? browser : (typeof chrome !== 'undefined' ? chrome : null);
-  
-  if (browserAPI && browserAPI.storage && browserAPI.storage.local) {
-    return {
-      get: (keys) => browserAPI.storage.local.get(keys),
-      set: (items) => browserAPI.storage.local.set(items),
-      remove: (keys) => browserAPI.storage.local.remove(keys),
-    };
-  }
-  // Fallback for non-extension contexts
-  return {
-    get: (keys) => {
-      return Promise.resolve(
-        keys.reduce((acc, key) => {
-          const val = localStorage.getItem(key);
-          if (val) {
-            try {
-              acc[key] = JSON.parse(val);
-            } catch (e) {
-              acc[key] = val;
-            }
-          }
-          return acc;
-        }, {})
-      );
-    },
-    set: (items) => {
-      Object.entries(items).forEach(([k, v]) => {
-        localStorage.setItem(k, JSON.stringify(v));
-      });
-      return Promise.resolve();
-    },
-    remove: (keys) => {
-      keys.forEach((k) => localStorage.removeItem(k));
-      return Promise.resolve();
-    },
-  };
-}
+const MAX_HISTORY = 50;
 
-const storage = getStorage();
-
-/**
- * Load player settings from storage
- * @returns {Promise<Object>} Settings object
- */
+// Settings
 async function loadSettings() {
-  try {
-    const result = await storage.get(['playerSettings']);
-    return { ...DEFAULT_SETTINGS, ...result.playerSettings };
-  } catch (error) {
-    console.error('Failed to load settings:', error);
-    return { ...DEFAULT_SETTINGS };
-  }
+  const result = await storage.get('playerSettings');
+  return { ...DEFAULT_SETTINGS, ...result.playerSettings };
 }
 
-/**
- * Save player settings to storage
- * @param {Object} settings - Settings to save (partial or full)
- */
 async function saveSettings(settings) {
-  try {
-    const current = await loadSettings();
-    const updated = { ...current, ...settings };
-    await storage.set({ playerSettings: updated });
-  } catch (error) {
-    console.error('Failed to save settings:', error);
-  }
+  const current = await loadSettings();
+  await storage.set({ playerSettings: { ...current, ...settings } });
 }
 
-/**
- * Get a clean URL key for history (without extTitle param)
- * @param {string} url - Full URL
- * @returns {string} Clean URL for use as key
- */
+async function resetSettings() {
+  await storage.set({ playerSettings: { ...DEFAULT_SETTINGS } });
+}
+
+// History
 function getUrlKey(url) {
   try {
-    const urlObj = new URL(url);
-    urlObj.searchParams.delete('extTitle');
-    return urlObj.href;
+    const u = new URL(url);
+    u.searchParams.delete('extTitle');
+    return u.href;
   } catch {
     return url;
   }
 }
 
-/**
- * Load watch history from storage
- * @returns {Promise<Array>} Array of history entries
- */
 async function loadHistory() {
-  try {
-    const result = await storage.get(['watchHistory']);
-    return result.watchHistory || [];
-  } catch (error) {
-    console.error('Failed to load history:', error);
-    return [];
-  }
+  const result = await storage.get('watchHistory');
+  return result.watchHistory || [];
 }
 
-/**
- * Save a URL to watch history with resume position
- * @param {string} url - Stream URL
- * @param {string} title - Stream title
- * @param {number} currentTime - Current playback position
- * @param {number} duration - Total duration (0 for live)
- */
 async function saveToHistory(url, title, currentTime, duration) {
-  try {
-    // Check if history saving is enabled
-    const settings = await loadSettings();
-    if (!settings.saveHistory) {
-      return; // Don't save if disabled
-    }
-    
-    const history = await loadHistory();
-    const urlKey = getUrlKey(url);
-    
-    // Remove existing entry for this URL
-    const filtered = history.filter((entry) => entry.url !== urlKey);
-    
-    // Add new entry at the beginning
-    const newEntry = {
-      url: urlKey,
-      title: title || 'Untitled Stream',
-      currentTime: Math.floor(currentTime),
-      duration: Math.floor(duration) || 0,
-      timestamp: Date.now(),
-    };
-    
-    filtered.unshift(newEntry);
-    
-    // Keep only MAX_HISTORY_ENTRIES
-    const trimmed = filtered.slice(0, MAX_HISTORY_ENTRIES);
-    
-    await storage.set({ watchHistory: trimmed });
-  } catch (error) {
-    console.error('Failed to save to history:', error);
-  }
+  const settings = await loadSettings();
+  if (!settings.saveHistory) return;
+
+  const history = await loadHistory();
+  const urlKey = getUrlKey(url);
+  const filtered = history.filter(e => e.url !== urlKey);
+
+  filtered.unshift({
+    url: urlKey,
+    title: title || 'Untitled Stream',
+    currentTime: Math.floor(currentTime),
+    duration: Math.floor(duration) || 0,
+    timestamp: Date.now()
+  });
+
+  await storage.set({ watchHistory: filtered.slice(0, MAX_HISTORY) });
 }
 
-/**
- * Get resume position for a URL
- * @param {string} url - Stream URL
- * @returns {Promise<number>} Resume position in seconds (0 if not found)
- */
 async function getResumePosition(url) {
-  try {
-    const history = await loadHistory();
-    const urlKey = getUrlKey(url);
-    const entry = history.find((h) => h.url === urlKey);
-    return entry ? entry.currentTime : 0;
-  } catch (error) {
-    console.error('Failed to get resume position:', error);
-    return 0;
-  }
+  const history = await loadHistory();
+  const entry = history.find(h => h.url === getUrlKey(url));
+  return entry?.currentTime || 0;
 }
 
-/**
- * Delete a single history entry
- * @param {string} url - URL to delete
- */
 async function deleteHistoryEntry(url) {
-  try {
-    const history = await loadHistory();
-    const filtered = history.filter((entry) => entry.url !== url);
-    await storage.set({ watchHistory: filtered });
-  } catch (error) {
-    console.error('Failed to delete history entry:', error);
-  }
+  const history = await loadHistory();
+  await storage.set({ watchHistory: history.filter(e => e.url !== url) });
 }
 
-/**
- * Clear all watch history
- */
 async function clearHistory() {
-  try {
-    await storage.set({ watchHistory: [] });
-  } catch (error) {
-    console.error('Failed to clear history:', error);
-  }
+  await storage.set({ watchHistory: [] });
 }
 
-/**
- * Reset settings to defaults
- */
-async function resetSettings() {
-  try {
-    await storage.set({ playerSettings: { ...DEFAULT_SETTINGS } });
-  } catch (error) {
-    console.error('Failed to reset settings:', error);
+// Shortcuts
+async function getShortcuts() {
+  const settings = await loadSettings();
+  const custom = settings.customShortcuts || {};
+  const merged = {};
+  for (const [id, def] of Object.entries(DEFAULT_SHORTCUTS)) {
+    merged[id] = custom[id] ? { ...def, ...custom[id] } : { ...def };
   }
+  return merged;
 }
 
-// Export for use in other modules (when using module bundler or global scope)
-if (typeof window !== 'undefined') {
-  window.PlayerSettings = {
-    loadSettings,
-    saveSettings,
-    loadHistory,
-    saveToHistory,
-    getResumePosition,
-    deleteHistoryEntry,
-    clearHistory,
-    resetSettings,
-    DEFAULT_SETTINGS,
-  };
+async function saveCustomShortcut(actionId, key, display) {
+  const settings = await loadSettings();
+  const custom = settings.customShortcuts || {};
+  custom[actionId] = { key, display };
+  await saveSettings({ customShortcuts: custom });
 }
+
+async function resetShortcut(actionId) {
+  const settings = await loadSettings();
+  const custom = settings.customShortcuts || {};
+  delete custom[actionId];
+  await saveSettings({ customShortcuts: custom });
+}
+
+async function resetAllShortcuts() {
+  await saveSettings({ customShortcuts: {} });
+}
+
+window.PlayerSettings = {
+  DEFAULT_SETTINGS,
+  DEFAULT_SHORTCUTS,
+  loadSettings,
+  saveSettings,
+  resetSettings,
+  loadHistory,
+  saveToHistory,
+  getResumePosition,
+  deleteHistoryEntry,
+  clearHistory,
+  getShortcuts,
+  saveCustomShortcut,
+  resetShortcut,
+  resetAllShortcuts
+};

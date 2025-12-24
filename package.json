@@ -19,7 +19,7 @@
     "build:all": "npm run build && npm run build:chrome && npm run build:firefox",
     "release:minify": "npm run build && npm run zip",
     "release:obfuscate": "npm run obsfuscate && npm run zip",
-    "minify": "npx terser npm/player.js npm/shortcuts.js -c sequences=true,dead_code=true,conditionals=true,booleans=true,unused=true,if_return=true,join_vars=true,drop_console=true -m toplevel=true -o js/player.min.js"
+    "minify": "npx terser npm/player.js -c sequences=true,dead_code=true,conditionals=true,booleans=true,unused=true,if_return=true,join_vars=true,drop_console=true -m -o js/player.min.js"
   },
   "devDependencies": {
     "@plasmohq/edge-addons-api": "^2.0.0",

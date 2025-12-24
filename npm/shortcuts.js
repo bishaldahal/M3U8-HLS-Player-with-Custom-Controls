@@ -1,364 +1,322 @@
-/**
- * HLS Video Player - Keyboard Shortcuts
- * Handles all keyboard interactions and shortcuts documentation
- */
+// HLS Video Player - Keyboard Shortcuts
 
-// Keyboard shortcut definitions organized by category
-const SHORTCUTS_BY_CATEGORY = {
-  'Playback Control': [
-    { key: 'Space / k', description: 'Toggle play/pause' },
-    { key: 'Home', description: 'Seek to the beginning' },
-    { key: 'End', description: 'Seek to the end' },
-    { key: '0-9', description: 'Seek to percentage (0%-90%)' },
-  ],
-  'Navigation': [
-    { key: 'ArrowLeft (←)', description: 'Seek backward 10 seconds' },
-    { key: 'ArrowRight (→)', description: 'Seek forward 10 seconds' },
-    { key: 'j', description: 'Seek backward 5 seconds' },
-    { key: 'l', description: 'Seek forward 5 seconds' },
-  ],
-  'Playback Speed': [
-    { key: '<', description: 'Decrease speed by 0.1' },
-    { key: '>', description: 'Increase speed by 0.1' },
-    { key: '-', description: 'Decrease speed by 0.5' },
-    { key: '+', description: 'Increase speed by 0.5' },
-  ],
-  'Volume Control': [
-    { key: 'ArrowUp (↑)', description: 'Increase volume by 0.1' },
-    { key: 'ArrowDown (↓)', description: 'Decrease volume by 0.1' },
-    { key: 'm', description: 'Toggle mute' },
-  ],
-  'Frame Navigation': [
-    { key: ',', description: 'Previous frame' },
-    { key: '.', description: 'Next frame' },
-  ],
-  'View Controls': [
-    { key: 'f', description: 'Toggle fullscreen' },
-    { key: 'p', description: 'Enter Picture in Picture' },
-    { key: 'P', description: 'Exit Picture in Picture' },
-    { key: '?', description: 'Toggle keyboard shortcuts' },
-    { key: 'Esc', description: 'Close shortcuts panel' },
-  ],
-};
+let shortcutKeyMap = {};
+let shortcutsByCategory = {};
+let isInitialized = false;
+let handlersAttached = false;
 
-// Legacy flat array for backward compatibility
-const SHORTCUTS = Object.values(SHORTCUTS_BY_CATEGORY).flat();
+const FRAME_RATE = 30;
+const KEY_TO_PERCENT = { '0': 0, '1': 0.1, '2': 0.2, '3': 0.3, '4': 0.4, '5': 0.5, '6': 0.6, '7': 0.7, '8': 0.8, '9': 0.9 };
 
-// Number key to percentage mapping
-const KEY_TO_PERCENTAGE = {
-  0: 0.0, 1: 0.1, 2: 0.2, 3: 0.3, 4: 0.4,
-  5: 0.5, 6: 0.6, 7: 0.7, 8: 0.8, 9: 0.9,
-};
+function getRefs() {
+  return {
+    player: window.player,
+    video: window.video,
+    mediastreamtype: window.mediastreamtype,
+    resumePosition: window.resumePosition
+  };
+}
 
-/**
- * Generate HTML documentation for keyboard shortcuts with categories
- * @param {Object} shortcutsByCategory - Object with categories as keys and shortcuts arrays as values
- * @returns {HTMLElement} - Container element with categorized shortcuts
- */
-function generateShortcutsDocumentation(shortcutsByCategory) {
+function setResumePosition(v) {
+  window.resumePosition = v;
+}
+
+function buildShortcutKeyMap(shortcuts) {
+  shortcutKeyMap = {};
+  Object.entries(shortcuts || {}).forEach(([id, data]) => {
+    if (data?.key) shortcutKeyMap[data.key.toLowerCase()] = id;
+  });
+}
+
+function buildShortcutsByCategory() {
+  const shortcuts = window.PlayerSettings?.DEFAULT_SHORTCUTS || {};
+  const byCategory = {};
+  Object.entries(shortcuts).forEach(([id, data]) => {
+    const cat = data.category || 'Other';
+    if (!byCategory[cat]) byCategory[cat] = [];
+    byCategory[cat].push({ actionId: id, key: data.display, description: data.description });
+  });
+  if (!byCategory.Playback) byCategory.Playback = [];
+  byCategory.Playback.push({ key: '0-9', description: 'Seek to percentage (0%-90%)' });
+  if (!byCategory.View) byCategory.View = [];
+  byCategory.View.push({ key: 'Esc', description: 'Close shortcuts/stats panel' });
+  return byCategory;
+}
+
+function getActionForKey(key) {
+  return key ? shortcutKeyMap[key.toLowerCase()] : null;
+}
+
+async function invalidateShortcutKeyMap() {
+  if (window.PlayerSettings) {
+    const shortcuts = await window.PlayerSettings.getShortcuts();
+    buildShortcutKeyMap(shortcuts);
+    shortcutsByCategory = buildShortcutsByCategory();
+  }
+}
+window.invalidateShortcutKeyMap = invalidateShortcutKeyMap;
+
+function generateShortcutsDoc(byCategory) {
   const container = document.createElement('div');
-  
-  Object.entries(shortcutsByCategory).forEach(([category, shortcuts]) => {
-    const categoryDiv = document.createElement('div');
-    categoryDiv.className = 'shortcuts-category';
-    categoryDiv.dataset.category = category;
+  Object.entries(byCategory).forEach(([cat, shortcuts]) => {
+    const div = document.createElement('div');
+    div.className = 'shortcuts-category';
+    div.dataset.category = cat;
     
-    const categoryTitle = document.createElement('h3');
-    categoryTitle.className = 'category-title';
-    categoryTitle.textContent = category;
-    categoryDiv.appendChild(categoryTitle);
+    const title = document.createElement('h3');
+    title.className = 'category-title';
+    title.textContent = cat;
+    div.appendChild(title);
     
-    const shortcutsList = document.createElement('ul');
-    // Use full-width for categories with 2 or fewer items
-    if (shortcuts.length <= 2) {
-      shortcutsList.className = 'full-width';
-    }
+    const ul = document.createElement('ul');
+    if (shortcuts.length <= 2) ul.className = 'full-width';
     
-    shortcuts.forEach((shortcut) => {
+    shortcuts.forEach(s => {
       const li = document.createElement('li');
-      li.dataset.searchText = `${shortcut.key} ${shortcut.description}`.toLowerCase();
-      
-      const code = document.createElement('code');
-      
-      const descSpan = document.createElement('span');
-      descSpan.className = 'shortcut-desc';
-      descSpan.textContent = shortcut.description;
-      
-      const keyBinding = document.createElement('span');
-      keyBinding.className = 'key-binding';
-      
-      const key = document.createElement('span');
-      key.className = 'key';
-      key.textContent = shortcut.key;
-      
-      keyBinding.appendChild(key);
-      code.appendChild(descSpan);
-      code.appendChild(keyBinding);
-      li.appendChild(code);
-      shortcutsList.appendChild(li);
+      li.dataset.searchText = `${s.key} ${s.description}`.toLowerCase();
+      li.innerHTML = `<code><span class="shortcut-desc">${s.description}</span><span class="key-binding"><span class="key">${s.key}</span></span></code>`;
+      ul.appendChild(li);
     });
     
-    categoryDiv.appendChild(shortcutsList);
-    container.appendChild(categoryDiv);
+    div.appendChild(ul);
+    container.appendChild(div);
   });
-  
   return container;
 }
 
-/**
- * Setup search functionality for shortcuts
- */
 function setupShortcutsSearch() {
-  const searchInput = document.getElementById('shortcuts-search');
+  const input = document.getElementById('shortcuts-search');
   const categories = document.querySelectorAll('.shortcuts-category');
+  if (!input) return;
   
-  if (!searchInput) return;
-  
-  searchInput.addEventListener('input', (e) => {
-    const query = e.target.value.toLowerCase().trim();
-    
-    categories.forEach(category => {
-      const items = category.querySelectorAll('li');
-      let visibleCount = 0;
-      
-      items.forEach(item => {
-        const searchText = item.dataset.searchText || '';
-        if (!query || searchText.includes(query)) {
-          item.style.display = '';
-          visibleCount++;
-        } else {
-          item.style.display = 'none';
-        }
+  input.addEventListener('input', e => {
+    const q = e.target.value.toLowerCase().trim();
+    categories.forEach(cat => {
+      const items = cat.querySelectorAll('li');
+      let visible = 0;
+      items.forEach(li => {
+        const match = !q || li.dataset.searchText?.includes(q);
+        li.style.display = match ? '' : 'none';
+        if (match) visible++;
       });
-      
-      // Hide category if no visible items
-      category.style.display = visibleCount > 0 ? '' : 'none';
+      cat.style.display = visible > 0 ? '' : 'none';
     });
   });
   
-  // Focus search on modal open
   const modal = document.getElementById('keyboard-shortcuts');
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.attributeName === 'style' && modal.style.display === 'block') {
-        setTimeout(() => searchInput.focus(), 50);
-      }
-    });
-  });
-  
-  observer.observe(modal, { attributes: true });
+  if (modal) {
+    new MutationObserver(() => {
+      if (modal.style.display === 'block') setTimeout(() => input.focus(), 50);
+    }).observe(modal, { attributes: true });
+  }
 }
 
-/**
- * Handle number key seeking (0-9)
- * @param {string} key - The pressed key
- */
 function handleNumberKeySeek(key) {
-  if (!Object.prototype.hasOwnProperty.call(KEY_TO_PERCENTAGE, key)) return;
+  if (!(key in KEY_TO_PERCENT)) return false;
+  const { video, mediastreamtype } = getRefs();
+  if (!video) return false;
   
-  const percentage = KEY_TO_PERCENTAGE[key];
+  const pct = KEY_TO_PERCENT[key];
   
   if (mediastreamtype !== 'live') {
-    video.currentTime = video.duration * percentage;
-    return;
+    const dur = safeVideoGet(video, 'duration', 0);
+    if (dur > 0) safeVideoSet(video, 'currentTime', dur * pct);
+    return true;
   }
   
-  // Handle live stream seeking within buffer
-  for (let i = 0; i < video.buffered.length; i++) {
-    if (video.currentTime >= video.buffered.start(i) && 
-        video.currentTime <= video.buffered.end(i)) {
-      const bufferTime = video.buffered.end(i) - video.buffered.start(i);
-      if (bufferTime > 0) {
-        video.currentTime = video.buffered.start(i) + bufferTime * percentage;
+  const time = safeVideoGet(video, 'currentTime', 0);
+  const buf = getBufferInfo(video, time);
+  if (buf?.end > buf?.start) {
+    safeVideoSet(video, 'currentTime', buf.start + (buf.end - buf.start) * pct);
+  }
+  return true;
+}
+
+function createActionHandlers() {
+  const seek = (delta) => {
+    const { video } = getRefs();
+    if (!video) return;
+    const cur = safeVideoGet(video, 'currentTime', 0);
+    const dur = safeVideoGet(video, 'duration', Infinity);
+    const t = clamp(cur + delta, 0, dur);
+    safeVideoSet(video, 'currentTime', t);
+    setResumePosition(t);
+  };
+  
+  const changeSpeed = (delta) => {
+    const { video } = getRefs();
+    if (!video) return;
+    const rate = safeVideoGet(video, 'playbackRate', 1);
+    safeVideoSet(video, 'playbackRate', clamp(roundTo(rate + delta, 2), 0.1, 10));
+  };
+  
+  const changeVolume = (delta) => {
+    const { video } = getRefs();
+    if (!video) return;
+    safeVideoSet(video, 'volume', clamp(safeVideoGet(video, 'volume', 1) + delta, 0, 1));
+  };
+  
+  const frameStep = (delta) => {
+    const { video, resumePosition } = getRefs();
+    if (!video) return;
+    video.pause?.();
+    const dur = safeVideoGet(video, 'duration', Infinity);
+    const t = clamp(resumePosition + delta / FRAME_RATE, 0, dur);
+    safeVideoSet(video, 'currentTime', t);
+    setResumePosition(t);
+  };
+  
+  return {
+    playPause: () => { const { video } = getRefs(); video?.[safeVideoGet(video, 'paused', true) ? 'play' : 'pause']?.(); },
+    playPauseAlt: () => { const { video } = getRefs(); video?.[safeVideoGet(video, 'paused', true) ? 'play' : 'pause']?.(); },
+    seekBack10: () => seek(-10),
+    seekForward10: () => seek(10),
+    seekBack5: () => seek(-5),
+    seekForward5: () => seek(5),
+    seekStart: () => { const { video } = getRefs(); safeVideoSet(video, 'currentTime', 0); setResumePosition(0); },
+    seekEnd: () => {
+      const { video, mediastreamtype } = getRefs();
+      if (!video) return;
+      if (mediastreamtype !== 'live') {
+        const dur = safeVideoGet(video, 'duration', 0);
+        if (dur > 0) { safeVideoSet(video, 'currentTime', dur); setResumePosition(dur); }
+      } else if (video.buffered?.length) {
+        const end = video.buffered.end(video.buffered.length - 1);
+        safeVideoSet(video, 'currentTime', end);
+        setResumePosition(end);
       }
-      break;
+    },
+    speedUp01: () => changeSpeed(0.1),
+    speedDown01: () => changeSpeed(-0.1),
+    speedUp05: () => changeSpeed(0.5),
+    speedDown05: () => changeSpeed(-0.5),
+    volumeUp: () => changeVolume(0.1),
+    volumeDown: () => changeVolume(-0.1),
+    mute: () => { const { video } = getRefs(); safeVideoSet(video, 'muted', !safeVideoGet(video, 'muted', false)); },
+    framePrev: () => frameStep(-1),
+    frameNext: () => frameStep(1),
+    fullscreen: () => {
+      const { player } = getRefs();
+      document.fullscreenElement ? document.exitFullscreen?.() : player?.requestFullscreen?.();
+    },
+    pipEnter: () => getRefs().video?.requestPictureInPicture?.(),
+    pipExit: () => document.pictureInPictureElement && document.exitPictureInPicture?.(),
+    stats: () => window.toggleStatsOverlay?.(),
+    shortcuts: () => {
+      const modal = document.getElementById('keyboard-shortcuts');
+      if (modal) modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
     }
-  }
+  };
 }
 
-/**
- * Handle playback speed changes
- * @param {string} key - The pressed key
- */
-function handlePlaybackSpeed(key) {
-  const isIncrease = key === '>' || key === '+';
-  const delta = (key === '>' || key === '<') ? 0.1 : 0.5;
-  
-  let newRate;
-  if (isIncrease) {
-    if (video.playbackRate === 0.1 && key === '+') {
-      newRate = 0.5;
-    } else {
-      newRate = video.playbackRate + delta;
-    }
-    newRate = Math.min(Math.round(newRate * 100) / 100, 10.0);
-  } else {
-    newRate = video.playbackRate - delta;
-    newRate = Math.max(Math.round(newRate * 100) / 100, 0.1);
-  }
-  
-  video.playbackRate = newRate;
-  // Settings are auto-saved via ratechange event in player.js
-}
-
-/**
- * Handle frame-by-frame navigation
- * @param {string} key - The pressed key (',' or '.')
- */
-function handleFrameStep(key) {
-  const frameRate = 48; // Assumed frame rate
-  const frameDelta = key === ',' ? -1 / frameRate : 1 / frameRate;
-  
-  video.pause();
-  video.currentTime = resumePosition;
-  video.currentTime += frameDelta;
-  resumePosition = video.currentTime;
-}
-
-/**
- * Setup keyboard event handlers
- */
 function setupKeyboardHandlers() {
+  if (handlersAttached) return;
+  handlersAttached = true;
+  
   const modal = document.getElementById('keyboard-shortcuts');
-  const closeButton = document.getElementById('close-shortcuts');
+  const closeBtn = document.getElementById('close-shortcuts');
+  const handlers = createActionHandlers();
   
-  // Global keyboard handler for modal
-  document.addEventListener('keydown', (event) => {
-    if (event.key === '?') {
-      modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
-    }
-    if (event.key === 'Escape') {
-      modal.style.display = 'none';
-      // Clear search when closing
-      const searchInput = document.getElementById('shortcuts-search');
-      if (searchInput) searchInput.value = '';
-    }
-    focusVideo();
-  });
-  
-  // Close button handler
-  closeButton.addEventListener('click', () => {
-    modal.style.display = 'none';
-    // Clear search when closing
-    const searchInput = document.getElementById('shortcuts-search');
-    if (searchInput) searchInput.value = '';
-  });
-  
-  // Double-click fullscreen toggle
-  player.addEventListener('dblclick', () => {
-    if (!document.fullscreenElement) {
-      player.requestFullscreen?.();
-    } else {
-      document.exitFullscreen?.();
-    }
-  });
-  
-  // Player keyboard controls
-  player.addEventListener('keydown', (event) => {
-    // Ignore if modifier keys are pressed
-    if (event.ctrlKey || event.altKey || event.metaKey) return;
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
     
-    // Handle number keys for seeking
-    handleNumberKeySeek(event.key);
+    // Helper to stop event from reaching media-chrome
+    const stop = () => { e.preventDefault(); e.stopPropagation(); };
     
-    switch (event.key) {
-      case '>':
-      case '+':
-      case '<':
-      case '-':
-        handlePlaybackSpeed(event.key);
-        break;
-        
-      case 'ArrowUp':
-        video.volume = Math.min(video.volume + 0.1, 1.0);
-        break;
-        
-      case 'ArrowDown':
-        video.volume = Math.max(video.volume - 0.1, 0.0);
-        break;
-        
-      case 'p':
-        video.requestPictureInPicture?.();
-        break;
-        
-      case 'P':
-        document.exitPictureInPicture?.();
-        break;
-        
-      case 'J':
-      case 'j':
-        event.preventDefault();
-        video.currentTime -= 5;
-        resumePosition = video.currentTime;
-        break;
-        
-      case 'L':
-      case 'l':
-        event.preventDefault();
-        video.currentTime += 5;
-        resumePosition = video.currentTime;
-        break;
-        
-      case ',':
-      case '.':
-        handleFrameStep(event.key);
-        break;
-        
-      case 'Home':
-        video.currentTime = 0;
-        break;
-        
-      case 'End':
-        if (mediastreamtype !== 'live') {
-          video.currentTime = video.duration;
-        } else if (video.buffered.length > 0) {
-          video.currentTime = video.buffered.end(video.buffered.length - 1);
-        }
-        break;
+    if (e.key === 'Escape') {
+      stop();
+      if (modal) modal.style.display = 'none';
+      window.hideStatsOverlay?.();
+      const search = document.getElementById('shortcuts-search');
+      if (search) search.value = '';
+      return;
     }
+    
+    if (handleNumberKeySeek(e.key)) {
+      stop();
+      return;
+    }
+    
+    const action = getActionForKey(e.key);
+    
+    if (e.key === '?' || action === 'shortcuts') {
+      stop();
+      if (modal) modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+      return;
+    }
+    
+    if (action && handlers[action]) {
+      stop();
+      handlers[action]();
+      return;
+    }
+    
+    // Handle shifted keys
+    if (e.key === '>') { stop(); handlers.speedUp01(); }
+    else if (e.key === '<') { stop(); handlers.speedDown01(); }
+    else if (e.key === '+') { stop(); handlers.speedUp05(); }
+    else if (e.key === '-') { stop(); handlers.speedDown05(); }
+  }, true);
+  
+  closeBtn?.addEventListener('click', () => {
+    if (modal) modal.style.display = 'none';
+    const search = document.getElementById('shortcuts-search');
+    if (search) search.value = '';
+  });
+  
+  getRefs().player?.addEventListener('dblclick', () => {
+    document.fullscreenElement ? document.exitFullscreen?.() : getRefs().player?.requestFullscreen?.();
   });
 }
 
-/**
- * Initialize shortcuts module
- */
-function initShortcuts() {
-  // Check if we're in player.html context (has player/video variables)
-  const isPlayerContext = typeof player !== 'undefined' && typeof video !== 'undefined';
+async function initShortcuts() {
+  if (isInitialized) return;
   
-  // Handle player.html modal (with shortcuts-list container and search)
-  const shortcutsContainer = document.getElementById('shortcuts-list');
-  if (shortcutsContainer) {
-    shortcutsContainer.appendChild(generateShortcutsDocumentation(SHORTCUTS_BY_CATEGORY));
+  // Wait for PlayerSettings
+  const start = Date.now();
+  while (!window.PlayerSettings && Date.now() - start < 5000) {
+    await new Promise(r => setTimeout(r, 50));
+  }
+  
+  if (window.PlayerSettings) {
+    const shortcuts = await window.PlayerSettings.getShortcuts();
+    buildShortcutKeyMap(shortcuts);
+  }
+  
+  shortcutsByCategory = buildShortcutsByCategory();
+  
+  const listEl = document.getElementById('shortcuts-list');
+  if (listEl) {
+    listEl.innerHTML = '';
+    listEl.appendChild(generateShortcutsDoc(shortcutsByCategory));
     setupShortcutsSearch();
   }
   
-  // Handle standalone shortcuts.html page (with shortcuts-container)
-  const standaloneContainer = document.getElementById('shortcuts-container');
-  if (standaloneContainer && !shortcutsContainer) {
-    standaloneContainer.appendChild(generateShortcutsDocumentation(SHORTCUTS_BY_CATEGORY));
+  const standaloneEl = document.getElementById('shortcuts-container');
+  if (standaloneEl && !listEl) {
+    standaloneEl.innerHTML = '';
+    standaloneEl.appendChild(generateShortcutsDoc(shortcutsByCategory));
   }
   
-  // Setup keyboard handlers only if in player context
-  if (isPlayerContext) {
+  // Wait for player to be ready
+  const { player, video } = getRefs();
+  if (player && video) {
     setupKeyboardHandlers();
-  } else if (shortcutsContainer && !isPlayerContext) {
-    // In player.html but player not ready yet - wait for initialization
-    const checkInterval = setInterval(() => {
-      if (typeof player !== 'undefined' && typeof video !== 'undefined') {
-        clearInterval(checkInterval);
+    isInitialized = true;
+  } else if (listEl) {
+    const checkStart = Date.now();
+    const interval = setInterval(() => {
+      const refs = getRefs();
+      if (refs.player && refs.video) {
+        clearInterval(interval);
         setupKeyboardHandlers();
+        isInitialized = true;
+      } else if (Date.now() - checkStart > 5000) {
+        clearInterval(interval);
       }
     }, 100);
-    
-    // Stop checking after 5 seconds to prevent infinite loop
-    setTimeout(() => clearInterval(checkInterval), 5000);
   }
 }
 
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initShortcuts);
-} else {
-  initShortcuts();
-}
+document.addEventListener('DOMContentLoaded', initShortcuts);
