@@ -210,7 +210,6 @@ function handleFrameStep(key) {
   const frameDelta = key === ',' ? -1 / frameRate : 1 / frameRate;
   
   video.pause();
-  video.currentTime = resumePosition;
   video.currentTime += frameDelta;
   resumePosition = video.currentTime;
 }

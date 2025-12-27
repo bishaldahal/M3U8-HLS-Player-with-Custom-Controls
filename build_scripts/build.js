@@ -19,7 +19,8 @@ const FILES_TO_COPY = [
   'options.js',
   'popup.js',
   'shortcuts.js',
-  'utils.js'
+  'utils.js',
+  'subtitle-utils.js',
 ];
 
 console.log('📦 Copying source files from npm/ to js/...\n');

@@ -3,6 +3,13 @@
  * Handles persistent storage for player preferences and watch history
  */
 
+// Constants
+const SUBTITLE_BASE_FONT_SIZE_PX = 24;
+const SAVE_DEBOUNCE_MS = 1000;
+const SAVE_INTERVAL_MS = 5000;
+const TOAST_DURATION_MS = 2500;
+const SUBTITLE_AUTO_SAVE_DEBOUNCE_MS = 300;
+
 // Default settings
 const DEFAULT_SETTINGS = {
   volume: 1.0,
@@ -10,6 +17,15 @@ const DEFAULT_SETTINGS = {
   playbackRate: 1.0,
   preferredQuality: 'auto', // 'auto', 'highest', 'lowest'
   saveHistory: true, // Enable history saving by default
+  // Subtitle/Caption settings
+  subtitleSettings: {
+    fontSize: 100,           // percentage: 50-200
+    fontColor: '#ffffff',    // hex color
+    backgroundColor: '#000000', // hex color
+    backgroundOpacity: 80,   // 0-100
+    fontFamily: 'sans-serif', // 'sans-serif', 'serif', 'monospace', 'cursive'
+    edgeStyle: 'none',       // 'none', 'shadow', 'raised', 'depressed', 'outline'
+  },
 };
 
 // Maximum history entries to keep (LRU)
@@ -224,5 +240,11 @@ if (typeof window !== 'undefined') {
     clearHistory,
     resetSettings,
     DEFAULT_SETTINGS,
+    // Constants
+    SUBTITLE_BASE_FONT_SIZE_PX,
+    SAVE_DEBOUNCE_MS,
+    SAVE_INTERVAL_MS,
+    TOAST_DURATION_MS,
+    SUBTITLE_AUTO_SAVE_DEBOUNCE_MS,
   };
 }
