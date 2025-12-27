@@ -130,6 +130,63 @@
     .icon {
       font-size: 18px;
     }
+    .subtitle-control {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #30363d;
+    }
+    .control-label {
+      font-size: 12px;
+      color: #8b949e;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+    .subtitle-size-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .subtitle-size-control input[type="range"] {
+      flex: 1;
+      height: 6px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      outline: none;
+    }
+    .subtitle-size-control input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #58a6ff;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(88, 166, 255, 0.5);
+    }
+    .subtitle-size-control input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #58a6ff;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 2px 6px rgba(88, 166, 255, 0.5);
+    }
+    .size-value {
+      min-width: 45px;
+      text-align: right;
+      color: #58a6ff;
+      font-weight: 600;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
@@ -149,6 +206,14 @@
         <span>Shortcuts</span>
       </button>
     </div>
+    
+    <div class="subtitle-control">
+      <div class="control-label">🔤 Subtitle Size</div>
+      <div class="subtitle-size-control">
+        <input type="range" id="subtitle-size" min="50" max="400" step="5" value="100">
+        <span class="size-value" id="subtitle-size-value">100%</span>
+      </div>
+    </div>
   </div>
   
   <div class="history-header">Recent History</div>
@@ -158,6 +223,7 @@
   
   <script src="js/utils.js"></script>
   <script src="js/settings.js"></script>
+  <script src="js/subtitle-utils.js"></script>
   <script src="js/popup.js"></script>
 </body>
 </html>

@@ -12,7 +12,7 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       background: #0d1117;
       color: #c9d1d9;
       min-height: 100vh;
@@ -48,6 +48,9 @@
       padding: 30px;
       margin-bottom: 24px;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      min-height: 200px;
+      /* display: flex; */
+      /* flex-direction: column; */
     }
 
     .card-header {
@@ -287,7 +290,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       margin-bottom: 6px;
-      font-family: 'Courier New', monospace;
+      font-family: "Courier New", monospace;
       opacity: 0.8;
     }
 
@@ -529,6 +532,147 @@
       color: #c9d1d9;
       font-size: 14px;
     }
+
+    /* Subtitle Settings Styles */
+    .subtitle-preview-container {
+      background: #000;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 40px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 120px;
+    }
+
+    .subtitle-preview {
+      text-align: center;
+    }
+
+    .subtitle-text {
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 24px;
+      /* Default styles - will be overwritten by JS */
+      color: #ffffff;
+      background-color: rgba(0, 0, 0, 0.8);
+      font-family: sans-serif;
+    }
+
+    .color-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .color-control input[type="color"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 50px;
+      height: 36px;
+      border: 2px solid #30363d;
+      border-radius: 6px;
+      cursor: pointer;
+      padding: 2px;
+      background: transparent;
+    }
+
+    .color-control input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+
+    .color-control input[type="color"]::-webkit-color-swatch {
+      border: none;
+      border-radius: 4px;
+    }
+
+    .color-control input[type="color"]::-moz-color-swatch {
+      border: none;
+      border-radius: 4px;
+    }
+
+    .color-value {
+      color: #58a6ff;
+      font-family: "Courier New", monospace;
+      font-size: 13px;
+      min-width: 70px;
+    }
+
+    .select-input {
+      flex: 1;
+      padding: 10px 14px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #c9d1d9;
+      font-size: 14px;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .select-input:focus {
+      border-color: #58a6ff;
+    }
+
+    .select-input option {
+      background: #161b22;
+      color: #c9d1d9;
+    }
+
+    /* Compact Grid Layout */
+    .subtitle-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: flex-end;
+    }
+
+    .subtitle-grid > .setting-group {
+      flex: 1 1 160px;
+      min-width: 0; /* Prevent overflow */
+    }
+
+    /* Make the first item (Size / Opacity) wider */
+    .subtitle-grid > .setting-group:first-child {
+      flex: 2 1 320px;
+    }
+
+    .setting-group.compact {
+      margin-bottom: 0;
+    }
+
+    .setting-group.compact .setting-label {
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .btn-text {
+      background: none;
+      border: none;
+      color: #58a6ff;
+      padding: 8px 0;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: auto;
+      justify-content: flex-start;
+      margin-top: 12px;
+    }
+
+    .btn-text:hover {
+      text-decoration: underline;
+      transform: none;
+      box-shadow: none;
+      background: transparent;
+    }
   </style>
 </head>
 
@@ -600,6 +744,104 @@
 
     <div class="card">
       <div class="card-header">
+        <span class="card-icon">💬</span>
+        <h2 class="card-title">Subtitle / Caption Settings</h2>
+      </div>
+
+      <div class="subtitle-preview-container">
+        <div class="subtitle-preview" id="subtitle-preview">
+          <span class="subtitle-text">Sample Subtitle Text</span>
+        </div>
+      </div>
+
+      <!-- Main Row -->
+      <div class="subtitle-grid">
+        <div class="setting-group compact">
+          <label class="setting-label">Font Size</label>
+          <div class="setting-control">
+            <span>🔤</span>
+            <input type="range" id="subtitle-font-size" min="50" max="400" step="5" value="100" style="flex: 1;">
+            <input type="number" id="subtitle-font-size-number" min="50" max="400" step="5" value="100" title="Font Size %">
+            <span class="setting-value" id="subtitle-font-size-label" style="display: none;">100%</span>
+          </div>
+        </div>
+
+        <div class="setting-group compact">
+          <label class="setting-label">Text Color</label>
+          <div class="setting-control color-control">
+            <span>🎨</span>
+            <input type="color" id="subtitle-font-color" value="#ffffff">
+            <span class="color-value" id="subtitle-font-color-label">#ffffff</span>
+          </div>
+        </div>
+
+        <div class="setting-group compact">
+          <label class="setting-label">Bg Color</label>
+          <div class="setting-control color-control">
+            <span>🖼️</span>
+            <input type="color" id="subtitle-bg-color" value="#000000">
+            <span class="color-value" id="subtitle-bg-color-label">#000000</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Advanced Options Toggle -->
+      <div class="advanced-toggle-container">
+        <button id="toggle-advanced-subtitles" class="btn-text">
+          <span>⚙️ More Options</span>
+        </button>
+      </div>
+
+      <!-- Advanced Options (Hidden by default) -->
+      <div id="advanced-subtitle-settings" class="subtitle-grid hidden" style="margin-top: 16px;">
+        <div class="setting-group compact">
+          <label class="setting-label">Bg Opacity</label>
+          <div class="setting-control">
+            <span>👁️</span>
+            <input type="range" id="subtitle-bg-opacity" min="0" max="100" step="5" value="80">
+            <input type="number" id="subtitle-bg-opacity-number" min="0" max="100" step="5" value="80" title="Background Opacity %">
+            <span class="setting-value" id="subtitle-bg-opacity-label" style="display: none;">80%</span>
+          </div>
+        </div>
+
+        <div class="setting-group compact">
+          <label class="setting-label">Font Family</label>
+          <div class="setting-control">
+            <span>📝</span>
+            <select id="subtitle-font-family" class="select-input">
+              <option value="sans-serif">Sans-Serif</option>
+              <option value="serif">Serif</option>
+              <option value="monospace">Monospace</option>
+              <option value="cursive">Cursive</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-group compact">
+          <label class="setting-label">Edge Style</label>
+          <div class="setting-control">
+            <span>✨</span>
+            <select id="subtitle-edge-style" class="select-input">
+              <option value="none">None</option>
+              <option value="shadow">Shadow</option>
+              <option value="raised">Raised</option>
+              <option value="depressed">Depressed</option>
+              <option value="outline">Outline</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-group" style="margin-top: 24px;">
+        <button id="reset-subtitle-settings" class="btn-secondary">
+          <span>🔄</span>
+          <span>Reset Defaults</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
         <span class="card-icon">📺</span>
         <h2 class="card-title">Watch History</h2>
       </div>
@@ -619,6 +861,7 @@
 
   <script src="js/utils.js"></script>
   <script src="js/settings.js"></script>
+  <script src="js/subtitle-utils.js"></script>
   <script src="js/options.js"></script>
 </body>
 

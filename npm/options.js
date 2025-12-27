@@ -12,6 +12,11 @@ let historyList, clearHistoryBtn, saveHistoryToggle;
 let speedPresets, speedDisplay, currentSpeed;
 let speedIncreaseBtn, speedDecreaseBtn, speedResetBtn;
 
+// Subtitle setting elements
+let subtitleFontSize, subtitleFontSizeNumber, subtitleFontColor, subtitleBgColor, subtitleBgOpacity, subtitleBgOpacityNumber;
+let subtitleFontFamily, subtitleEdgeStyle, subtitlePreview, resetSubtitleBtn;
+let toggleAdvancedSubtitlesBtn, advancedSubtitleSettings;
+
 
 /**
  * Load and display current settings
@@ -30,6 +35,10 @@ async function loadSettingsUI() {
     volumeInput.value = settings.volume || 1.0;
     currentSpeed = settings.playbackRate || 1.0;
     saveHistoryToggle.checked = settings.saveHistory !== false;
+    
+    // Load subtitle settings
+    const subtitleSettings = settings.subtitleSettings || window.PlayerSettings.DEFAULT_SETTINGS.subtitleSettings;
+    loadSubtitleSettingsUI(subtitleSettings);
     
     updateVolumeLabel();
     updateSpeedDisplay();
@@ -106,6 +115,7 @@ async function saveSettingsUI() {
       volume: parseFloat(volumeInput.value),
       playbackRate: currentSpeed,
       saveHistory: saveHistoryToggle.checked,
+      subtitleSettings: getSubtitleSettingsFromUI(),
     };
     console.log('Saving settings:', newSettings);
     
@@ -273,10 +283,141 @@ function setSpeedPreset(speed) {
 }
 
 /**
- * Initialize options page
+ * Load subtitle settings into UI controls
  */
-function init() {
-  // Get DOM elements
+function loadSubtitleSettingsUI(subtitleSettings) {
+  subtitleFontSize.value = subtitleSettings.fontSize || 100;
+  if (subtitleFontSizeNumber) {
+    subtitleFontSizeNumber.value = subtitleFontSize.value;
+  }
+  subtitleFontColor.value = subtitleSettings.fontColor || '#ffffff';
+  subtitleBgColor.value = subtitleSettings.backgroundColor || '#000000';
+  subtitleBgOpacity.value = subtitleSettings.backgroundOpacity || 80;
+  if (subtitleBgOpacityNumber) {
+    subtitleBgOpacityNumber.value = subtitleBgOpacity.value;
+  }
+  subtitleFontFamily.value = subtitleSettings.fontFamily || 'sans-serif';
+  subtitleEdgeStyle.value = subtitleSettings.edgeStyle || 'none';
+  
+  updateSubtitleLabels();
+  updateSubtitlePreview();
+}
+
+/**
+ * Update subtitle setting labels
+ */
+function updateSubtitleLabels() {
+  document.getElementById('subtitle-font-size-label').textContent = `${subtitleFontSize.value}%`;
+  document.getElementById('subtitle-font-color-label').textContent = subtitleFontColor.value;
+  document.getElementById('subtitle-bg-color-label').textContent = subtitleBgColor.value;
+  document.getElementById('subtitle-bg-opacity-label').textContent = `${subtitleBgOpacity.value}%`;
+}
+
+/**
+ * Get current subtitle settings from UI
+ */
+function getSubtitleSettingsFromUI() {
+  return {
+    fontSize: parseInt(subtitleFontSize.value),
+    fontColor: subtitleFontColor.value,
+    backgroundColor: subtitleBgColor.value,
+    backgroundOpacity: parseInt(subtitleBgOpacity.value),
+    fontFamily: subtitleFontFamily.value,
+    edgeStyle: subtitleEdgeStyle.value,
+  };
+}
+
+
+
+/**
+ * Update subtitle preview element
+ */
+function updateSubtitlePreview() {
+  if (!window.SubtitleUtils) {
+    console.error('SubtitleUtils not loaded');
+    return;
+  }
+  
+  const settings = getSubtitleSettingsFromUI();
+  const subtitleText = subtitlePreview.querySelector('.subtitle-text');
+  
+  if (!subtitleText) return;
+  
+  const baseFontSize = window.PlayerSettings?.SUBTITLE_BASE_FONT_SIZE_PX || 24;
+  
+  // Apply font size
+  subtitleText.style.fontSize = `${baseFontSize * settings.fontSize / 100}px`;
+  
+  // Apply font color
+  subtitleText.style.color = settings.fontColor;
+  
+  // Apply background with opacity
+  subtitleText.style.backgroundColor = window.SubtitleUtils.hexToRgba(settings.backgroundColor, settings.backgroundOpacity);
+  
+  // Apply font family
+  subtitleText.style.fontFamily = settings.fontFamily;
+  
+  // Apply edge style
+  subtitleText.style.textShadow = window.SubtitleUtils.getEdgeStyleCSS(settings.edgeStyle);
+}
+
+// Debounce timer for subtitle auto-save
+let subtitleSaveDebounceTimer = null;
+
+/**
+ * Save subtitle settings with debouncing to prevent excessive writes
+ */
+function debouncedSaveSubtitleSettings() {
+  const debounceMs = window.PlayerSettings?.SUBTITLE_AUTO_SAVE_DEBOUNCE_MS || 300;
+  
+  clearTimeout(subtitleSaveDebounceTimer);
+  subtitleSaveDebounceTimer = setTimeout(async () => {
+    if (!window.PlayerSettings) return;
+
+    try {
+      // We need to load current settings first to preserve other settings
+      const currentSettings = await window.PlayerSettings.loadSettings();
+      
+      const newSettings = {
+        ...currentSettings,
+        subtitleSettings: getSubtitleSettingsFromUI()
+      };
+      
+      await window.PlayerSettings.saveSettings(newSettings);
+      console.log('Subtitle settings saved');
+    } catch (error) {
+      console.error('Error auto-saving subtitle settings:', error);
+    }
+  }, debounceMs);
+}
+
+/**
+ * Reset subtitle settings to defaults
+ */
+async function resetSubtitleSettingsUI() {
+  if (!window.PlayerSettings) {
+    showToast('Error: Settings module not loaded', true);
+    return;
+  }
+  
+  const defaultSubtitleSettings = window.PlayerSettings.DEFAULT_SETTINGS.subtitleSettings;
+  loadSubtitleSettingsUI(defaultSubtitleSettings);
+  
+  // Save the reset
+  try {
+    await window.PlayerSettings.saveSettings({ subtitleSettings: defaultSubtitleSettings });
+    showToast('✓ Subtitle settings reset to defaults');
+  } catch (error) {
+    console.error('Error resetting subtitle settings:', error);
+    showToast('Failed to reset subtitle settings', true);
+  }
+}
+
+/**
+ * Initialize DOM element references
+ */
+function initDOMElements() {
+  // Get general DOM elements
   volumeInput = document.getElementById('volume');
   saveBtn = document.getElementById('save-settings');
   resetBtn = document.getElementById('reset-settings');
@@ -289,14 +430,26 @@ function init() {
   speedDecreaseBtn = document.getElementById('speed-decrease');
   speedResetBtn = document.getElementById('speed-reset');
   
-  // Initialize speed
-  currentSpeed = 1.0;
+  // Get subtitle DOM elements
+  subtitleFontSize = document.getElementById('subtitle-font-size');
+  subtitleFontSizeNumber = document.getElementById('subtitle-font-size-number');
+  subtitleFontColor = document.getElementById('subtitle-font-color');
+  subtitleBgColor = document.getElementById('subtitle-bg-color');
+  subtitleBgOpacity = document.getElementById('subtitle-bg-opacity');
+  subtitleBgOpacityNumber = document.getElementById('subtitle-bg-opacity-number');
+  subtitleFontFamily = document.getElementById('subtitle-font-family');
+  subtitleEdgeStyle = document.getElementById('subtitle-edge-style');
+  subtitlePreview = document.getElementById('subtitle-preview');
+  resetSubtitleBtn = document.getElementById('reset-subtitle-settings');
   
-  // Load initial data
-  loadSettingsUI();
-  loadHistoryUI();
-  
-  // Event listeners
+  toggleAdvancedSubtitlesBtn = document.getElementById('toggle-advanced-subtitles');
+  advancedSubtitleSettings = document.getElementById('advanced-subtitle-settings');
+}
+
+/**
+ * Setup event listeners for general settings
+ */
+function initGeneralSettingsListeners() {
   volumeInput.addEventListener('input', updateVolumeLabel);
   saveBtn.addEventListener('click', saveSettingsUI);
   resetBtn.addEventListener('click', resetSettingsUI);
@@ -313,6 +466,106 @@ function init() {
       setSpeedPreset(parseFloat(btn.dataset.speed));
     });
   });
+}
+
+/**
+ * Setup event listeners for subtitle settings
+ */
+function initSubtitleSettingsListeners() {
+  
+  // Advanced Subtitles Toggle
+  if (toggleAdvancedSubtitlesBtn && advancedSubtitleSettings) {
+    toggleAdvancedSubtitlesBtn.addEventListener('click', () => {
+      advancedSubtitleSettings.classList.toggle('hidden');
+      const isHidden = advancedSubtitleSettings.classList.contains('hidden');
+      toggleAdvancedSubtitlesBtn.querySelector('span').textContent = isHidden 
+        ? '⚙️ More Options' 
+        : '🔼 Less Options';
+    });
+  }
+  
+  // Subtitle settings event listeners (live preview + debounced auto-save)
+  if (subtitleFontSize && subtitleFontSizeNumber) {
+    // Sync slider -> number
+    subtitleFontSize.addEventListener('input', () => {
+      subtitleFontSizeNumber.value = subtitleFontSize.value;
+      updateSubtitleLabels();
+      updateSubtitlePreview();
+      debouncedSaveSubtitleSettings();
+    });
+    // Sync number -> slider
+    subtitleFontSizeNumber.addEventListener('input', () => {
+      subtitleFontSize.value = subtitleFontSizeNumber.value;
+      updateSubtitleLabels();
+      updateSubtitlePreview();
+      debouncedSaveSubtitleSettings();
+    });
+  }
+
+  // Sync background opacity slider and number input
+  if (subtitleBgOpacity && subtitleBgOpacityNumber) {
+    // Sync slider -> number
+    subtitleBgOpacity.addEventListener('input', () => {
+      subtitleBgOpacityNumber.value = subtitleBgOpacity.value;
+      updateSubtitleLabels();
+      updateSubtitlePreview();
+      debouncedSaveSubtitleSettings();
+    });
+    // Sync number -> slider
+    subtitleBgOpacityNumber.addEventListener('input', () => {
+      subtitleBgOpacity.value = subtitleBgOpacityNumber.value;
+      updateSubtitleLabels();
+      updateSubtitlePreview();
+      debouncedSaveSubtitleSettings();
+    });
+  }
+
+  const subtitleInputs = [
+    subtitleFontColor, 
+    subtitleBgColor, 
+    subtitleFontFamily, 
+    subtitleEdgeStyle
+  ];
+
+  // Consolidated event handler for all subtitle inputs
+  const handleSubtitleChange = () => {
+    updateSubtitleLabels();
+    updateSubtitlePreview();
+    debouncedSaveSubtitleSettings();
+  };
+
+  subtitleInputs.forEach(input => {
+    if (input) {
+      input.addEventListener('input', handleSubtitleChange);
+      // For selects, also listen to change event
+      if (input.tagName === 'SELECT') {
+        input.addEventListener('change', handleSubtitleChange);
+      }
+    }
+  });
+
+  if (resetSubtitleBtn) {
+    resetSubtitleBtn.addEventListener('click', resetSubtitleSettingsUI);
+  }
+}
+
+/**
+ * Initialize options page
+ */
+function init() {
+  // Initialize DOM references
+  initDOMElements();
+  
+  // Initialize speed
+  currentSpeed = 1.0;
+  
+  // Load initial data
+  loadSettingsUI();
+  loadHistoryUI();
+  
+  // Setup event listeners
+  initGeneralSettingsListeners();
+  initSubtitleSettingsListeners();
 }
 
 // Initialize when DOM is ready

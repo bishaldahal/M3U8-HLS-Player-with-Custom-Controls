@@ -99,20 +99,14 @@ function setupResumePosition() {
     // Debounced save to history on pause
     debouncedSaveHistory();
   });
-
-  video.addEventListener('play', () => {
-    video.currentTime = resumePosition;
-    // Reset to beginning if near the end
-    if (video.currentTime >= video.duration - 5) {
-      video.currentTime = 0;
-    }
-  });
 }
 
 /**
  * Debounced save to history (prevents excessive writes)
  */
 function debouncedSaveHistory() {
+  const debounceMs = window.PlayerSettings?.SAVE_DEBOUNCE_MS || 1000;
+  
   if (saveHistoryTimeout) {
     clearTimeout(saveHistoryTimeout);
   }
@@ -125,7 +119,7 @@ function debouncedSaveHistory() {
         video.duration || 0
       );
     }
-  }, 1000);
+  }, debounceMs);
 }
 
 /**
@@ -138,6 +132,146 @@ function applySettings(settings) {
   video.volume = settings.volume;
   video.muted = settings.muted;
   video.playbackRate = settings.playbackRate;
+  
+  // Apply subtitle styles
+  if (settings.subtitleSettings) {
+    applySubtitleStyles(settings.subtitleSettings);
+  }
+}
+
+/**
+ * Apply subtitle styles using ::cue CSS injection
+ * @param {Object} subtitleSettings - Subtitle settings object
+ */
+function applySubtitleStyles(subtitleSettings) {
+  if (!video) return;
+  
+  if (!window.SubtitleUtils) {
+    console.error('SubtitleUtils not loaded');
+    return;
+  }
+
+  try {
+    // We need to inject styles into the shadow DOM of the custom element
+    // because the video element is encapsulated there.
+    const targetRoot = video.shadowRoot || document.head;
+    
+    if (!targetRoot) {
+      console.error('Cannot inject subtitle styles: no valid target (shadow DOM or document.head)');
+      return;
+    }
+    
+    // Remove existing subtitle style if any
+    const existingStyle = targetRoot.getElementById('subtitle-custom-style');
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+    
+    const {
+      fontSize = 100,
+      fontColor = '#ffffff',
+      backgroundColor = '#000000',
+      backgroundOpacity = 80,
+      fontFamily = 'sans-serif',
+      edgeStyle = 'none',
+    } = subtitleSettings;
+    
+    // Get base font size from settings
+    const baseFontSize = window.PlayerSettings?.SUBTITLE_BASE_FONT_SIZE_PX || 24;
+    const fontSizePercent = fontSize / 100;
+    const bgColor = window.SubtitleUtils.hexToRgba(backgroundColor, backgroundOpacity);
+    const textShadow = window.SubtitleUtils.getEdgeStyleCSS(edgeStyle);
+    
+    // Create style element with ::cue rules
+    const style = document.createElement('style');
+    style.id = 'subtitle-custom-style';
+    style.textContent = `
+      video::cue {
+        font-size: ${fontSizePercent}em;
+        color: ${fontColor};
+        background-color: ${bgColor};
+        font-family: ${fontFamily};
+        text-shadow: ${textShadow};
+        outline: none;
+        -webkit-font-smoothing: antialiased;
+      }
+      
+      /* Fallback for webkit browsers */
+      video::-webkit-media-text-track-display {
+        font-size: ${fontSizePercent}em !important;
+      }
+      
+      video::-webkit-media-text-track-container {
+        font-size: ${fontSize}% !important;
+      }
+    `;
+    
+    targetRoot.appendChild(style);
+    console.log('Subtitle styles applied successfully');
+  } catch (error) {
+    console.error('Error applying subtitle styles:', error);
+  }
+}
+
+/**
+ * Ensure text tracks are enabled (especially after seeking)
+ */
+function ensureTextTracksEnabled() {
+  if (!video || !video.textTracks) return;
+  
+  // Find the first text track and ensure it's showing
+  for (let i = 0; i < video.textTracks.length; i++) {
+    const track = video.textTracks[i];
+    // Enable the first subtitle/caption track found
+    if (track.kind === 'subtitles' || track.kind === 'captions') {
+      if (track.mode !== 'showing') {
+        track.mode = 'showing';
+        console.log('Re-enabled text track:', track.label || track.language);
+      }
+      break;
+    }
+  }
+}
+
+/**
+ * Setup handlers for text track management
+ */
+function setupTextTrackHandlers() {
+  if (!video || !video.textTracks) return;
+  
+  // Ensure text tracks are enabled when they are added
+  video.textTracks.addEventListener('addtrack', (e) => {
+    const track = e.track;
+    if ((track.kind === 'subtitles' || track.kind === 'captions') && track.mode !== 'showing') {
+      // Enable the track if it's not already showing
+      track.mode = 'showing';
+      console.log('Auto-enabled new text track:', track.label || track.language);
+    }
+  });
+}
+
+/**
+ * Setup resume position handler for saved playback position
+ * @param {number} savedResumePos - Saved resume position in seconds
+ */
+function setupResumePositionHandler(savedResumePos) {
+  // Resume playback position after data is loaded to ensure text tracks are initialized
+  video.addEventListener('loadeddata', () => {
+    // Resume from saved position (only for non-live streams)
+    if (savedResumePos > 0 && mediastreamtype !== 'live') {
+      // Don't resume if we're near the end
+      if (savedResumePos < video.duration - 10) {
+        // Use requestAnimationFrame to ensure the player is fully ready
+        requestAnimationFrame(() => {
+          video.currentTime = savedResumePos;
+          resumePosition = savedResumePos;
+          
+          // Ensure text tracks remain enabled after seeking
+          ensureTextTracksEnabled();
+        });
+      }
+    }
+  });
 }
 
 /**
@@ -161,12 +295,29 @@ function setupSettingsSaver() {
     });
   });
 
+  // Listen for external setting changes (e.g. from options page)
+  const browserAPI = typeof browser !== 'undefined' ? browser : (typeof chrome !== 'undefined' ? chrome : null);
+  if (browserAPI && browserAPI.storage && browserAPI.storage.onChanged) {
+    browserAPI.storage.onChanged.addListener((changes, areaName) => {
+      // Check if the change is in local storage
+      if ((areaName === 'local' || areaName === undefined) && changes.playerSettings) {
+        const newSettings = changes.playerSettings.newValue;
+        if (newSettings) {
+          // Apply settings including subtitle customizations immediately
+          applySettings(newSettings);
+        }
+      }
+    });
+  }
+
   // Save history on time update (throttled)
   let lastSaveTime = 0;
+  const saveInterval = window.PlayerSettings?.SAVE_INTERVAL_MS || 30000;
+  
   video.addEventListener('timeupdate', () => {
     const now = Date.now();
-    // Save every 30 seconds during playback
-    if (now - lastSaveTime > 30000 && !video.paused) {
+    // Save periodically during playback
+    if (now - lastSaveTime > saveInterval && !video.paused) {
       lastSaveTime = now;
       debouncedSaveHistory();
     }
@@ -241,15 +392,12 @@ async function init() {
     // Apply saved settings
     applySettings(settings);
     
-    // Resume from saved position (only for non-live streams)
-    if (savedResumePos > 0 && mediastreamtype !== 'live') {
-      // Don't resume if we're near the end
-      if (savedResumePos < video.duration - 10) {
-        video.currentTime = savedResumePos;
-        resumePosition = savedResumePos;
-      }
-    }
+    // Setup text track handlers
+    setupTextTrackHandlers();
   });
+
+  // Setup resume position handler
+  setupResumePositionHandler(savedResumePos);
 
   // Setup event handlers
   setupLiveTimeDisplay();
