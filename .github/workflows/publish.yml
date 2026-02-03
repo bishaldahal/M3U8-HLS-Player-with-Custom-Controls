@@ -70,6 +70,7 @@ jobs:
       if: always()
       uses: softprops/action-gh-release@v1
       with:
+        tag_name: ${{ inputs.tag || github.ref_name }}
         files: |
           build/*.zip
         generate_release_notes: true
