@@ -131,9 +131,16 @@ function applySettings(settings) {
   video.muted = settings.muted;
   video.playbackRate = settings.playbackRate;
   
-  // Apply subtitle styles
-  if (settings.subtitleSettings) {
+  // Apply subtitle styles if enabled
+  if (settings.subtitlesEnabled !== false && settings.subtitleSettings) {
     applySubtitleStyles(settings.subtitleSettings);
+  } else if (settings.subtitlesEnabled === false) {
+    // Disable all subtitle tracks if subtitles are disabled
+    if (video?.textTracks) {
+      Array.from(video.textTracks)
+        .filter(track => track.kind === 'subtitles' || track.kind === 'captions')
+        .forEach(track => track.mode = 'disabled');
+    }
   }
 }
 
@@ -147,8 +154,11 @@ function setupSubtitleTrackListener() {
     // Wait a bit for the track to be fully loaded
     setTimeout(async () => {
       const settings = await window.PlayerSettings.loadSettings();
-      if (settings.subtitleSettings) {
+      if (settings.subtitlesEnabled !== false && settings.subtitleSettings) {
         applySubtitleStyles(settings.subtitleSettings);
+      } else if (settings.subtitlesEnabled === false) {
+        // Disable the track if subtitles are disabled
+        e.track.mode = 'disabled';
       }
     }, 100);
   });
@@ -183,13 +193,16 @@ function waitForSubtitleCues(hlsInstance, timeoutMs = 2000) {
 function enableSubtitles(settings) {
   if (!video?.textTracks) return;
 
-  // Show all subtitle and caption tracks
+  // Check if subtitles are globally enabled
+  const subtitlesEnabled = settings.subtitlesEnabled !== false; // default to true
+
+  // Show or hide all subtitle and caption tracks
   Array.from(video.textTracks)
     .filter(track => track.kind === 'subtitles' || track.kind === 'captions')
-    .forEach(track => track.mode = 'showing');
+    .forEach(track => track.mode = subtitlesEnabled ? 'showing' : 'disabled');
 
-  // Apply custom styles
-  if (settings.subtitleSettings) {
+  // Apply custom styles if enabled
+  if (subtitlesEnabled && settings.subtitleSettings) {
     applySubtitleStyles(settings.subtitleSettings);
   }
 }

@@ -137,6 +137,30 @@
       padding-top: 16px;
       border-top: 1px solid #30363d;
     }
+    
+    .subtitle-toggle {
+      margin-bottom: 16px;
+    }
+    
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+    
+    .toggle-label input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+    
+    .toggle-label span {
+      font-size: 13px;
+      color: #e0e0e0;
+    }
+    
     .control-label {
       font-size: 12px;
       color: #8b949e;
@@ -254,6 +278,12 @@
     </div>
     
     <div class="subtitle-control">
+      <div class="subtitle-toggle">
+        <label class="toggle-label" title="Automatically show subtitles/captions when available in HLS streams. You can still toggle them using the player UI controls.">
+          <input type="checkbox" id="subtitles-enabled" checked aria-label="Enable or disable subtitles">
+          <span>Enable Subtitles by Default</span>
+        </label>
+      </div>
       <label for="subtitle-size" class="control-label">Subtitle Size</label>
       <div class="subtitle-size-control">
         <input type="range" id="subtitle-size" min="50" max="400" step="5" value="100" aria-label="Subtitle font size percentage">

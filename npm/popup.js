@@ -7,13 +7,19 @@ async function loadSubtitleSize() {
   try {
     const settings = await window.PlayerSettings.loadSettings();
     const fontSize = settings.subtitleSettings?.fontSize || 100;
+    const subtitlesEnabled = settings.subtitlesEnabled !== false; // default to true
     
     const slider = document.getElementById('subtitle-size');
     const value = document.getElementById('subtitle-size-value');
+    const toggle = document.getElementById('subtitles-enabled');
     
     if (slider && value) {
       slider.value = fontSize;
       value.textContent = `${fontSize}%`;
+    }
+    
+    if (toggle) {
+      toggle.checked = subtitlesEnabled;
     }
   } catch (error) {
     console.error('Error loading subtitle size:', error);
@@ -52,6 +58,19 @@ async function saveSubtitleSize(fontSize) {
       window.UIFeedback.showToast('Failed to save subtitle size', 'error');
     }
   }, DEBOUNCE_MS);
+}
+
+async function saveSubtitlesEnabled(enabled) {
+  try {
+    const settings = await window.PlayerSettings.loadSettings();
+    await window.PlayerSettings.saveSettings({
+      ...settings,
+      subtitlesEnabled: enabled
+    }, { silent: true });
+  } catch (error) {
+    console.error('Error saving subtitle enabled state:', error);
+    window.UIFeedback.showToast('Failed to save subtitle setting', 'error');
+  }
 }
 
 async function loadHistoryUI() {
@@ -146,6 +165,13 @@ function init() {
     };
     
     loadSubtitleSize();
+  }
+  
+  const subtitlesToggle = document.getElementById('subtitles-enabled');
+  if (subtitlesToggle) {
+    subtitlesToggle.onchange = () => {
+      saveSubtitlesEnabled(subtitlesToggle.checked);
+    };
   }
   
   loadHistoryUI();

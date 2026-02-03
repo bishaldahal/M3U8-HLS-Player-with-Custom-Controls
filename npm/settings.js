@@ -18,6 +18,7 @@ const DEFAULT_SETTINGS = {
   preferredQuality: 'auto', // 'auto', 'highest', 'lowest'
   saveHistory: true, // Enable history saving by default
   // Subtitle/Caption settings
+  subtitlesEnabled: true,  // Enable/disable subtitles globally
   subtitleSettings: {
     fontSize: 100,           // percentage: 50-200
     fontColor: '#ffffff',    // hex color
