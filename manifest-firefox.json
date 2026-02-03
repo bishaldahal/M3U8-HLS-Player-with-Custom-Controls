@@ -1,13 +1,11 @@
 {
   "manifest_version": 3,
   "name": "M3U8/HLS Player - Custom Keyboard Shortcuts",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "description": "Advanced M3U8/HLS player with customizable controls. Supports keyboard shortcuts, PIP mode, frame navigation, and live streams.",
   "permissions": [
     "webNavigation",
-    "tabs",
-    "storage",
-    "activeTab"
+    "storage"
   ],
   "host_permissions": [
     "*://*/*",

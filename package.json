@@ -1,7 +1,7 @@
 {
   "name": "m3u8-hls-player-with-custom-keyboard-shortcuts",
   "displayName": "M3U8-HLS Player with Custom Keyboard Shortcuts",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "type": "module",
   "scripts": {
     "download-deps": "node build_scripts/download-deps.js",
