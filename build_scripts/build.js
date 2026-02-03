@@ -16,6 +16,8 @@ const FILES_TO_COPY = [
   'background.js',
   'content.js',
   'settings.js',
+  'state-manager.js',
+  'ui-feedback.js',
   'options.js',
   'popup.js',
   'shortcuts.js',

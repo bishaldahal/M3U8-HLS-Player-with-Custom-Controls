@@ -87,6 +87,9 @@ async function loadSettings() {
     return { ...DEFAULT_SETTINGS, ...result.playerSettings };
   } catch (error) {
     console.error('Failed to load settings:', error);
+    if (typeof window !== 'undefined' && window.UIFeedback) {
+      window.UIFeedback.error('Failed to load settings');
+    }
     return { ...DEFAULT_SETTINGS };
   }
 }
@@ -94,14 +97,38 @@ async function loadSettings() {
 /**
  * Save player settings to storage
  * @param {Object} settings - Settings to save (partial or full)
+ * @param {Object} options - Save options (debounce, silent, etc.)
  */
-async function saveSettings(settings) {
+async function saveSettings(settings, options = {}) {
   try {
+    // Validate settings before saving
+    const validation = validateSettings(settings);
+    if (!validation.valid) {
+      const errorMsg = `Invalid settings: ${validation.errors.join(', ')}`;
+      console.error(errorMsg);
+      if (typeof window !== 'undefined' && window.UIFeedback && !options.silent) {
+        window.UIFeedback.error(errorMsg);
+      }
+      throw new Error(errorMsg);
+    }
+
     const current = await loadSettings();
-    const updated = { ...current, ...settings };
+    const updated = deepMerge(current, settings);
+    
+    // Check storage quota before saving
+    await checkStorageQuota();
+    
     await storage.set({ playerSettings: updated });
+    
+    if (typeof window !== 'undefined' && window.UIFeedback && !options.silent && options.showSuccess) {
+      window.UIFeedback.success('Settings saved');
+    }
   } catch (error) {
     console.error('Failed to save settings:', error);
+    if (typeof window !== 'undefined' && window.UIFeedback && !options.silent) {
+      window.UIFeedback.error('Failed to save settings');
+    }
+    throw error;
   }
 }
 
@@ -223,12 +250,130 @@ async function clearHistory() {
 async function resetSettings() {
   try {
     await storage.set({ playerSettings: { ...DEFAULT_SETTINGS } });
+    if (typeof window !== 'undefined' && window.UIFeedback) {
+      window.UIFeedback.success('Settings reset to defaults');
+    }
   } catch (error) {
     console.error('Failed to reset settings:', error);
+    if (typeof window !== 'undefined' && window.UIFeedback) {
+      window.UIFeedback.error('Failed to reset settings');
+    }
+    throw error;
   }
 }
 
-// Export for use in other modules (when using module bundler or global scope)
+/**
+ * Validate settings object
+ * @param {Object} settings - Settings to validate
+ * @returns {Object} Validation result with valid flag and errors array
+ */
+function validateSettings(settings) {
+  const errors = [];
+
+  if (settings.volume !== undefined) {
+    if (typeof settings.volume !== 'number' || settings.volume < 0 || settings.volume > 1) {
+      errors.push('volume must be between 0 and 1');
+    }
+  }
+
+  if (settings.playbackRate !== undefined) {
+    if (typeof settings.playbackRate !== 'number' || settings.playbackRate < 0.25 || settings.playbackRate > 4) {
+      errors.push('playbackRate must be between 0.25 and 4');
+    }
+  }
+
+  if (settings.subtitleSettings) {
+    const sub = settings.subtitleSettings;
+    
+    if (sub.fontSize !== undefined) {
+      if (typeof sub.fontSize !== 'number' || sub.fontSize < 50 || sub.fontSize > 400) {
+        errors.push('subtitleSettings.fontSize must be between 50 and 400');
+      }
+    }
+
+    if (sub.backgroundOpacity !== undefined) {
+      if (typeof sub.backgroundOpacity !== 'number' || sub.backgroundOpacity < 0 || sub.backgroundOpacity > 100) {
+        errors.push('subtitleSettings.backgroundOpacity must be between 0 and 100');
+      }
+    }
+
+    if (sub.fontColor !== undefined) {
+      if (!isValidHexColor(sub.fontColor)) {
+        errors.push('subtitleSettings.fontColor must be a valid hex color');
+      }
+    }
+
+    if (sub.backgroundColor !== undefined) {
+      if (!isValidHexColor(sub.backgroundColor)) {
+        errors.push('subtitleSettings.backgroundColor must be a valid hex color');
+      }
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+}
+
+/**
+ * Validate hex color format
+ * @param {string} color - Color to validate
+ * @returns {boolean} True if valid hex color
+ */
+function isValidHexColor(color) {
+  return /^#[0-9A-Fa-f]{6}$/.test(color);
+}
+
+/**
+ * Deep merge objects (for nested settings)
+ * @param {Object} target - Target object
+ * @param {Object} source - Source object
+ * @returns {Object} Merged object
+ */
+function deepMerge(target, source) {
+  const result = { ...target };
+  
+  for (const key in source) {
+    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+      result[key] = deepMerge(result[key] || {}, source[key]);
+    } else {
+      result[key] = source[key];
+    }
+  }
+  
+  return result;
+}
+
+/**
+ * Check storage quota and warn if approaching limit
+ * @returns {Promise<number>} Bytes in use
+ */
+async function checkStorageQuota() {
+  try {
+    const browserAPI = typeof browser !== 'undefined' ? browser : 
+                       (typeof chrome !== 'undefined' ? chrome : null);
+    
+    if (browserAPI?.storage?.local?.getBytesInUse) {
+      const bytesInUse = await browserAPI.storage.local.getBytesInUse(['playerSettings', 'watchHistory']);
+      const QUOTA_WARNING_THRESHOLD = 5 * 1024 * 1024; // 5MB
+      
+      if (bytesInUse > QUOTA_WARNING_THRESHOLD) {
+        console.warn(`Storage usage: ${(bytesInUse / 1024 / 1024).toFixed(2)}MB`);
+        if (typeof window !== 'undefined' && window.UIFeedback) {
+          window.UIFeedback.warning('Storage usage is high. Consider clearing old history.');
+        }
+      }
+      
+      return bytesInUse;
+    }
+    return 0;
+  } catch (error) {
+    console.warn('Could not check storage quota:', error);
+    return 0;
+  }
+}
+
 if (typeof window !== 'undefined') {
   window.PlayerSettings = {
     loadSettings,
@@ -240,11 +385,5 @@ if (typeof window !== 'undefined') {
     clearHistory,
     resetSettings,
     DEFAULT_SETTINGS,
-    // Constants
-    SUBTITLE_BASE_FONT_SIZE_PX,
-    SAVE_DEBOUNCE_MS,
-    SAVE_INTERVAL_MS,
-    TOAST_DURATION_MS,
-    SUBTITLE_AUTO_SAVE_DEBOUNCE_MS,
   };
 }

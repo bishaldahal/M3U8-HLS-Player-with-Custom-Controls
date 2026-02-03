@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HLS Player - Settings</title>
+  <link rel="stylesheet" href="css/feedback.css">
   <style>
     * {
       box-sizing: border-box;
@@ -673,6 +675,86 @@
       box-shadow: none;
       background: transparent;
     }
+
+    /* Auto-save indicator */
+    .auto-save-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #3fb950;
+      margin-left: 12px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .auto-save-indicator.visible {
+      opacity: 1;
+    }
+
+    .auto-save-indicator.saving {
+      color: #58a6ff;
+    }
+
+    .auto-save-indicator svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Batch actions */
+    .batch-actions {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+
+    .batch-actions.visible {
+      display: flex;
+    }
+
+    .batch-actions-text {
+      flex: 1;
+      color: #c9d1d9;
+      font-size: 14px;
+    }
+
+    .history-checkbox {
+      margin-right: 12px;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    /* Search box */
+    .search-box {
+      margin-bottom: 16px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      color: #c9d1d9;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: #58a6ff;
+      background: rgba(88, 166, 255, 0.05);
+    }
+
+    .search-input::placeholder {
+      color: #6e7681;
+    }
   </style>
 </head>
 
@@ -680,29 +762,35 @@
   <div class="container">
     <div class="header">
       <img src="./icons/icon.svg" alt="App Icon" width="96" height="96">
-      <h1>HLS Player Settings</h1>
+      <h1>HLS Player Settings
+        <span class="auto-save-indicator" id="auto-save-indicator">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 0C4.48 0 0 4.48 0 10C0 15.52 4.48 20 10 20C15.52 20 20 15.52 20 10C20 4.48 15.52 0 10 0ZM8 15L3 10L4.41 8.59L8 12.17L15.59 4.58L17 6L8 15Z" fill="currentColor"/>
+          </svg>
+          <span id="auto-save-text">Saved</span>
+        </span>
+      </h1>
       <p>Customize your streaming experience</p>
     </div>
 
     <div class="card">
       <div class="card-header">
-        <span class="card-icon">🎛️</span>
         <h2 class="card-title">Playback Settings</h2>
       </div>
 
+      <div id="playback-settings-content">
+
       <div class="setting-group">
-        <label class="setting-label">Volume Level</label>
+        <label for="volume" class="setting-label">Volume Level</label>
         <div class="setting-control">
-          <span>🔈</span>
-          <input type="range" id="volume" min="0" max="1" step="0.01" value="1">
-          <span class="setting-value" id="volume-label">100%</span>
+          <input type="range" id="volume" min="0" max="1" step="0.01" value="1" aria-label="Volume level">
+          <span class="setting-value" id="volume-label" aria-live="polite">100%</span>
         </div>
       </div>
 
       <div class="setting-group">
-        <label class="setting-label">Playback Speed</label>
+        <label for="speed-display" class="setting-label">Playback Speed</label>
         <div class="setting-control">
-          <span>⏩</span>
           <div class="speed-controls">
             <button class="speed-btn" id="speed-decrease">−</button>
             <span class="speed-display" id="speed-display">1.0x</span>
@@ -721,22 +809,20 @@
       </div>
 
       <div class="setting-group">
+        <label for="save-history" class="setting-label">Watch History</label>
         <div class="toggle-row">
           <span class="toggle-label">Save watch history</span>
           <label class="toggle-switch">
-            <input type="checkbox" id="save-history" checked>
+            <input type="checkbox" id="save-history" checked aria-label="Toggle watch history saving">
             <span class="toggle-slider"></span>
           </label>
         </div>
       </div>
 
+      </div>
+
       <div class="btn-group">
-        <button id="save-settings" class="btn-primary">
-          <span>💾</span>
-          <span>Save Settings</span>
-        </button>
-        <button id="reset-settings" class="btn-secondary">
-          <span>🔄</span>
+        <button id="reset-settings" class="btn-secondary" aria-label="Reset playback settings to defaults">
           <span>Reset to Defaults</span>
         </button>
       </div>
@@ -744,9 +830,10 @@
 
     <div class="card">
       <div class="card-header">
-        <span class="card-icon">💬</span>
         <h2 class="card-title">Subtitle / Caption Settings</h2>
       </div>
+
+      <div id="subtitle-settings-content">
 
       <div class="subtitle-preview-container">
         <div class="subtitle-preview" id="subtitle-preview">
@@ -757,29 +844,26 @@
       <!-- Main Row -->
       <div class="subtitle-grid">
         <div class="setting-group compact">
-          <label class="setting-label">Font Size</label>
+          <label for="subtitle-font-size" class="setting-label">Font Size</label>
           <div class="setting-control">
-            <span>🔤</span>
-            <input type="range" id="subtitle-font-size" min="50" max="400" step="5" value="100" style="flex: 1;">
-            <input type="number" id="subtitle-font-size-number" min="50" max="400" step="5" value="100" title="Font Size %">
+            <input type="range" id="subtitle-font-size" min="50" max="400" step="5" value="100" style="flex: 1;" aria-label="Subtitle font size">
+            <input type="number" id="subtitle-font-size-number" min="50" max="400" step="5" value="100" title="Font Size %" aria-label="Subtitle font size percentage">
             <span class="setting-value" id="subtitle-font-size-label" style="display: none;">100%</span>
           </div>
         </div>
 
         <div class="setting-group compact">
-          <label class="setting-label">Text Color</label>
+          <label for="subtitle-font-color" class="setting-label">Text Color</label>
           <div class="setting-control color-control">
-            <span>🎨</span>
-            <input type="color" id="subtitle-font-color" value="#ffffff">
+            <input type="color" id="subtitle-font-color" value="#ffffff" aria-label="Subtitle text color">
             <span class="color-value" id="subtitle-font-color-label">#ffffff</span>
           </div>
         </div>
 
         <div class="setting-group compact">
-          <label class="setting-label">Bg Color</label>
+          <label for="subtitle-bg-color" class="setting-label">Bg Color</label>
           <div class="setting-control color-control">
-            <span>🖼️</span>
-            <input type="color" id="subtitle-bg-color" value="#000000">
+            <input type="color" id="subtitle-bg-color" value="#000000" aria-label="Subtitle background color">
             <span class="color-value" id="subtitle-bg-color-label">#000000</span>
           </div>
         </div>
@@ -787,28 +871,26 @@
 
       <!-- Advanced Options Toggle -->
       <div class="advanced-toggle-container">
-        <button id="toggle-advanced-subtitles" class="btn-text">
-          <span>⚙️ More Options</span>
+        <button id="toggle-advanced-subtitles" class="btn-text" aria-expanded="false" aria-controls="advanced-subtitle-settings">
+          <span>More Options</span>
         </button>
       </div>
 
       <!-- Advanced Options (Hidden by default) -->
-      <div id="advanced-subtitle-settings" class="subtitle-grid hidden" style="margin-top: 16px;">
+      <div id="advanced-subtitle-settings" class="subtitle-grid hidden" style="margin-top: 16px;" aria-hidden="true">
         <div class="setting-group compact">
-          <label class="setting-label">Bg Opacity</label>
+          <label for="subtitle-bg-opacity" class="setting-label">Bg Opacity</label>
           <div class="setting-control">
-            <span>👁️</span>
-            <input type="range" id="subtitle-bg-opacity" min="0" max="100" step="5" value="80">
-            <input type="number" id="subtitle-bg-opacity-number" min="0" max="100" step="5" value="80" title="Background Opacity %">
+            <input type="range" id="subtitle-bg-opacity" min="0" max="100" step="5" value="80" aria-label="Background opacity">
+            <input type="number" id="subtitle-bg-opacity-number" min="0" max="100" step="5" value="80" title="Background Opacity %" aria-label="Background opacity percentage">
             <span class="setting-value" id="subtitle-bg-opacity-label" style="display: none;">80%</span>
           </div>
         </div>
 
         <div class="setting-group compact">
-          <label class="setting-label">Font Family</label>
+          <label for="subtitle-font-family" class="setting-label">Font Family</label>
           <div class="setting-control">
-            <span>📝</span>
-            <select id="subtitle-font-family" class="select-input">
+            <select id="subtitle-font-family" class="select-input" aria-label="Subtitle font family">
               <option value="sans-serif">Sans-Serif</option>
               <option value="serif">Serif</option>
               <option value="monospace">Monospace</option>
@@ -818,10 +900,9 @@
         </div>
 
         <div class="setting-group compact">
-          <label class="setting-label">Edge Style</label>
+          <label for="subtitle-edge-style" class="setting-label">Edge Style</label>
           <div class="setting-control">
-            <span>✨</span>
-            <select id="subtitle-edge-style" class="select-input">
+            <select id="subtitle-edge-style" class="select-input" aria-label="Subtitle edge style">
               <option value="none">None</option>
               <option value="shadow">Shadow</option>
               <option value="raised">Raised</option>
@@ -832,9 +913,10 @@
         </div>
       </div>
 
+      </div>
+
       <div class="btn-group" style="margin-top: 24px;">
-        <button id="reset-subtitle-settings" class="btn-secondary">
-          <span>🔄</span>
+        <button id="reset-subtitle-settings" class="btn-secondary" aria-label="Reset subtitle settings to defaults">
           <span>Reset Defaults</span>
         </button>
       </div>
@@ -842,8 +924,16 @@
 
     <div class="card">
       <div class="card-header">
-        <span class="card-icon">📺</span>
         <h2 class="card-title">Watch History</h2>
+      </div>
+
+      <div class="search-box">
+        <input type="search" id="history-search" class="search-input" placeholder="Search history by title or URL..." aria-label="Search watch history">
+      </div>
+
+      <div class="batch-actions" id="batch-actions">
+        <span class="batch-actions-text"><span id="selected-count">0</span> selected</span>
+        <button id="delete-selected" class="btn-danger" style="flex: none; width: auto; padding: 8px 16px;">Delete Selected</button>
       </div>
 
       <div id="history-list" class="history-list">
@@ -851,8 +941,7 @@
       </div>
 
       <div class="btn-group">
-        <button id="clear-history" class="btn-danger">
-          <span>🗑️</span>
+        <button id="clear-history" class="btn-danger" aria-label="Clear all watch history">
           <span>Clear All History</span>
         </button>
       </div>
@@ -860,6 +949,8 @@
   </div>
 
   <script src="js/utils.js"></script>
+  <script src="js/ui-feedback.js"></script>
+  <script src="js/state-manager.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/subtitle-utils.js"></script>
   <script src="js/options.js"></script>

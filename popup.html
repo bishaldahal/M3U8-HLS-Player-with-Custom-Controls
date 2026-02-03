@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HLS Player</title>
+  <link rel="stylesheet" href="css/feedback.css">
   <style>
     * {
       box-sizing: border-box;
@@ -187,6 +189,51 @@
       font-weight: 600;
       font-size: 13px;
     }
+    /* Focus states for accessibility */
+    .btn:focus,
+    .history-item:focus {
+      outline: 2px solid #1f6feb;
+      outline-offset: 2px;
+    }
+    input[type="range"]:focus {
+      outline: 2px solid #1f6feb;
+      outline-offset: 4px;
+    }
+    /* History item keyboard focus */
+    .history-item {
+      outline: none;
+    }
+    .history-item:focus-visible {
+      outline: 2px solid #1f6feb;
+      outline-offset: -2px;
+    }
+    /* Saving indicator */
+    .saving-indicator {
+      display: none;
+      font-size: 11px;
+      color: #58a6ff;
+      margin-top: 6px;
+      align-items: center;
+      gap: 6px;
+    }
+    .saving-indicator.visible {
+      display: flex;
+    }
+    .save-status {
+      font-size: 11px;
+      color: #3fb950;
+      margin-top: 6px;
+      display: none;
+      align-items: center;
+      gap: 4px;
+    }
+    .save-status.visible {
+      display: flex;
+    }
+    .save-status svg {
+      width: 12px;
+      height: 12px;
+    }
   </style>
 </head>
 <body>
@@ -197,21 +244,29 @@
   
   <div class="section">
     <div class="btn-group">
-      <button id="open-options" class="btn">
-        <span class="icon">⚙️</span>
+      <button id="open-options" class="btn" aria-label="Open settings page">
         <span>Settings</span>
       </button>
-      <button id="open-shortcuts" class="btn-secondary">
-        <span class="icon">⌨️</span>
+      <button id="open-shortcuts" class="btn-secondary" aria-label="View keyboard shortcuts">
         <span>Shortcuts</span>
       </button>
     </div>
     
     <div class="subtitle-control">
-      <div class="control-label">🔤 Subtitle Size</div>
+      <label for="subtitle-size" class="control-label">Subtitle Size</label>
       <div class="subtitle-size-control">
-        <input type="range" id="subtitle-size" min="50" max="400" step="5" value="100">
-        <span class="size-value" id="subtitle-size-value">100%</span>
+        <input type="range" id="subtitle-size" min="50" max="400" step="5" value="100" aria-label="Subtitle font size percentage">
+        <span class="size-value" id="subtitle-size-value" aria-live="polite">100%</span>
+      </div>
+      <div class="saving-indicator" id="saving-indicator" aria-live="polite">
+        <div class="feedback-spinner feedback-spinner-small"><div class="feedback-spinner-bar"></div><div class="feedback-spinner-bar"></div><div class="feedback-spinner-bar"></div><div class="feedback-spinner-bar"></div></div>
+        <span>Saving...</span>
+      </div>
+      <div class="save-status" id="save-status">
+        <svg width="12" height="12" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10 0C4.48 0 0 4.48 0 10C0 15.52 4.48 20 10 20C15.52 20 20 15.52 20 10C20 4.48 15.52 0 10 0ZM8 15L3 10L4.41 8.59L8 12.17L15.59 4.58L17 6L8 15Z" fill="currentColor"/>
+        </svg>
+        <span>Saved</span>
       </div>
     </div>
   </div>
@@ -222,6 +277,8 @@
   </div>
   
   <script src="js/utils.js"></script>
+  <script src="js/ui-feedback.js"></script>
+  <script src="js/state-manager.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/subtitle-utils.js"></script>
   <script src="js/popup.js"></script>
