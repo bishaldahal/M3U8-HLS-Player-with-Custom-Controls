@@ -22,22 +22,32 @@ jobs:
     - name: Install dependencies
       run: npm ci
     
-    - name: Build Chrome
-      run: npm run build:chrome
+    - name: Build
+      run: |
+        npm run build:chrome
+        npm run build:firefox
     
-    - name: Build Firefox
-      run: npm run build:firefox
+    - name: Publish to Chrome Web Store
+      continue-on-error: true
+      run: node build_scripts/publish.js chrome-webstore
+      env:
+        CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+        CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+        CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+        CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
     
     - name: Publish to Edge Store
-      run: node build_scripts/publish.js chrome
+      continue-on-error: true
+      run: node build_scripts/publish.js edge
       env:
         CLIENT_ID: ${{ secrets.CLIENT_ID }}
         PRODUCT_ID: ${{ secrets.PRODUCT_ID }}
         EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
     
     - name: Publish to Firefox
-      run: node build_scripts/publish.js firefox
+      continue-on-error: true
       timeout-minutes: 2
+      run: node build_scripts/publish.js firefox
       env:
         WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
         WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
