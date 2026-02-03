@@ -291,6 +291,8 @@ async function deleteSelected() {
   if (!confirm(confirmMsg)) return;
   
   try {
+    const count = selectedHistoryItems.size;
+    
     for (const url of selectedHistoryItems) {
       await window.PlayerSettings.deleteHistoryEntry(url);
     }
@@ -298,7 +300,7 @@ async function deleteSelected() {
     selectedHistoryItems.clear();
     await loadHistoryUI();
     DOM.batchActions.classList.remove('visible');
-    window.UIFeedback.showToast(`Deleted ${selectedHistoryItems.size} item(s)`, 'success');
+    window.UIFeedback.showToast(`Deleted ${count} item${count > 1 ? 's' : ''}`, 'success');
   } catch (error) {
     console.error('Error deleting history:', error);
     window.UIFeedback.showToast('Failed to delete items', 'error');
