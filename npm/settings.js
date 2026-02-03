@@ -149,12 +149,19 @@ function getUrlKey(url) {
 
 /**
  * Load watch history from storage
- * @returns {Promise<Array>} Array of history entries
+ * @returns {Promise<Array>} Array of history entries (sorted: pinned first, then by timestamp)
  */
 async function loadHistory() {
   try {
     const result = await storage.get(['watchHistory']);
-    return result.watchHistory || [];
+    const history = result.watchHistory || [];
+    
+    // Sort: pinned items first, then by timestamp (newest first)
+    return history.sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return b.timestamp - a.timestamp;
+    });
   } catch (error) {
     console.error('Failed to load history:', error);
     return [];
@@ -182,13 +189,18 @@ async function saveToHistory(url, title, currentTime, duration) {
     // Remove existing entry for this URL
     const filtered = history.filter((entry) => entry.url !== urlKey);
     
+    // Find existing entry to preserve custom title and pin status
+    const existingEntry = history.find((entry) => entry.url === urlKey);
+    
     // Add new entry at the beginning
     const newEntry = {
       url: urlKey,
       title: title || 'Untitled Stream',
+      customTitle: existingEntry?.customTitle || null,
       currentTime: Math.floor(currentTime),
       duration: Math.floor(duration) || 0,
       timestamp: Date.now(),
+      pinned: existingEntry?.pinned || false,
     };
     
     filtered.unshift(newEntry);
@@ -222,23 +234,79 @@ async function getResumePosition(url) {
 /**
  * Delete a single history entry
  * @param {string} url - URL to delete
+ * @param {boolean} force - Force delete even if pinned
+ * @returns {Promise<boolean>} True if deleted, false if pinned and not forced
  */
-async function deleteHistoryEntry(url) {
+async function deleteHistoryEntry(url, force = false) {
   try {
     const history = await loadHistory();
+    const entry = history.find((e) => e.url === url);
+    
+    // Prevent deletion of pinned items unless forced
+    if (!force && entry?.pinned) {
+      return false;
+    }
+    
     const filtered = history.filter((entry) => entry.url !== url);
     await storage.set({ watchHistory: filtered });
+    return true;
   } catch (error) {
     console.error('Failed to delete history entry:', error);
+    return false;
   }
 }
 
 /**
- * Clear all watch history
+ * Rename a history entry
+ * @param {string} url - URL of entry to rename
+ * @param {string} newTitle - New custom title
+ */
+async function renameHistoryEntry(url, newTitle) {
+  try {
+    const history = await loadHistory();
+    const entry = history.find((e) => e.url === url);
+    
+    if (entry) {
+      entry.customTitle = newTitle.trim() || null;
+      await storage.set({ watchHistory: history });
+    }
+  } catch (error) {
+    console.error('Failed to rename history entry:', error);
+    throw error;
+  }
+}
+
+/**
+ * Toggle pin status of a history entry
+ * @param {string} url - URL of entry to pin/unpin
+ * @returns {Promise<boolean>} New pin status
+ */
+async function toggleHistoryPin(url) {
+  try {
+    const history = await loadHistory();
+    const entry = history.find((e) => e.url === url);
+    
+    if (entry) {
+      entry.pinned = !entry.pinned;
+      await storage.set({ watchHistory: history });
+      return entry.pinned;
+    }
+    return false;
+  } catch (error) {
+    console.error('Failed to toggle pin:', error);
+    throw error;
+  }
+}
+
+/**
+ * Clear all watch history (except pinned items)
  */
 async function clearHistory() {
   try {
-    await storage.set({ watchHistory: [] });
+    const history = await loadHistory();
+    // Keep only pinned items
+    const pinnedItems = history.filter(entry => entry.pinned);
+    await storage.set({ watchHistory: pinnedItems });
   } catch (error) {
     console.error('Failed to clear history:', error);
   }
@@ -382,6 +450,8 @@ if (typeof window !== 'undefined') {
     saveToHistory,
     getResumePosition,
     deleteHistoryEntry,
+    renameHistoryEntry,
+    toggleHistoryPin,
     clearHistory,
     resetSettings,
     DEFAULT_SETTINGS,
