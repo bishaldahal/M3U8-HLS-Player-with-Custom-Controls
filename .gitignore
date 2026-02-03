@@ -9,3 +9,4 @@ icons/icon*.png
 
 # Keep platform-specific manifests but track them
 # manifest.json is auto-generated during build
+.DS_Store
