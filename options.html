@@ -24,6 +24,7 @@
     .container {
       max-width: 900px;
       margin: 0 auto;
+      position: relative;
     }
 
     .header {
@@ -264,10 +265,19 @@
       transition: all 0.2s;
     }
 
+    .history-item.pinned {
+      background: linear-gradient(90deg, rgba(88, 166, 255, 0.05) 0%, #0d1117 100%);
+      border-left: 3px solid #58a6ff;
+    }
+
     .history-item:hover {
       background: #161b22;
       border-color: #58a6ff;
       transform: translateX(4px);
+    }
+
+    .history-item.pinned:hover {
+      background: linear-gradient(90deg, rgba(88, 166, 255, 0.1) 0%, #161b22 100%);
     }
 
     .history-info {
@@ -327,6 +337,7 @@
       display: flex;
       gap: 8px;
       margin-left: 16px;
+      flex-wrap: wrap;
     }
 
     .history-actions button {
@@ -336,6 +347,36 @@
       font-size: 16px;
       border-radius: 10px;
       flex: none;
+    }
+
+    .btn-pin {
+      background: #21262d;
+      color: #8b949e;
+      border: 1px solid #30363d;
+    }
+
+    .btn-pin:hover {
+      background: #30363d;
+      color: #58a6ff;
+      border-color: #58a6ff;
+    }
+
+    .btn-pin.pinned {
+      background: rgba(88, 166, 255, 0.15);
+      color: #58a6ff;
+      border-color: #58a6ff;
+    }
+
+    .btn-rename {
+      background: #21262d;
+      color: #8b949e;
+      border: 1px solid #30363d;
+    }
+
+    .btn-rename:hover {
+      background: #30363d;
+      color: #d29922;
+      border-color: #d29922;
     }
 
     .btn-play {
@@ -348,15 +389,19 @@
     }
 
     .btn-delete {
-      background: #21262d;
-      color: #8b949e;
-      border: 1px solid #30363d;
-    }
-
-    .btn-delete:hover {
       background: #da3633;
       color: #fff;
-      border-color: #da3633;
+      border: 1px solid #da3633;
+    }
+
+    .btn-delete:hover:not(:disabled) {
+      background: #f85149;
+      border-color: #f85149;
+    }
+
+    .btn-delete:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
     }
 
     /* Toast notification */
@@ -678,12 +723,14 @@
 
     /* Auto-save indicator */
     .auto-save-indicator {
+      position: absolute;
+      top: 24px;
+      right: 20px;
       display: inline-flex;
       align-items: center;
       gap: 8px;
       font-size: 13px;
       color: #3fb950;
-      margin-left: 12px;
       opacity: 0;
       transition: opacity 0.3s;
     }
@@ -728,6 +775,20 @@
       width: 18px;
       height: 18px;
       cursor: pointer;
+      accent-color: #58a6ff;
+      flex-shrink: 0;
+    }
+
+    .history-pin-indicator {
+      margin-right: 12px;
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      cursor: default;
     }
 
     /* Search box */
@@ -760,16 +821,16 @@
 
 <body>
   <div class="container">
+    <span class="auto-save-indicator" id="auto-save-indicator">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 0C4.48 0 0 4.48 0 10C0 15.52 4.48 20 10 20C15.52 20 20 15.52 20 10C20 4.48 15.52 0 10 0ZM8 15L3 10L4.41 8.59L8 12.17L15.59 4.58L17 6L8 15Z" fill="currentColor"/>
+      </svg>
+      <span id="auto-save-text">Saved</span>
+    </span>
+    
     <div class="header">
       <img src="./icons/icon.svg" alt="App Icon" width="96" height="96">
-      <h1>HLS Player Settings
-        <span class="auto-save-indicator" id="auto-save-indicator">
-          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 0C4.48 0 0 4.48 0 10C0 15.52 4.48 20 10 20C15.52 20 20 15.52 20 10C20 4.48 15.52 0 10 0ZM8 15L3 10L4.41 8.59L8 12.17L15.59 4.58L17 6L8 15Z" fill="currentColor"/>
-          </svg>
-          <span id="auto-save-text">Saved</span>
-        </span>
-      </h1>
+      <h1>HLS Player Settings</h1>
       <p>Customize your streaming experience</p>
     </div>
 

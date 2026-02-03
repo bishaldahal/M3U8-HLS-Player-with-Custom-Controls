@@ -178,25 +178,40 @@ function renderHistory(history) {
   displayHistory.forEach(entry => {
     const item = document.createElement('div');
     item.className = 'history-item';
+    if (entry.pinned) {
+      item.classList.add('pinned');
+    }
     item.dataset.url = entry.url;
     
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.className = 'history-checkbox';
-    checkbox.addEventListener('change', handleCheckboxChange);
-    item.appendChild(checkbox);
+    // Show pin indicator for pinned items, checkbox for unpinned
+    if (entry.pinned) {
+      const pinIndicator = document.createElement('div');
+      pinIndicator.className = 'history-pin-indicator';
+      pinIndicator.textContent = '📌';
+      pinIndicator.title = 'Pinned';
+      item.appendChild(pinIndicator);
+    } else {
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'history-checkbox';
+      checkbox.addEventListener('change', handleCheckboxChange);
+      item.appendChild(checkbox);
+    }
     
     const info = document.createElement('div');
     info.className = 'history-info';
     
     const title = document.createElement('div');
     title.className = 'history-title';
-    title.textContent = entry.title;
+    // Use custom title if available, otherwise use original title
+    const displayTitle = entry.customTitle || entry.title;
+    title.textContent = displayTitle;
     title.title = entry.url;
     
     const url = document.createElement('div');
     url.className = 'history-url';
     url.textContent = entry.url;
+    url.title = entry.url; // Show full URL on hover
     
     const meta = document.createElement('div');
     meta.className = 'history-meta';
@@ -229,6 +244,24 @@ function renderHistory(history) {
     const actions = document.createElement('div');
     actions.className = 'history-actions';
     
+    const pinBtn = document.createElement('button');
+    pinBtn.className = entry.pinned ? 'btn-pin pinned' : 'btn-pin';
+    pinBtn.textContent = '📌'
+    pinBtn.title = entry.pinned ? 'Unpin' : 'Pin';
+    pinBtn.onclick = (e) => {
+      e.stopPropagation();
+      togglePin(entry.url);
+    };
+    
+    const renameBtn = document.createElement('button');
+    renameBtn.className = 'btn-rename';
+    renameBtn.textContent = '✏️';
+    renameBtn.title = 'Rename';
+    renameBtn.onclick = (e) => {
+      e.stopPropagation();
+      renameEntry(entry);
+    };
+    
     const playBtn = document.createElement('button');
     playBtn.className = 'btn-play';
     playBtn.textContent = '▶';
@@ -241,12 +274,19 @@ function renderHistory(history) {
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'btn-delete';
     deleteBtn.textContent = '🗑';
-    deleteBtn.title = 'Delete';
+    deleteBtn.title = entry.pinned ? 'Unpin to delete' : 'Delete';
+    if (entry.pinned) {
+      deleteBtn.disabled = true;
+      deleteBtn.style.opacity = '0.5';
+      deleteBtn.style.cursor = 'not-allowed';
+    }
     deleteBtn.onclick = (e) => {
       e.stopPropagation();
       deleteHistoryEntry(entry.url);
     };
     
+    actions.appendChild(pinBtn);
+    actions.appendChild(renameBtn);
     actions.appendChild(playBtn);
     actions.appendChild(deleteBtn);
     item.appendChild(actions);
@@ -287,6 +327,21 @@ function filterHistory() {
 async function deleteSelected() {
   if (selectedHistoryItems.size === 0) return;
   
+  // Check if any selected items are pinned
+  const history = await window.PlayerSettings.loadHistory();
+  const pinnedSelected = Array.from(selectedHistoryItems).filter(url => {
+    const entry = history.find(e => e.url === url);
+    return entry?.pinned;
+  });
+  
+  if (pinnedSelected.length > 0) {
+    window.UIFeedback.showToast(
+      `Cannot delete ${pinnedSelected.length} pinned item${pinnedSelected.length > 1 ? 's' : ''}. Unpin them first.`,
+      'warning'
+    );
+    return;
+  }
+  
   const confirmMsg = `Delete ${selectedHistoryItems.size} selected item${selectedHistoryItems.size > 1 ? 's' : ''}?`;
   if (!confirm(confirmMsg)) return;
   
@@ -311,7 +366,13 @@ async function deleteHistoryEntry(url) {
   if (!confirm('Delete this entry?')) return;
   
   try {
-    await window.PlayerSettings.deleteHistoryEntry(url);
+    const deleted = await window.PlayerSettings.deleteHistoryEntry(url);
+    
+    if (!deleted) {
+      window.UIFeedback.showToast('Cannot delete pinned item. Unpin it first.', 'warning');
+      return;
+    }
+    
     await loadHistoryUI();
     window.UIFeedback.showToast('Entry deleted', 'success');
   } catch (error) {
@@ -320,13 +381,53 @@ async function deleteHistoryEntry(url) {
   }
 }
 
+async function renameEntry(entry) {
+  const currentTitle = entry.customTitle || entry.title;
+  const newTitle = prompt('Enter new title:', currentTitle);
+  
+  if (newTitle === null) return; // Cancelled
+  
+  try {
+    await window.PlayerSettings.renameHistoryEntry(entry.url, newTitle);
+    await loadHistoryUI();
+    window.UIFeedback.showToast('Title updated', 'success');
+  } catch (error) {
+    console.error('Error renaming entry:', error);
+    window.UIFeedback.showToast('Failed to rename entry', 'error');
+  }
+}
+
+async function togglePin(url) {
+  try {
+    const isPinned = await window.PlayerSettings.toggleHistoryPin(url);
+    await loadHistoryUI();
+    window.UIFeedback.showToast(isPinned ? 'Item pinned' : 'Item unpinned', 'success');
+  } catch (error) {
+    console.error('Error toggling pin:', error);
+    window.UIFeedback.showToast('Failed to toggle pin', 'error');
+  }
+}
+
 async function clearAllHistory() {
-  if (!confirm('Clear all watch history? This cannot be undone.')) return;
+  const history = await window.PlayerSettings.loadHistory();
+  const pinnedCount = history.filter(e => e.pinned).length;
+  
+  let confirmMsg = 'Clear all watch history? This cannot be undone.';
+  if (pinnedCount > 0) {
+    confirmMsg = `Clear all unpinned history? (${pinnedCount} pinned item${pinnedCount > 1 ? 's' : ''} will be kept)`;
+  }
+  
+  if (!confirm(confirmMsg)) return;
   
   try {
     await window.PlayerSettings.clearHistory();
     await loadHistoryUI();
-    window.UIFeedback.showToast('History cleared', 'success');
+    
+    if (pinnedCount > 0) {
+      window.UIFeedback.showToast(`History cleared (${pinnedCount} pinned item${pinnedCount > 1 ? 's' : ''} kept)`, 'success');
+    } else {
+      window.UIFeedback.showToast('History cleared', 'success');
+    }
   } catch (error) {
     console.error('Error clearing history:', error);
     window.UIFeedback.showToast('Failed to clear history', 'error');
