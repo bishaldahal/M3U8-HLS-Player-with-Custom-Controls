@@ -4,6 +4,17 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      skip_stores:
+        description: 'Skip publishing to stores (GitHub release only)'
+        required: false
+        type: boolean
+        default: false
+      tag:
+        description: 'Tag name (e.g., v1.2.3)'
+        required: true
+        type: string
 
 jobs:
   build-and-publish:
@@ -28,6 +39,7 @@ jobs:
         npm run build:firefox
     
     - name: Publish to Chrome Web Store
+      if: ${{ !inputs.skip_stores }}
       continue-on-error: true
       run: node build_scripts/publish.js chrome-webstore
       env:
@@ -36,7 +48,8 @@ jobs:
         CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
         CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
     
-    - name: Publish to Edge Store
+    - if: ${{ !inputs.skip_stores }}
+      name: Publish to Edge Store
       continue-on-error: true
       run: node build_scripts/publish.js edge
       env:
@@ -44,7 +57,8 @@ jobs:
         PRODUCT_ID: ${{ secrets.PRODUCT_ID }}
         EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
     
-    - name: Publish to Firefox
+    - if: ${{ !inputs.skip_stores }}
+      name: Publish to Firefox
       continue-on-error: true
       timeout-minutes: 2
       run: node build_scripts/publish.js firefox
