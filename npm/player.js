@@ -105,8 +105,6 @@ function setupResumePosition() {
  * Debounced save to history (prevents excessive writes)
  */
 function debouncedSaveHistory() {
-  const debounceMs = window.PlayerSettings?.SAVE_DEBOUNCE_MS || 1000;
-  
   if (saveHistoryTimeout) {
     clearTimeout(saveHistoryTimeout);
   }
@@ -119,7 +117,7 @@ function debouncedSaveHistory() {
         video.duration || 0
       );
     }
-  }, debounceMs);
+  }, 1000);
 }
 
 /**
@@ -140,138 +138,165 @@ function applySettings(settings) {
 }
 
 /**
+ * Setup subtitle track listener to reapply styles when tracks are added
+ */
+function setupSubtitleTrackListener() {
+  if (!video || !video.textTracks) return;
+  
+  video.textTracks.addEventListener('addtrack', async (e) => {
+    // Wait a bit for the track to be fully loaded
+    setTimeout(async () => {
+      const settings = await window.PlayerSettings.loadSettings();
+      if (settings.subtitleSettings) {
+        applySubtitleStyles(settings.subtitleSettings);
+      }
+    }, 100);
+  });
+}
+
+/**
+ * Wait for subtitle cues to be parsed by HLS.js after seeking
+ * HLS.js loads subtitle fragments on-demand, so we need to wait for them
+ */
+function waitForSubtitleCues(hlsInstance, timeoutMs = 2000) {
+  if (!hlsInstance) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    const cleanup = () => {
+      hlsInstance.off('hlsSubtitleFragProcessed', resolve);
+      hlsInstance.off('hlsCuesParsed', resolve);
+      resolve();
+    };
+
+    // Wait for either event indicating subtitles are ready
+    hlsInstance.once('hlsSubtitleFragProcessed', resolve);
+    hlsInstance.once('hlsCuesParsed', resolve);
+
+    // Fallback timeout
+    setTimeout(cleanup, timeoutMs);
+  });
+}
+
+/**
+ * Enable subtitle tracks and apply custom styles
+ */
+function enableSubtitles(settings) {
+  if (!video?.textTracks) return;
+
+  // Show all subtitle and caption tracks
+  Array.from(video.textTracks)
+    .filter(track => track.kind === 'subtitles' || track.kind === 'captions')
+    .forEach(track => track.mode = 'showing');
+
+  // Apply custom styles
+  if (settings.subtitleSettings) {
+    applySubtitleStyles(settings.subtitleSettings);
+  }
+}
+
+/**
+ * Resume playback from saved position with subtitle support
+ */
+async function resumeFromPosition(resumePos, settings) {
+  video.currentTime = resumePos;
+  
+  // Wait for seek to complete
+  await new Promise(resolve => video.addEventListener('seeked', resolve, { once: true }));
+  
+  // Wait for HLS.js to load subtitle fragments for the new position
+  await waitForSubtitleCues(video.api);
+  
+  // Enable subtitles and apply styles
+  enableSubtitles(settings);
+  
+  // Fallback check to ensure subtitles are visible
+  setTimeout(() => enableSubtitles(settings), 300);
+}
+
+/**
+ * Convert hex color to rgba
+ */
+function hexToRgba(hex, opacity) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
+}
+
+/**
+ * Get text-shadow CSS for edge style
+ */
+function getEdgeStyleCSS(edgeStyle) {
+  switch (edgeStyle) {
+    case 'shadow':
+      return '2px 2px 4px rgba(0, 0, 0, 0.9)';
+    case 'raised':
+      return '1px 1px 0 #000, 2px 2px 0 #333';
+    case 'depressed':
+      return '-1px -1px 0 #000, -2px -2px 0 #333';
+    case 'outline':
+      return '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000';
+    default:
+      return 'none';
+  }
+}
+
+/**
  * Apply subtitle styles using ::cue CSS injection
  * @param {Object} subtitleSettings - Subtitle settings object
  */
 function applySubtitleStyles(subtitleSettings) {
   if (!video) return;
+
+  // We need to inject styles into the shadow DOM of the custom element
+  // because the video element is encapsulated there.
+  const targetRoot = video.shadowRoot || document.head;
   
-  if (!window.SubtitleUtils) {
-    console.error('SubtitleUtils not loaded');
-    return;
+  // Remove existing subtitle style if any
+  const existingStyle = targetRoot.getElementById('subtitle-custom-style');
+  if (existingStyle) {
+    existingStyle.remove();
   }
-
-  try {
-    // We need to inject styles into the shadow DOM of the custom element
-    // because the video element is encapsulated there.
-    const targetRoot = video.shadowRoot || document.head;
-    
-    if (!targetRoot) {
-      console.error('Cannot inject subtitle styles: no valid target (shadow DOM or document.head)');
-      return;
-    }
-    
-    // Remove existing subtitle style if any
-    const existingStyle = targetRoot.getElementById('subtitle-custom-style');
-    if (existingStyle) {
-      existingStyle.remove();
-    }
-    
-    const {
-      fontSize = 100,
-      fontColor = '#ffffff',
-      backgroundColor = '#000000',
-      backgroundOpacity = 80,
-      fontFamily = 'sans-serif',
-      edgeStyle = 'none',
-    } = subtitleSettings;
-    
-    // Get base font size from settings
-    const baseFontSize = window.PlayerSettings?.SUBTITLE_BASE_FONT_SIZE_PX || 24;
-    const fontSizePercent = fontSize / 100;
-    const bgColor = window.SubtitleUtils.hexToRgba(backgroundColor, backgroundOpacity);
-    const textShadow = window.SubtitleUtils.getEdgeStyleCSS(edgeStyle);
-    
-    // Create style element with ::cue rules
-    const style = document.createElement('style');
-    style.id = 'subtitle-custom-style';
-    style.textContent = `
-      video::cue {
-        font-size: ${fontSizePercent}em;
-        color: ${fontColor};
-        background-color: ${bgColor};
-        font-family: ${fontFamily};
-        text-shadow: ${textShadow};
-        outline: none;
-        -webkit-font-smoothing: antialiased;
-      }
-      
-      /* Fallback for webkit browsers */
-      video::-webkit-media-text-track-display {
-        font-size: ${fontSizePercent}em !important;
-      }
-      
-      video::-webkit-media-text-track-container {
-        font-size: ${fontSize}% !important;
-      }
-    `;
-    
-    targetRoot.appendChild(style);
-    console.log('Subtitle styles applied successfully');
-  } catch (error) {
-    console.error('Error applying subtitle styles:', error);
-  }
-}
-
-/**
- * Ensure text tracks are enabled (especially after seeking)
- */
-function ensureTextTracksEnabled() {
-  if (!video || !video.textTracks) return;
   
-  // Find the first text track and ensure it's showing
-  for (let i = 0; i < video.textTracks.length; i++) {
-    const track = video.textTracks[i];
-    // Enable the first subtitle/caption track found
-    if (track.kind === 'subtitles' || track.kind === 'captions') {
-      if (track.mode !== 'showing') {
-        track.mode = 'showing';
-        console.log('Re-enabled text track:', track.label || track.language);
-      }
-      break;
-    }
-  }
-}
-
-/**
- * Setup handlers for text track management
- */
-function setupTextTrackHandlers() {
-  if (!video || !video.textTracks) return;
+  const {
+    fontSize = 100,
+    fontColor = '#ffffff',
+    backgroundColor = '#000000',
+    backgroundOpacity = 80,
+    fontFamily = 'sans-serif',
+    edgeStyle = 'none',
+  } = subtitleSettings;
   
-  // Ensure text tracks are enabled when they are added
-  video.textTracks.addEventListener('addtrack', (e) => {
-    const track = e.track;
-    if ((track.kind === 'subtitles' || track.kind === 'captions') && track.mode !== 'showing') {
-      // Enable the track if it's not already showing
-      track.mode = 'showing';
-      console.log('Auto-enabled new text track:', track.label || track.language);
+  // Calculate font size (base is approximately 2.5% of video height)
+  const fontSizePercent = fontSize / 100;
+  const bgColor = hexToRgba(backgroundColor, backgroundOpacity);
+  const textShadow = getEdgeStyleCSS(edgeStyle);
+  
+  // Create style element with ::cue rules
+  const style = document.createElement('style');
+  style.id = 'subtitle-custom-style';
+  style.textContent = `
+    video::cue {
+      font-size: ${fontSizePercent}em;
+      color: ${fontColor};
+      background-color: ${bgColor};
+      font-family: ${fontFamily};
+      text-shadow: ${textShadow};
+      outline: none;
+      -webkit-font-smoothing: antialiased;
     }
-  });
-}
-
-/**
- * Setup resume position handler for saved playback position
- * @param {number} savedResumePos - Saved resume position in seconds
- */
-function setupResumePositionHandler(savedResumePos) {
-  // Resume playback position after data is loaded to ensure text tracks are initialized
-  video.addEventListener('loadeddata', () => {
-    // Resume from saved position (only for non-live streams)
-    if (savedResumePos > 0 && mediastreamtype !== 'live') {
-      // Don't resume if we're near the end
-      if (savedResumePos < video.duration - 10) {
-        // Use requestAnimationFrame to ensure the player is fully ready
-        requestAnimationFrame(() => {
-          video.currentTime = savedResumePos;
-          resumePosition = savedResumePos;
-          
-          // Ensure text tracks remain enabled after seeking
-          ensureTextTracksEnabled();
-        });
-      }
+    
+    /* Fallback for webkit browsers */
+    video::-webkit-media-text-track-display {
+      font-size: ${fontSizePercent}em !important;
     }
-  });
+    
+    video::-webkit-media-text-track-container {
+      font-size: ${fontSize}% !important;
+    }
+  `;
+  
+  targetRoot.appendChild(style);
 }
 
 /**
@@ -305,6 +330,18 @@ function setupSettingsSaver() {
         if (newSettings) {
           // Apply settings including subtitle customizations immediately
           applySettings(newSettings);
+          
+          // If subtitle settings changed, force reapplication
+          if (changes.playerSettings.oldValue && 
+              JSON.stringify(changes.playerSettings.oldValue.subtitleSettings) !== 
+              JSON.stringify(newSettings.subtitleSettings)) {
+            // Reapply subtitle styles after a short delay to ensure they take effect
+            setTimeout(() => {
+              if (newSettings.subtitleSettings) {
+                applySubtitleStyles(newSettings.subtitleSettings);
+              }
+            }, 50);
+          }
         }
       }
     });
@@ -312,12 +349,10 @@ function setupSettingsSaver() {
 
   // Save history on time update (throttled)
   let lastSaveTime = 0;
-  const saveInterval = window.PlayerSettings?.SAVE_INTERVAL_MS || 30000;
-  
   video.addEventListener('timeupdate', () => {
     const now = Date.now();
-    // Save periodically during playback
-    if (now - lastSaveTime > saveInterval && !video.paused) {
+    // Save every 30 seconds during playback
+    if (now - lastSaveTime > 30000 && !video.paused) {
       lastSaveTime = now;
       debouncedSaveHistory();
     }
@@ -369,13 +404,6 @@ async function init() {
     return;
   }
 
-  // Play the stream
-  video = playStream(url);
-  
-  if (!video) return;
-
-  mediaTimeDisplay = document.querySelector('media-time-display');
-
   // Load and apply settings, get resume position
   let settings = window.PlayerSettings?.DEFAULT_SETTINGS || {};
   let savedResumePos = 0;
@@ -385,6 +413,13 @@ async function init() {
     savedResumePos = await window.PlayerSettings.getResumePosition(url);
   }
 
+  // Play the stream with optional start position
+  video = playStream(url, savedResumePos);
+  
+  if (!video) return;
+
+  mediaTimeDisplay = document.querySelector('media-time-display');
+
   // Wait for metadata to determine stream type and apply settings
   video.addEventListener('loadedmetadata', () => {
     mediastreamtype = player.getAttribute('mediastreamtype');
@@ -392,17 +427,31 @@ async function init() {
     // Apply saved settings
     applySettings(settings);
     
-    // Setup text track handlers
-    setupTextTrackHandlers();
-  });
+    // Handle resume position for non-live streams
+    const shouldResume = savedResumePos > 0 && 
+                        mediastreamtype !== 'live' && 
+                        video.duration > 0 && 
+                        savedResumePos < video.duration - 10;
 
-  // Setup resume position handler
-  setupResumePositionHandler(savedResumePos);
+    if (shouldResume) {
+      resumePosition = savedResumePos;
+      
+      // Wait for playback to start before seeking
+      const onReady = () => resumeFromPosition(savedResumePos, settings);
+      
+      if (video.readyState >= 3) {
+        onReady();
+      } else {
+        video.addEventListener('playing', onReady, { once: true });
+      }
+    }
+  });
 
   // Setup event handlers
   setupLiveTimeDisplay();
   setupResumePosition();
   setupSettingsSaver();
+  setupSubtitleTrackListener();
 
   // Focus video on load
   window.addEventListener('load', focusVideo);

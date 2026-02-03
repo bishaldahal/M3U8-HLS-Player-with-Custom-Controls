@@ -1,574 +1,504 @@
-/**
- * HLS Video Player - Options Page
- * Handles settings UI and watch history management
- */
-
-// Cross-browser compatibility: Use browser API if available, fall back to chrome
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
-// DOM Elements
-let volumeInput, saveBtn, resetBtn;
-let historyList, clearHistoryBtn, saveHistoryToggle;
-let speedPresets, speedDisplay, currentSpeed;
-let speedIncreaseBtn, speedDecreaseBtn, speedResetBtn;
+let currentSpeed = 1.0;
+let autoSaveTimer = null;
+let historyFilteredData = [];
+let selectedHistoryItems = new Set();
+const AUTO_SAVE_DEBOUNCE_MS = 300;
+const MAX_HISTORY_DISPLAY = 50;
 
-// Subtitle setting elements
-let subtitleFontSize, subtitleFontSizeNumber, subtitleFontColor, subtitleBgColor, subtitleBgOpacity, subtitleBgOpacityNumber;
-let subtitleFontFamily, subtitleEdgeStyle, subtitlePreview, resetSubtitleBtn;
-let toggleAdvancedSubtitlesBtn, advancedSubtitleSettings;
+let DOM = {};
 
+function showSaving() {
+  const indicator = DOM.autoSaveIndicator;
+  const text = DOM.autoSaveText;
+  if (!indicator || !text) return;
+  
+  indicator.classList.add('visible', 'saving');
+  text.textContent = 'Saving...';
+  
+  const icon = indicator.querySelector('svg, .feedback-spinner');
+  if (icon) {
+    icon.outerHTML = `
+      <div class="feedback-spinner feedback-spinner-small">
+        <div class="feedback-spinner-bar"></div>
+        <div class="feedback-spinner-bar"></div>
+        <div class="feedback-spinner-bar"></div>
+        <div class="feedback-spinner-bar"></div>
+      </div>
+    `;
+  }
+}
 
-/**
- * Load and display current settings
- */
-async function loadSettingsUI() {
-  if (!window.PlayerSettings) {
-    console.error('PlayerSettings not loaded');
-    showToast('Error: Settings module not loaded', true);
-    return;
+function showSaved() {
+  const indicator = DOM.autoSaveIndicator;
+  const text = DOM.autoSaveText;
+  if (!indicator || !text) return;
+  
+  indicator.classList.remove('saving');
+  indicator.classList.add('visible');
+  text.textContent = 'Saved';
+  
+  const icon = indicator.querySelector('.feedback-spinner, svg');
+  if (icon) {
+    icon.outerHTML = `
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 0C4.48 0 0 4.48 0 10C0 15.52 4.48 20 10 20C15.52 20 20 15.52 20 10C20 4.48 15.52 0 10 0ZM8 15L3 10L4.41 8.59L8 12.17L15.59 4.58L17 6L8 15Z" fill="currentColor"/>
+      </svg>
+    `;
   }
   
+  setTimeout(() => indicator.classList.remove('visible'), 2000);
+}
+
+async function autoSaveSettings() {
+  clearTimeout(autoSaveTimer);
+  showSaving();
+  
+  autoSaveTimer = setTimeout(async () => {
+    try {
+      const newSettings = {
+        volume: parseFloat(DOM.volumeInput.value),
+        playbackRate: currentSpeed,
+        saveHistory: DOM.saveHistoryToggle.checked,
+        subtitleSettings: getSubtitleSettingsFromUI(),
+      };
+      
+      await window.PlayerSettings.saveSettings(newSettings, { silent: true });
+      showSaved();
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+      window.UIFeedback.showToast('Failed to save settings', 'error');
+      DOM.autoSaveIndicator?.classList.remove('visible');
+    }
+  }, AUTO_SAVE_DEBOUNCE_MS);
+}
+
+function getSubtitleSettingsFromUI() {
+  return {
+    fontSize: parseInt(DOM.subtitleFontSize.value),
+    fontColor: DOM.subtitleFontColor.value,
+    backgroundColor: DOM.subtitleBgColor.value,
+    backgroundOpacity: parseInt(DOM.subtitleBgOpacity.value),
+    fontFamily: DOM.subtitleFontFamily.value,
+    edgeStyle: DOM.subtitleEdgeStyle.value,
+  };
+}
+
+async function loadAndPopulateSettings() {
   try {
     const settings = await window.PlayerSettings.loadSettings();
-    console.log('Loaded settings:', settings);
     
-    volumeInput.value = settings.volume || 1.0;
+    DOM.volumeInput.value = settings.volume || 1.0;
+    DOM.volumeLabel.textContent = `${Math.round((settings.volume || 1.0) * 100)}%`;
+    
     currentSpeed = settings.playbackRate || 1.0;
-    saveHistoryToggle.checked = settings.saveHistory !== false;
-    
-    // Load subtitle settings
-    const subtitleSettings = settings.subtitleSettings || window.PlayerSettings.DEFAULT_SETTINGS.subtitleSettings;
-    loadSubtitleSettingsUI(subtitleSettings);
-    
-    updateVolumeLabel();
-    updateSpeedDisplay();
+    DOM.speedDisplay.textContent = `${currentSpeed.toFixed(2)}x`;
     updateSpeedPresets();
+    
+    DOM.saveHistoryToggle.checked = settings.saveHistory !== false;
+    
+    const subtitleSettings = settings.subtitleSettings || {};
+    DOM.subtitleFontSize.value = subtitleSettings.fontSize || 100;
+    DOM.subtitleFontSizeNumber.value = subtitleSettings.fontSize || 100;
+    DOM.subtitleFontColor.value = subtitleSettings.fontColor || '#ffffff';
+    DOM.subtitleFontColorLabel.textContent = subtitleSettings.fontColor || '#ffffff';
+    DOM.subtitleBgColor.value = subtitleSettings.backgroundColor || '#000000';
+    DOM.subtitleBgColorLabel.textContent = subtitleSettings.backgroundColor || '#000000';
+    DOM.subtitleBgOpacity.value = subtitleSettings.backgroundOpacity !== undefined ? subtitleSettings.backgroundOpacity : 80;
+    DOM.subtitleBgOpacityNumber.value = subtitleSettings.backgroundOpacity !== undefined ? subtitleSettings.backgroundOpacity : 80;
+    DOM.subtitleFontFamily.value = subtitleSettings.fontFamily || 'sans-serif';
+    DOM.subtitleEdgeStyle.value = subtitleSettings.edgeStyle || 'none';
+    
+    updateSubtitlePreview();
   } catch (error) {
     console.error('Error loading settings:', error);
-    showToast('Failed to load settings', true);
+    window.UIFeedback.showToast('Failed to load settings', 'error');
   }
 }
 
-/**
- * Update volume label display
- */
-function updateVolumeLabel() {
-  const label = document.getElementById('volume-label');
-  if (label) {
-    label.textContent = `${Math.round(volumeInput.value * 100)}%`;
-  }
-}
-
-/**
- * Update speed display
- */
-function updateSpeedDisplay() {
-  if (speedDisplay) {
-    speedDisplay.textContent = `${currentSpeed.toFixed(2)}x`;
-  }
-}
-
-/**
- * Update speed preset buttons
- */
 function updateSpeedPresets() {
-  speedPresets.forEach(btn => {
+  DOM.speedPresets.forEach(btn => {
     const speed = parseFloat(btn.dataset.speed);
-    if (Math.abs(speed - currentSpeed) < 0.01) {
-      btn.classList.add('active');
-    } else {
-      btn.classList.remove('active');
-    }
+    btn.classList.toggle('active', Math.abs(speed - currentSpeed) < 0.01);
   });
 }
 
-/**
- * Change playback speed
- */
-function changeSpeed(delta) {
-  currentSpeed = Math.max(0.1, Math.min(10.0, currentSpeed + delta));
-  currentSpeed = Math.round(currentSpeed * 100) / 100;
-  updateSpeedDisplay();
-  updateSpeedPresets();
-}
-
-/**
- * Reset speed to default
- */
-function resetSpeed() {
-  currentSpeed = 1.0;
-  updateSpeedDisplay();
-  updateSpeedPresets();
-}
-
-/**
- * Save settings from UI
- */
-async function saveSettingsUI() {
-  if (!window.PlayerSettings) {
-    showToast('Error: Settings module not loaded', true);
-    return;
-  }
+function updateSubtitlePreview() {
+  const preview = DOM.subtitlePreview;
+  if (!preview) return;
   
-  try {
-    const newSettings = {
-      volume: parseFloat(volumeInput.value),
-      playbackRate: currentSpeed,
-      saveHistory: saveHistoryToggle.checked,
-      subtitleSettings: getSubtitleSettingsFromUI(),
-    };
-    console.log('Saving settings:', newSettings);
-    
-    await window.PlayerSettings.saveSettings(newSettings);
-    
-    showToast('✓ Settings saved successfully!');
-  } catch (error) {
-    console.error('Error saving settings:', error);
-    showToast('Failed to save settings', true);
+  const fontSize = parseInt(DOM.subtitleFontSize.value);
+  const fontColor = DOM.subtitleFontColor.value;
+  const bgColor = DOM.subtitleBgColor.value;
+  const bgOpacity = parseInt(DOM.subtitleBgOpacity.value);
+  const fontFamily = DOM.subtitleFontFamily.value;
+  const edgeStyle = DOM.subtitleEdgeStyle.value;
+  
+  preview.style.fontSize = `${fontSize / 100 * 24}px`;
+  preview.style.color = fontColor;
+  preview.style.backgroundColor = `${bgColor}${Math.round(bgOpacity / 100 * 255).toString(16).padStart(2, '0')}`;
+  preview.style.fontFamily = fontFamily;
+  
+  preview.style.textShadow = '';
+  if (edgeStyle === 'shadow') {
+    preview.style.textShadow = '2px 2px 4px rgba(0,0,0,0.9)';
+  } else if (edgeStyle === 'raised') {
+    preview.style.textShadow = '1px 1px 0px rgba(0,0,0,0.8)';
+  } else if (edgeStyle === 'depressed') {
+    preview.style.textShadow = '-1px -1px 0px rgba(0,0,0,0.8)';
+  } else if (edgeStyle === 'outline') {
+    preview.style.textShadow = '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000';
   }
 }
 
-/**
- * Reset settings to defaults
- */
-async function resetSettingsUI() {
-  if (!confirm('Reset all settings to default values?')) return;
-  
-  if (!window.PlayerSettings) {
-    showToast('Error: Settings module not loaded', true);
-    return;
-  }
-  
-  try {
-    await window.PlayerSettings.resetSettings();
-    await loadSettingsUI();
-    showToast('✓ Settings reset to defaults');
-  } catch (error) {
-    console.error('Error resetting settings:', error);
-    showToast('Failed to reset settings', true);
-  }
-}
-
-/**
- * Load and display watch history
- */
 async function loadHistoryUI() {
-  if (!window.PlayerSettings) {
-    console.error('PlayerSettings not loaded');
-    historyList.innerHTML = '<div class="history-empty">Error loading history</div>';
-    return;
-  }
-  
   try {
     const history = await window.PlayerSettings.loadHistory();
-    console.log('Loaded history:', history.length, 'items');
-    
-    historyList.innerHTML = '';
-    
-    if (history.length === 0) {
-      historyList.innerHTML = '<div class="history-empty">📺 No watch history yet<br><small>Start watching streams to see them here</small></div>';
-      return;
-    }
-    
-    history.forEach((entry) => {
-      const item = document.createElement('div');
-      item.className = 'history-item';
-      
-      const progress = entry.duration > 0 
-        ? Math.min(100, (entry.currentTime / entry.duration) * 100)
-        : 0;
-      
-      item.innerHTML = `
-        <div class="history-info">
-          <div class="history-title">${escapeHtml(entry.title)}</div>
-          <div class="history-url" title="${escapeHtml(entry.url)}">${escapeHtml(entry.url)}</div>
-          <div class="history-meta">
-            ${entry.duration > 0 
-              ? `${formatTime(entry.currentTime)} / ${formatTime(entry.duration)}`
-              : `${formatTime(entry.currentTime)} (Live)`
-            }
-            <span class="history-time">${formatRelativeTime(entry.timestamp)}</span>
-          </div>
-          ${entry.duration > 0 ? `<div class="history-progress"><div class="history-progress-bar" style="width: ${progress}%"></div></div>` : ''}
-        </div>
-        <div class="history-actions">
-          <button class="btn-play" title="Play">▶</button>
-          <button class="btn-delete" title="Delete">✕</button>
-        </div>
-      `;
-      
-      // Play button
-      item.querySelector('.btn-play').addEventListener('click', () => {
-        const playerUrl = browserAPI.runtime.getURL('player.html');
-        browserAPI.tabs.create({ url: `${playerUrl}#${entry.url}` });
-      });
-      
-      // Delete button
-      item.querySelector('.btn-delete').addEventListener('click', async () => {
-        await window.PlayerSettings.deleteHistoryEntry(entry.url);
-        await loadHistoryUI();
-        showToast('✓ Entry deleted');
-      });
-      
-      historyList.appendChild(item);
-    });
+    historyFilteredData = history;
+    renderHistory(history);
   } catch (error) {
     console.error('Error loading history:', error);
-    historyList.innerHTML = '<div class="history-empty">Error loading history</div>';
+    window.UIFeedback.showToast('Failed to load history', 'error');
   }
 }
 
-/**
- * Escape HTML to prevent XSS
- */
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-/**
- * Clear all history
- */
-async function clearAllHistory() {
-  if (!confirm('Are you sure you want to clear all watch history?\n\nThis action cannot be undone.')) return;
+function renderHistory(history) {
+  if (!DOM.historyList) return;
   
-  if (!window.PlayerSettings) {
-    showToast('Error: Settings module not loaded', true);
+  DOM.historyList.innerHTML = '';
+  
+  if (history.length === 0) {
+    DOM.historyList.innerHTML = '<div class="history-empty">No watch history</div>';
     return;
   }
+  
+  const displayHistory = history.slice(0, MAX_HISTORY_DISPLAY);
+  
+  displayHistory.forEach(entry => {
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    item.dataset.url = entry.url;
+    
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'history-checkbox';
+    checkbox.addEventListener('change', handleCheckboxChange);
+    item.appendChild(checkbox);
+    
+    const info = document.createElement('div');
+    info.className = 'history-info';
+    
+    const title = document.createElement('div');
+    title.className = 'history-title';
+    title.textContent = entry.title;
+    title.title = entry.url;
+    
+    const url = document.createElement('div');
+    url.className = 'history-url';
+    url.textContent = entry.url;
+    
+    const meta = document.createElement('div');
+    meta.className = 'history-meta';
+    
+    const timeText = entry.duration > 0
+      ?  `${window.PlayerUtils.formatTime(entry.currentTime)} / ${window.PlayerUtils.formatTime(entry.duration)}`
+      : `${window.PlayerUtils.formatTime(entry.currentTime)} (Live)`;
+    
+    meta.innerHTML = `
+      <span>${timeText}</span>
+      <span class="history-time">${window.PlayerUtils.formatRelativeTime(entry.timestamp)}</span>
+    `;
+    
+    info.appendChild(title);
+    info.appendChild(url);
+    info.appendChild(meta);
+    
+    if (entry.duration > 0 && entry.currentTime > 0) {
+      const progress = document.createElement('div');
+      progress.className = 'history-progress';
+      const progressBar = document.createElement('div');
+      progressBar.className = 'history-progress-bar';
+      progressBar.style.width = `${(entry.currentTime / entry.duration) * 100}%`;
+      progress.appendChild(progressBar);
+      info.appendChild(progress);
+    }
+    
+    item.appendChild(info);
+    
+    const actions = document.createElement('div');
+    actions.className = 'history-actions';
+    
+    const playBtn = document.createElement('button');
+    playBtn.className = 'btn-play';
+    playBtn.textContent = '▶';
+    playBtn.title = 'Play';
+    playBtn.onclick = (e) => {
+      e.stopPropagation();
+      openPlayer(entry.url);
+    };
+    
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn-delete';
+    deleteBtn.textContent = '🗑';
+    deleteBtn.title = 'Delete';
+    deleteBtn.onclick = (e) => {
+      e.stopPropagation();
+      deleteHistoryEntry(entry.url);
+    };
+    
+    actions.appendChild(playBtn);
+    actions.appendChild(deleteBtn);
+    item.appendChild(actions);
+    
+    DOM.historyList.appendChild(item);
+  });
+}
+
+function handleCheckboxChange() {
+  const checkboxes = DOM.historyList.querySelectorAll('.history-checkbox:checked');
+  selectedHistoryItems.clear();
+  
+  checkboxes.forEach(cb => {
+    const url = cb.closest('.history-item').dataset.url;
+    selectedHistoryItems.add(url);
+  });
+  
+  DOM.batchActions.classList.toggle('visible', selectedHistoryItems.size > 0);
+  DOM.selectedCount.textContent = selectedHistoryItems.size;
+}
+
+function filterHistory() {
+  const searchText = DOM.historySearch.value.toLowerCase().trim();
+  
+  if (!searchText) {
+    renderHistory(historyFilteredData);
+    return;
+  }
+  
+  const filtered = historyFilteredData.filter(entry => {
+    return entry.title.toLowerCase().includes(searchText) ||
+           entry.url.toLowerCase().includes(searchText);
+  });
+  
+  renderHistory(filtered);
+}
+
+async function deleteSelected() {
+  if (selectedHistoryItems.size === 0) return;
+  
+  const confirmMsg = `Delete ${selectedHistoryItems.size} selected item${selectedHistoryItems.size > 1 ? 's' : ''}?`;
+  if (!confirm(confirmMsg)) return;
+  
+  try {
+    for (const url of selectedHistoryItems) {
+      await window.PlayerSettings.deleteHistoryEntry(url);
+    }
+    
+    selectedHistoryItems.clear();
+    await loadHistoryUI();
+    DOM.batchActions.classList.remove('visible');
+    window.UIFeedback.showToast(`Deleted ${selectedHistoryItems.size} item(s)`, 'success');
+  } catch (error) {
+    console.error('Error deleting history:', error);
+    window.UIFeedback.showToast('Failed to delete items', 'error');
+  }
+}
+
+async function deleteHistoryEntry(url) {
+  if (!confirm('Delete this entry?')) return;
+  
+  try {
+    await window.PlayerSettings.deleteHistoryEntry(url);
+    await loadHistoryUI();
+    window.UIFeedback.showToast('Entry deleted', 'success');
+  } catch (error) {
+    console.error('Error deleting entry:', error);
+    window.UIFeedback.showToast('Failed to delete entry', 'error');
+  }
+}
+
+async function clearAllHistory() {
+  if (!confirm('Clear all watch history? This cannot be undone.')) return;
   
   try {
     await window.PlayerSettings.clearHistory();
     await loadHistoryUI();
-    showToast('✓ All history cleared');
+    window.UIFeedback.showToast('History cleared', 'success');
   } catch (error) {
     console.error('Error clearing history:', error);
-    showToast('Failed to clear history', true);
+    window.UIFeedback.showToast('Failed to clear history', 'error');
   }
 }
 
-/**
- * Show a toast notification
- */
-function showToast(message, isError = false) {
-  const existing = document.querySelector('.toast');
-  if (existing) existing.remove();
+async function resetSettings() {
+  if (!confirm('Reset all settings to defaults?')) return;
   
-  const toast = document.createElement('div');
-  toast.className = 'toast';
-  toast.textContent = message;
-  
-  if (isError) {
-    toast.style.background = '#da3633';
-    toast.style.borderColor = '#f85149';
-  }
-  
-  document.body.appendChild(toast);
-  
-  setTimeout(() => toast.classList.add('show'), 10);
-  setTimeout(() => {
-    toast.classList.remove('show');
-    setTimeout(() => toast.remove(), 400);
-  }, 2500);
-}
-
-/**
- * Set playback speed from preset
- */
-function setSpeedPreset(speed) {
-  currentSpeed = speed;
-  updateSpeedDisplay();
-  updateSpeedPresets();
-}
-
-/**
- * Load subtitle settings into UI controls
- */
-function loadSubtitleSettingsUI(subtitleSettings) {
-  subtitleFontSize.value = subtitleSettings.fontSize || 100;
-  if (subtitleFontSizeNumber) {
-    subtitleFontSizeNumber.value = subtitleFontSize.value;
-  }
-  subtitleFontColor.value = subtitleSettings.fontColor || '#ffffff';
-  subtitleBgColor.value = subtitleSettings.backgroundColor || '#000000';
-  subtitleBgOpacity.value = subtitleSettings.backgroundOpacity || 80;
-  if (subtitleBgOpacityNumber) {
-    subtitleBgOpacityNumber.value = subtitleBgOpacity.value;
-  }
-  subtitleFontFamily.value = subtitleSettings.fontFamily || 'sans-serif';
-  subtitleEdgeStyle.value = subtitleSettings.edgeStyle || 'none';
-  
-  updateSubtitleLabels();
-  updateSubtitlePreview();
-}
-
-/**
- * Update subtitle setting labels
- */
-function updateSubtitleLabels() {
-  document.getElementById('subtitle-font-size-label').textContent = `${subtitleFontSize.value}%`;
-  document.getElementById('subtitle-font-color-label').textContent = subtitleFontColor.value;
-  document.getElementById('subtitle-bg-color-label').textContent = subtitleBgColor.value;
-  document.getElementById('subtitle-bg-opacity-label').textContent = `${subtitleBgOpacity.value}%`;
-}
-
-/**
- * Get current subtitle settings from UI
- */
-function getSubtitleSettingsFromUI() {
-  return {
-    fontSize: parseInt(subtitleFontSize.value),
-    fontColor: subtitleFontColor.value,
-    backgroundColor: subtitleBgColor.value,
-    backgroundOpacity: parseInt(subtitleBgOpacity.value),
-    fontFamily: subtitleFontFamily.value,
-    edgeStyle: subtitleEdgeStyle.value,
-  };
-}
-
-
-
-/**
- * Update subtitle preview element
- */
-function updateSubtitlePreview() {
-  if (!window.SubtitleUtils) {
-    console.error('SubtitleUtils not loaded');
-    return;
-  }
-  
-  const settings = getSubtitleSettingsFromUI();
-  const subtitleText = subtitlePreview.querySelector('.subtitle-text');
-  
-  if (!subtitleText) return;
-  
-  const baseFontSize = window.PlayerSettings?.SUBTITLE_BASE_FONT_SIZE_PX || 24;
-  
-  // Apply font size
-  subtitleText.style.fontSize = `${baseFontSize * settings.fontSize / 100}px`;
-  
-  // Apply font color
-  subtitleText.style.color = settings.fontColor;
-  
-  // Apply background with opacity
-  subtitleText.style.backgroundColor = window.SubtitleUtils.hexToRgba(settings.backgroundColor, settings.backgroundOpacity);
-  
-  // Apply font family
-  subtitleText.style.fontFamily = settings.fontFamily;
-  
-  // Apply edge style
-  subtitleText.style.textShadow = window.SubtitleUtils.getEdgeStyleCSS(settings.edgeStyle);
-}
-
-// Debounce timer for subtitle auto-save
-let subtitleSaveDebounceTimer = null;
-
-/**
- * Save subtitle settings with debouncing to prevent excessive writes
- */
-function debouncedSaveSubtitleSettings() {
-  const debounceMs = window.PlayerSettings?.SUBTITLE_AUTO_SAVE_DEBOUNCE_MS || 300;
-  
-  clearTimeout(subtitleSaveDebounceTimer);
-  subtitleSaveDebounceTimer = setTimeout(async () => {
-    if (!window.PlayerSettings) return;
-
-    try {
-      // We need to load current settings first to preserve other settings
-      const currentSettings = await window.PlayerSettings.loadSettings();
-      
-      const newSettings = {
-        ...currentSettings,
-        subtitleSettings: getSubtitleSettingsFromUI()
-      };
-      
-      await window.PlayerSettings.saveSettings(newSettings);
-      console.log('Subtitle settings saved');
-    } catch (error) {
-      console.error('Error auto-saving subtitle settings:', error);
-    }
-  }, debounceMs);
-}
-
-/**
- * Reset subtitle settings to defaults
- */
-async function resetSubtitleSettingsUI() {
-  if (!window.PlayerSettings) {
-    showToast('Error: Settings module not loaded', true);
-    return;
-  }
-  
-  const defaultSubtitleSettings = window.PlayerSettings.DEFAULT_SETTINGS.subtitleSettings;
-  loadSubtitleSettingsUI(defaultSubtitleSettings);
-  
-  // Save the reset
   try {
-    await window.PlayerSettings.saveSettings({ subtitleSettings: defaultSubtitleSettings });
-    showToast('✓ Subtitle settings reset to defaults');
+    await window.PlayerSettings.resetSettings();
+    await loadAndPopulateSettings();
+    window.UIFeedback.showToast('Settings reset to defaults', 'success');
   } catch (error) {
-    console.error('Error resetting subtitle settings:', error);
-    showToast('Failed to reset subtitle settings', true);
+    console.error('Error resetting settings:', error);
+    window.UIFeedback.showToast('Failed to reset settings', 'error');
   }
 }
 
-/**
- * Initialize DOM element references
- */
-function initDOMElements() {
-  // Get general DOM elements
-  volumeInput = document.getElementById('volume');
-  saveBtn = document.getElementById('save-settings');
-  resetBtn = document.getElementById('reset-settings');
-  historyList = document.getElementById('history-list');
-  clearHistoryBtn = document.getElementById('clear-history');
-  saveHistoryToggle = document.getElementById('save-history');
-  speedPresets = document.querySelectorAll('.speed-preset');
-  speedDisplay = document.getElementById('speed-display');
-  speedIncreaseBtn = document.getElementById('speed-increase');
-  speedDecreaseBtn = document.getElementById('speed-decrease');
-  speedResetBtn = document.getElementById('speed-reset');
-  
-  // Get subtitle DOM elements
-  subtitleFontSize = document.getElementById('subtitle-font-size');
-  subtitleFontSizeNumber = document.getElementById('subtitle-font-size-number');
-  subtitleFontColor = document.getElementById('subtitle-font-color');
-  subtitleBgColor = document.getElementById('subtitle-bg-color');
-  subtitleBgOpacity = document.getElementById('subtitle-bg-opacity');
-  subtitleBgOpacityNumber = document.getElementById('subtitle-bg-opacity-number');
-  subtitleFontFamily = document.getElementById('subtitle-font-family');
-  subtitleEdgeStyle = document.getElementById('subtitle-edge-style');
-  subtitlePreview = document.getElementById('subtitle-preview');
-  resetSubtitleBtn = document.getElementById('reset-subtitle-settings');
-  
-  toggleAdvancedSubtitlesBtn = document.getElementById('toggle-advanced-subtitles');
-  advancedSubtitleSettings = document.getElementById('advanced-subtitle-settings');
+function openPlayer(url) {
+  const playerUrl = browserAPI.runtime.getURL('player.html');
+  browserAPI.tabs.create({ url: `${playerUrl}#${url}` });
 }
 
-/**
- * Setup event listeners for general settings
- */
-function initGeneralSettingsListeners() {
-  volumeInput.addEventListener('input', updateVolumeLabel);
-  saveBtn.addEventListener('click', saveSettingsUI);
-  resetBtn.addEventListener('click', resetSettingsUI);
-  clearHistoryBtn.addEventListener('click', clearAllHistory);
-  
-  // Speed controls
-  speedIncreaseBtn.addEventListener('click', () => changeSpeed(0.1));
-  speedDecreaseBtn.addEventListener('click', () => changeSpeed(-0.1));
-  speedResetBtn.addEventListener('click', resetSpeed);
-  
-  // Speed preset buttons
-  speedPresets.forEach(btn => {
-    btn.addEventListener('click', () => {
-      setSpeedPreset(parseFloat(btn.dataset.speed));
-    });
-  });
-}
-
-/**
- * Setup event listeners for subtitle settings
- */
-function initSubtitleSettingsListeners() {
-  
-  // Advanced Subtitles Toggle
-  if (toggleAdvancedSubtitlesBtn && advancedSubtitleSettings) {
-    toggleAdvancedSubtitlesBtn.addEventListener('click', () => {
-      advancedSubtitleSettings.classList.toggle('hidden');
-      const isHidden = advancedSubtitleSettings.classList.contains('hidden');
-      toggleAdvancedSubtitlesBtn.querySelector('span').textContent = isHidden 
-        ? '⚙️ More Options' 
-        : '🔼 Less Options';
-    });
-  }
-  
-  // Subtitle settings event listeners (live preview + debounced auto-save)
-  if (subtitleFontSize && subtitleFontSizeNumber) {
-    // Sync slider -> number
-    subtitleFontSize.addEventListener('input', () => {
-      subtitleFontSizeNumber.value = subtitleFontSize.value;
-      updateSubtitleLabels();
-      updateSubtitlePreview();
-      debouncedSaveSubtitleSettings();
-    });
-    // Sync number -> slider
-    subtitleFontSizeNumber.addEventListener('input', () => {
-      subtitleFontSize.value = subtitleFontSizeNumber.value;
-      updateSubtitleLabels();
-      updateSubtitlePreview();
-      debouncedSaveSubtitleSettings();
-    });
-  }
-
-  // Sync background opacity slider and number input
-  if (subtitleBgOpacity && subtitleBgOpacityNumber) {
-    // Sync slider -> number
-    subtitleBgOpacity.addEventListener('input', () => {
-      subtitleBgOpacityNumber.value = subtitleBgOpacity.value;
-      updateSubtitleLabels();
-      updateSubtitlePreview();
-      debouncedSaveSubtitleSettings();
-    });
-    // Sync number -> slider
-    subtitleBgOpacityNumber.addEventListener('input', () => {
-      subtitleBgOpacity.value = subtitleBgOpacityNumber.value;
-      updateSubtitleLabels();
-      updateSubtitlePreview();
-      debouncedSaveSubtitleSettings();
-    });
-  }
-
-  const subtitleInputs = [
-    subtitleFontColor, 
-    subtitleBgColor, 
-    subtitleFontFamily, 
-    subtitleEdgeStyle
-  ];
-
-  // Consolidated event handler for all subtitle inputs
-  const handleSubtitleChange = () => {
-    updateSubtitleLabels();
-    updateSubtitlePreview();
-    debouncedSaveSubtitleSettings();
+async function init() {
+  DOM = {
+    autoSaveIndicator: document.getElementById('auto-save-indicator'),
+    autoSaveText: document.getElementById('auto-save-text'),
+    
+    volumeInput: document.getElementById('volume'),
+    volumeLabel: document.getElementById('volume-label'),
+    
+    speedDisplay: document.getElementById('speed-display'),
+    speedDecrease: document.getElementById('speed-decrease'),
+    speedIncrease: document.getElementById('speed-increase'),
+    speedReset: document.getElementById('speed-reset'),
+    speedPresets: document.querySelectorAll('.speed-preset'),
+    
+    saveHistoryToggle: document.getElementById('save-history'),
+    resetSettingsBtn: document.getElementById('reset-settings'),
+    
+    subtitlePreview: document.querySelector('.subtitle-text'),
+    subtitleFontSize: document.getElementById('subtitle-font-size'),
+    subtitleFontSizeNumber: document.getElementById('subtitle-font-size-number'),
+    subtitleFontColor: document.getElementById('subtitle-font-color'),
+    subtitleFontColorLabel: document.getElementById('subtitle-font-color-label'),
+    subtitleBgColor: document.getElementById('subtitle-bg-color'),
+    subtitleBgColorLabel: document.getElementById('subtitle-bg-color-label'),
+    subtitleBgOpacity: document.getElementById('subtitle-bg-opacity'),
+    subtitleBgOpacityNumber: document.getElementById('subtitle-bg-opacity-number'),
+    subtitleFontFamily: document.getElementById('subtitle-font-family'),
+    subtitleEdgeStyle: document.getElementById('subtitle-edge-style'),
+    toggleAdvancedSubtitles: document.getElementById('toggle-advanced-subtitles'),
+    advancedSubtitleSettings: document.getElementById('advanced-subtitle-settings'),
+    resetSubtitleBtn: document.getElementById('reset-subtitle-settings'),
+    
+    historySearch: document.getElementById('history-search'),
+    historyList: document.getElementById('history-list'),
+    batchActions: document.getElementById('batch-actions'),
+    selectedCount: document.getElementById('selected-count'),
+    deleteSelectedBtn: document.getElementById('delete-selected'),
+    clearHistoryBtn: document.getElementById('clear-history'),
   };
-
-  subtitleInputs.forEach(input => {
-    if (input) {
-      input.addEventListener('input', handleSubtitleChange);
-      // For selects, also listen to change event
-      if (input.tagName === 'SELECT') {
-        input.addEventListener('change', handleSubtitleChange);
-      }
-    }
+  
+  await loadAndPopulateSettings();
+  
+  DOM.volumeInput.oninput = () => {
+    DOM.volumeLabel.textContent = `${Math.round(DOM.volumeInput.value * 100)}%`;
+    autoSaveSettings();
+  };
+  
+  DOM.speedDecrease.onclick = () => {
+    currentSpeed = Math.max(0.25, currentSpeed - 0.25);
+    DOM.speedDisplay.textContent = `${currentSpeed.toFixed(2)}x`;
+    updateSpeedPresets();
+    autoSaveSettings();
+  };
+  
+  DOM.speedIncrease.onclick = () => {
+    currentSpeed = Math.min(4.0, currentSpeed + 0.25);
+    DOM.speedDisplay.textContent = `${currentSpeed.toFixed(2)}x`;
+    updateSpeedPresets();
+    autoSaveSettings();
+  };
+  
+  DOM.speedReset.onclick = () => {
+    currentSpeed = 1.0;
+    DOM.speedDisplay.textContent = `${currentSpeed.toFixed(2)}x`;
+    updateSpeedPresets();
+    autoSaveSettings();
+  };
+  
+  DOM.speedPresets.forEach(btn => {
+    btn.onclick = () => {
+      currentSpeed = parseFloat(btn.dataset.speed);
+      DOM.speedDisplay.textContent = `${currentSpeed.toFixed(2)}x`;
+      updateSpeedPresets();
+      autoSaveSettings();
+    };
   });
-
-  if (resetSubtitleBtn) {
-    resetSubtitleBtn.addEventListener('click', resetSubtitleSettingsUI);
-  }
+  
+  DOM.saveHistoryToggle.onchange = () => autoSaveSettings();
+  DOM.resetSettingsBtn.onclick = () => resetSettings();
+  
+  const syncSliderAndNumber = (slider, numberInput, label, updateFn) => {
+    slider.oninput = () => {
+      numberInput.value = slider.value;
+      if (label) label.textContent = `${slider.value}%`;
+      updateFn();
+      autoSaveSettings();
+    };
+    numberInput.oninput = () => {
+      slider.value = numberInput.value;
+      if (label) label.textContent = `${numberInput.value}%`;
+      updateFn();
+      autoSaveSettings();
+    };
+  };
+  
+  syncSliderAndNumber(DOM.subtitleFontSize, DOM.subtitleFontSizeNumber, null, updateSubtitlePreview);
+  syncSliderAndNumber(DOM.subtitleBgOpacity, DOM.subtitleBgOpacityNumber, null, updateSubtitlePreview);
+  
+  DOM.subtitleFontColor.oninput = () => {
+    DOM.subtitleFontColorLabel.textContent = DOM.subtitleFontColor.value;
+    updateSubtitlePreview();
+    autoSaveSettings();
+  };
+  
+  DOM.subtitleBgColor.oninput = () => {
+    DOM.subtitleBgColorLabel.textContent = DOM.subtitleBgColor.value;
+    updateSubtitlePreview();
+    autoSaveSettings();
+  };
+  
+  DOM.subtitleFontFamily.onchange = () => {
+    updateSubtitlePreview();
+    autoSaveSettings();
+  };
+  
+  DOM.subtitleEdgeStyle.onchange = () => {
+    updateSubtitlePreview();
+    autoSaveSettings();
+  };
+  
+  DOM.toggleAdvancedSubtitles.onclick = () => {
+    const isHidden = DOM.advancedSubtitleSettings.classList.toggle('hidden');
+    DOM.toggleAdvancedSubtitles.setAttribute('aria-expanded', !isHidden);
+    DOM.advancedSubtitleSettings.setAttribute('aria-hidden', isHidden);
+    DOM.toggleAdvancedSubtitles.querySelector('span').textContent = isHidden ? 'More Options' : 'Less Options';
+  };
+  
+  DOM.resetSubtitleBtn.onclick = async () => {
+    if (!confirm('Reset subtitle settings to defaults?')) return;
+    try {
+      const settings = await window.PlayerSettings.loadSettings();
+      await window.PlayerSettings.saveSettings({
+        ...settings,
+        subtitleSettings: window.PlayerSettings.DEFAULT_SETTINGS.subtitleSettings
+      });
+      await loadAndPopulateSettings();
+      window.UIFeedback.showToast('Subtitle settings reset', 'success');
+    } catch (error) {
+      console.error('Error resetting subtitles:', error);
+      window.UIFeedback.showToast('Failed to reset settings', 'error');
+    }
+  };
+  
+  await loadHistoryUI();
+  
+  DOM.historySearch.oninput = () => filterHistory();
+  DOM.deleteSelectedBtn.onclick = () => deleteSelected();
+  DOM.clearHistoryBtn.onclick = () => clearAllHistory();
 }
 
-/**
- * Initialize options page
- */
-function init() {
-  // Initialize DOM references
-  initDOMElements();
-  
-  // Initialize speed
-  currentSpeed = 1.0;
-  
-  // Load initial data
-  loadSettingsUI();
-  loadHistoryUI();
-  
-  // Setup event listeners
-  initGeneralSettingsListeners();
-  initSubtitleSettingsListeners();
-}
-
-// Initialize when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
 } else {
