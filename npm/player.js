@@ -99,8 +99,22 @@ function setupResumePosition() {
     // Debounced save to history on pause
     debouncedSaveHistory();
   });
-}
 
+  // Update resume position when seeking while paused
+  video.addEventListener('seeked', () => {
+    if (video.paused) {
+      resumePosition = video.currentTime;
+    }
+  });
+
+  video.addEventListener('play', () => {
+    video.currentTime = resumePosition;
+
+    if (mediastreamtype !== 'live' && video.currentTime >= video.duration - 5) {
+      video.currentTime = 0;
+    }
+  });
+}
 /**
  * Debounced save to history (prevents excessive writes)
  */
