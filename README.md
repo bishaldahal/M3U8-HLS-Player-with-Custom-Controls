@@ -1,38 +1,47 @@
 # M3U8/HLS Player with Custom Controls
 
-Advanced M3U8/HLS player with customizable controls. Supports keyboard shortcuts, PIP mode, frame navigation, and live streams.
+Advanced **M3U8/HLS** player with customizable controls. Supports keyboard shortcuts, **Picture-in-Picture (PiP)**, frame navigation, and live streams.
 
-### 📦 Store Downloads
+## 📦 Store Downloads
 
-[![Microsoft Edge](https://img.shields.io/badge/Edge-Available_on_Edge_Store-0078D4?style=for-the-badge&logo=microsoftedge&logoColor=white)](https://microsoftedge.microsoft.com/addons/detail/m3u8hls-player-with-cust/bmlnobfgkikeejhbbdlhjinbmdcfgaef)
-[![Firefox](https://img.shields.io/badge/Firefox-Available_on_Firefox_Addons-FF7139?style=for-the-badge&logo=firefox&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/m3u8-hls-player-with-shortcuts/)
+[![Chrome Web Store](https://img.shields.io/badge/Chrome-Available_on_Chrome_Web_Store-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/gcefmpmkobjndjglciibnendclkahgma?utm_source=github-readme)
+[![Microsoft Edge](https://img.shields.io/badge/Edge-Available_on_Edge_Store-0078D4?style=for-the-badge&logo=microsoftedge&logoColor=white)](https://microsoftedge.microsoft.com/addons/detail/m3u8hls-player-with-cust/bmlnobfgkikeejhbbdlhjinbmdcfgaef?utm_source=github-readme)
+[![Firefox](https://img.shields.io/badge/Firefox-Available_on_Firefox_Addons-FF7139?style=for-the-badge&logo=firefox&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/m3u8-hls-player-with-shortcuts?utm_source=github_readme)
 
-## Features
+## ✨ Features
 
 - Customizable controls
 - Keyboard shortcuts
-- Picture in Picture (PIP) mode
+- Picture in Picture (PiP) mode
 - Frame navigation
 - Support for live streams
 
-## Installation
+## 🔧 Installation
 
-### From Store
-- [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/m3u8hls-player-with-cust/bmlnobfgkikeejhbbdlhjinbmdcfgaef)
-- [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/m3u8-hls-player-with-shortcuts/)
+### From Store (Recommended)
+
+- **Chrome Web Store**: https://chromewebstore.google.com/detail/gcefmpmkobjndjglciibnendclkahgma?utm_source=github-readme
+- **Microsoft Edge Add-ons**: https://microsoftedge.microsoft.com/addons/detail/m3u8hls-player-with-cust/bmlnobfgkikeejhbbdlhjinbmdcfgaef?utm_source=github-readme
+- **Firefox Add-ons**: https://addons.mozilla.org/en-US/firefox/addon/m3u8-hls-player-with-shortcuts?utm_source=github-readme
 
 ### From Source
 
 ```bash
-git clone https://github.com/bishaldahal/Customized-m3u8-Video-Player-Extension.git
-cd Customized-m3u8-Video-Player-Extension
+git clone https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls.git
+cd M3U8-HLS-Player-with-Custom-Controls
 npm install
-npm run build:chrome    # or npm run build:firefox
+npm run build:chrome    # for Chrome/Edge
+# or
+npm run build:firefox   # for Firefox
 ```
 
-Load unpacked: Chrome (`chrome://extensions`) or Firefox (`about:debugging`)
+### Load Unpacked / Temporary Add-on
 
-## Development
+- **Chrome**: `chrome://extensions` → Enable **Developer mode** → **Load unpacked** → select the extension folder
+- **Edge**: `edge://extensions` → Enable **Developer mode** → **Load unpacked** → select the extension folder
+- **Firefox**: `about:debugging` → **This Firefox** → **Load Temporary Add-on** → select `manifest.json`
+
+## 🧑‍💻 Development
 
 ```bash
 npm run build              # Build source files
@@ -41,25 +50,7 @@ npm run build:firefox      # Build + package for Firefox
 npm run build:all          # Build both platforms
 ```
 
-## Usage
-
-To use this extension, load it into your browser as an unpacked extension. The steps to do this vary by browser:
-
-### Chrome
-
-1. Navigate to `chrome://extensions`
-2. Enable Developer Mode by clicking the toggle switch next to Developer mode.
-3. Click the LOAD UNPACKED button and select the extension directory.
-
-### Edge
-
-1. Navigate to `edge://extensions`
-2. Enable Developer Mode by clicking the toggle switch at the bottom.
-3. Click the LOAD UNPACKED button and select the extension directory.
-
-## Keyboard Shortcuts
-
-Here are the keyboard shortcuts supported by this extension:
+## ⌨️ Keyboard Shortcuts
 
 | Key | Action | Key | Action |
 | --- | --- | --- | --- |
@@ -75,35 +66,41 @@ Here are the keyboard shortcuts supported by this extension:
 | `Esc` | Close keyboard shortcuts | `?` | Toggle keyboard shortcuts |
 | `f` | Toggle fullscreen | `m` | Toggle mute |
 
-## Contributing
+## 🤝 Contributing
 
 We welcome contributions from everyone. Whether you're an experienced developer or just getting started, there's a place for you to contribute.
 
-Here are some ways you can contribute:
+### Ways to Contribute
 
-1. **Bug Fixes**: If you spot a bug, feel free to fork the repository, fix the bug, and submit a pull request. Please include a detailed description of the bug and how your code fixes it.
+1. **Bug Fixes**: Fork the repo, fix the issue, and open a PR with details.
+2. **New Features**: Open an issue to discuss the feature before implementing.
+3. **Improve Documentation**: Fix typos, add examples, or clarify usage.
+4. **Testing**: Add tests to ensure stability and prevent regressions.
+5. **Code Reviews**: Review PRs and help improve code quality.
 
-2. **New Features**: Have an idea for a new feature? Open an issue to discuss it, and if it's agreed upon, you can get to work on implementing it.
+Before you start, please read:
+- [Contributing Guide](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
 
-3. **Improving Documentation**: Good documentation is key to a successful project. If you notice any areas of the documentation that could be improved, or if there's a lack of documentation in some areas, feel free to contribute.
+### Getting Started
 
-4. **Testing**: Writing tests for our code ensures that everything is running smoothly. If you're interested in contributing to our tests, we'd be more than happy to have you.
-
-5. **Code Reviews**: Reviewing code from others can help to catch bugs and improve the quality of our code. If you're interested in participating in code reviews, please do.
-
-Before you start coding, please read our [Contributing Guide](CONTRIBUTING.md) and our [Code of Conduct](CODE_OF_CONDUCT.md). These will provide you with all the information you need to start contributing to the project.
-
-Remember, all contributions are valued. Even if you're fixing a typo, you're improving the project. So don't hesitate to contribute!
-
-To get started with contributing, follow these steps:
-
-1. Fork the repository: `git clone https://github.com/bishaldahal/Customized-m3u8-Video-Player-Extension.git`
-2. Navigate to the project directory: `cd Customized-m3u8-Video-Player-Extension`
-3. Install the dependencies: `npm install`
-4. Create a new branch for your feature or bug fix: `git checkout -b your-branch-name`
+1. Fork the repository:
+   `git clone https://github.com/{yourusername}/M3U8-HLS-Player-with-Custom-Controls.git`
+2. Navigate to the project directory:
+   `cd M3U8-HLS-Player-with-Custom-Controls`
+3. Install the dependencies:
+   `npm install`
+4. Create a new branch:
+   `git checkout -b your-branch-name`
 5. Make your changes.
-6. Commit your changes: `git commit -m "Your commit message"`
-7. Push your changes to your fork: `git push origin your-branch-name`
-8. Open a pull request from your fork to the original repository.
+6. Commit your changes:
+   `git commit -m "Your commit message"`
+7. Push your changes:
+   `git push origin your-branch-name`
+8. Open a Pull Request.
 
-We look forward to your contributions!
+## 🔗 Links
+
+- Chrome Web Store: https://chromewebstore.google.com/detail/gcefmpmkobjndjglciibnendclkahgma?utm_source=github-readme
+- Edge Add-ons: https://microsoftedge.microsoft.com/addons/detail/m3u8hls-player-with-cust/bmlnobfgkikeejhbbdlhjinbmdcfgaef?utm_source=github-readme
+- Firefox Add-ons: https://addons.mozilla.org/en-US/firefox/addon/m3u8-hls-player-with-shortcuts?utm_source=github_readme)utm_source=github-readme
