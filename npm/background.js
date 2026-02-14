@@ -57,18 +57,11 @@ browserAPI.webNavigation.onBeforeNavigate.addListener(
   { url: [{ urlMatches: '.*\\.m3u8.*' }] }
 );
 
-// Handle extension installation or update
 browserAPI.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
-    console.log('Extension installed');
-    // Open documentation page on first install
     browserAPI.tabs.create({ 
       url: 'https://extension.bishalbabudahal.com.np/docs'
     });
-  } else if (details.reason === 'update') {
-    console.log('Extension updated to version', browserAPI.runtime.getManifest().version);
-    // Open options page on update to see new features
-    browserAPI.runtime.openOptionsPage();
   }
 });
 
