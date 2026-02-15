@@ -7,24 +7,33 @@
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
 /**
- * Check if a URL is an M3U8 file
+ * Detect stream type from URL
+ * @returns {'hls'|'dash'|null}
  */
-function isM3U8Url(url) {
-  if (!url) return false;
+function detectStreamType(url) {
+  if (!url) return null;
   try {
     const urlObj = new URL(url);
     const pathname = urlObj.pathname.toLowerCase();
-    return pathname.endsWith('.m3u8') || pathname.includes('.m3u8?');
+    if (pathname.endsWith('.m3u8') || pathname.includes('.m3u8?')) {
+      return 'hls';
+    }
+    if (pathname.endsWith('.mpd') || pathname.includes('.mpd?')) {
+      return 'dash';
+    }
+    return null;
   } catch (e) {
-    return false;
+    return null;
   }
 }
 
 /**
- * Open M3U8 URL in player
+ * Open stream URL in player
  */
-function openInPlayer(url, tabId = null) {
+function openInPlayer(url, tabId = null, streamType = null) {
   const playerUrl = browserAPI.runtime.getURL('player.html') + '#' + url;
+  const detectedType = streamType || detectStreamType(url);
+  if (!detectedType) return;
   
   if (tabId) {
     // Update existing tab
@@ -37,24 +46,38 @@ function openInPlayer(url, tabId = null) {
 
 // Handle messages from content scripts
 browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.command === 'PLAY_STREAM' && message.url) {
+    const streamType = message.streamType || detectStreamType(message.url);
+    if (!streamType) {
+      sendResponse({ success: false, error: 'Unsupported stream type' });
+      return true;
+    }
+
+    // Open the player with the stream URL
+    openInPlayer(message.url, sender.tab ? sender.tab.id : null, streamType);
+    sendResponse({ success: true });
+    return true;
+  }
+
+  // Backward compatibility with previous command name
   if (message.command === 'PLAY_M3U8' && message.url) {
-    // Open the player with the M3U8 URL
-    openInPlayer(message.url, sender.tab ? sender.tab.id : null);
+    openInPlayer(message.url, sender.tab ? sender.tab.id : null, 'hls');
     sendResponse({ success: true });
     return true;
   }
 });
 
-// Intercept direct navigation to M3U8 URLs (address bar)
+// Intercept direct navigation to stream manifest URLs (address bar)
 browserAPI.webNavigation.onBeforeNavigate.addListener(
   (details) => {
     // Only handle main frame (not iframes) and direct navigation
-    if (details.frameId === 0 && isM3U8Url(details.url)) {
+    const streamType = detectStreamType(details.url);
+    if (details.frameId === 0 && streamType) {
       // Redirect to our player
-      openInPlayer(details.url, details.tabId);
+      openInPlayer(details.url, details.tabId, streamType);
     }
   },
-  { url: [{ urlMatches: '.*\\.m3u8.*' }] }
+  { url: [{ urlMatches: '.*\\.(m3u8|mpd).*' }] }
 );
 
 browserAPI.runtime.onInstalled.addListener((details) => {

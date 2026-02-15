@@ -85,7 +85,7 @@ async function loadHistoryUI() {
     historyList.innerHTML = '';
     
     if (history.length === 0) {
-      historyList.innerHTML = '<div class="history-empty">No recent streams<br/><small>Start watching M3U8/HLS streams and they will appear here</small></div>';
+      historyList.innerHTML = '<div class="history-empty">No recent streams<br/><small>Start watching M3U8/HLS/DASH streams and they will appear here</small></div>';
       return;
     }
     

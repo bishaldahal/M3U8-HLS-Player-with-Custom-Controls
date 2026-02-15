@@ -1,5 +1,5 @@
 /**
- * HLS Video Player - Main player logic
+ * Stream Player - Main player logic
  * Handles stream playback, live stream time display, and video focus management
  */
 
@@ -12,16 +12,40 @@ let resumePosition = 0;
 let currentStreamUrl = '';
 let currentStreamTitle = '';
 let saveHistoryTimeout = null;
+let currentStreamType = null;
 
 /**
- * Initialize and play an HLS stream
- * @param {string} url - The M3U8 stream URL (with optional extTitle parameter)
+ * Detect stream type from URL
+ * @returns {'hls'|'dash'|null}
+ */
+function detectStreamType(url) {
+  if (!url) return null;
+  try {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname.toLowerCase();
+    if (pathname.endsWith('.m3u8') || pathname.includes('.m3u8?')) return 'hls';
+    if (pathname.endsWith('.mpd') || pathname.includes('.mpd?')) return 'dash';
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Initialize and play a stream
+ * @param {string} url - Stream URL (with optional extTitle parameter)
  */
 function playStream(url) {
   try {
-    const m3u8Url = new URL(url);
-    const title = m3u8Url.searchParams.get('extTitle');
-    m3u8Url.searchParams.delete('extTitle');
+    const streamUrl = new URL(url);
+    const title = streamUrl.searchParams.get('extTitle');
+    streamUrl.searchParams.delete('extTitle');
+
+    const streamType = detectStreamType(streamUrl.href);
+    if (!streamType) {
+      throw new Error('Unsupported stream type. Only .m3u8 and .mpd are supported.');
+    }
+    currentStreamType = streamType;
 
     // Store for history tracking
     currentStreamUrl = url;
@@ -32,12 +56,13 @@ function playStream(url) {
       document.title = title;
     }
 
-    // Create the HLS video element
-    const videoElement = document.createElement('hls-video');
+    // Create the media element based on stream type
+    const tagName = streamType === 'dash' ? 'dash-video' : 'hls-video';
+    const videoElement = document.createElement(tagName);
     videoElement.setAttribute('slot', 'media');
     videoElement.setAttribute('crossorigin', '');
     videoElement.setAttribute('autoplay', '');
-    videoElement.setAttribute('src', m3u8Url.href);
+    videoElement.setAttribute('src', streamUrl.href);
 
     // Append to the media controller
     player.appendChild(videoElement);
@@ -231,7 +256,9 @@ async function resumeFromPosition(resumePos, settings) {
   await new Promise(resolve => video.addEventListener('seeked', resolve, { once: true }));
   
   // Wait for HLS.js to load subtitle fragments for the new position
-  await waitForSubtitleCues(video.api);
+  if (currentStreamType === 'hls') {
+    await waitForSubtitleCues(video.api);
+  }
   
   // Enable subtitles and apply styles
   enableSubtitles(settings);
@@ -425,7 +452,18 @@ async function init() {
     document.body.innerHTML = `
       <div style="color: white; padding: 20px; font-family: sans-serif;">
         <h1>No Stream URL</h1>
-        <p>Please provide an M3U8 URL in the hash fragment.</p>
+        <p>Please provide a stream URL in the hash fragment.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const streamType = detectStreamType(url);
+  if (!streamType) {
+    document.body.innerHTML = `
+      <div style="color: white; padding: 20px; font-family: sans-serif;">
+        <h1>Unsupported Stream URL</h1>
+        <p>Only .m3u8 and .mpd streams are supported.</p>
       </div>
     `;
     return;
