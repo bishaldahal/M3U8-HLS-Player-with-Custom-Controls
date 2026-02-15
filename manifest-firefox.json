@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "M3U8/HLS/DASH Player - Custom Keyboard Shortcuts",
+  "name": "M3U8/HLS/DASH Player Custom Keyboard Shortcut",
   "version": "1.5.0",
   "description": "Advanced M3U8/HLS/DASH player with customizable controls. Supports keyboard shortcuts, PIP mode, frame navigation, and live streams.",
   "permissions": [
