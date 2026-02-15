@@ -15,6 +15,28 @@ Advanced **M3U8/HLS/DASH** player with customizable controls. Supports keyboard 
 - Picture in Picture (PiP) mode
 - Frame navigation
 - Support for live streams
+- Chromium DASH Widevine license URL support
+
+## 🔐 DASH DRM (Chromium)
+
+For encrypted `.mpd` streams on Chromium browsers, the player now opens an in-player DRM popup when playback detects a DRM/key-system error.
+
+In the popup, enter:
+
+- Widevine license URL
+- Optional request headers as key/value rows
+- Add more headers as needed using the **Add header** button
+- Optional robustness string (for example `SW_SECURE_DECODE`)
+
+Quality-of-life behavior:
+
+- Last entered DRM values are auto-populated on next prompt
+- You can remember DRM values per stream host
+
+Typical header examples:
+
+- `Authorization` = `Bearer <token>`
+- `X-Custom-Auth` = `<value>`
 
 ## 🔧 Installation
 
