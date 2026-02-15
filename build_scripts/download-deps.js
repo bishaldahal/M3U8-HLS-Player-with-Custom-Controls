@@ -14,9 +14,11 @@ const VENDOR_DIR = join(__dirname, '..', 'js', 'vendor');
 // CDN URLs for dependencies
 const DEPENDENCIES = {
   'hls.js': 'https://cdn.jsdelivr.net/npm/hls.js/+esm',
+  'dashjs.js': 'https://cdn.jsdelivr.net/npm/dashjs/+esm',
   'custom-media-element.js': 'https://cdn.jsdelivr.net/npm/custom-media-element/+esm',
   'media-chrome.js': 'https://cdn.jsdelivr.net/npm/media-chrome@3.1.1/+esm', // Pinned to 3.1.1 for compatibility
   'hls-video-element.js': 'https://cdn.jsdelivr.net/npm/hls-video-element/+esm',
+  'dash-video-element.js': 'https://cdn.jsdelivr.net/npm/dash-video-element/+esm',
   'media-tracks.js': 'https://cdn.jsdelivr.net/npm/media-tracks/+esm',
 };
 
@@ -24,6 +26,10 @@ const DEPENDENCIES = {
 const IMPORT_REWRITES = [
   // hls.js imports
   { from: /from\s*["'](\/npm\/hls\.js@[^"']+|hls\.js)["']/g, to: 'from"/js/vendor/hls.js"' },
+  // dashjs imports
+  { from: /from\s*["'](\/npm\/dashjs@?[^"']*|dashjs)["']/g, to: 'from"/js/vendor/dashjs.js"' },
+  // dashjs dynamic imports (used by dash-video-element)
+  { from: /import\(\s*["'](\/npm\/dashjs@?[^"']*|dashjs)["']\s*\)/g, to: 'import("/js/vendor/dashjs.js")' },
   // custom-media-element imports
   { from: /from\s*["'](\/npm\/custom-media-element@?[^"']*|custom-media-element)["']/g, to: 'from"/js/vendor/custom-media-element.js"' },
   // media-chrome imports
@@ -32,6 +38,8 @@ const IMPORT_REWRITES = [
   { from: /from\s*["'](\/npm\/media-tracks@?[^"']*|media-tracks)["']/g, to: 'from"/js/vendor/media-tracks.js"' },
   // hls-video-element imports
   { from: /from\s*["'](\/npm\/hls-video-element@?[^"']*|hls-video-element)["']/g, to: 'from"/js/vendor/hls-video-element.js"' },
+  // dash-video-element imports
+  { from: /from\s*["'](\/npm\/dash-video-element@?[^"']*|dash-video-element)["']/g, to: 'from"/js/vendor/dash-video-element.js"' },
 ];
 
 async function downloadFile(url, filename) {

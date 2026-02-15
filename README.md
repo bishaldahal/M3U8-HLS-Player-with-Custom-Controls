@@ -1,6 +1,6 @@
-# M3U8/HLS Player with Custom Controls
+# M3U8/HLS/DASH Player with Custom Controls
 
-Advanced **M3U8/HLS** player with customizable controls. Supports keyboard shortcuts, **Picture-in-Picture (PiP)**, frame navigation, and live streams.
+Advanced **M3U8/HLS/DASH** player with customizable controls. Supports keyboard shortcuts, **Picture-in-Picture (PiP)**, frame navigation, and live streams.
 
 ## 📦 Store Downloads
 
