@@ -50,6 +50,21 @@ const KEY_TO_PERCENTAGE = {
   5: 0.5, 6: 0.6, 7: 0.7, 8: 0.8, 9: 0.9,
 };
 
+function isDrmPopupOpen() {
+  return Boolean(document.querySelector('[data-drm-popup="open"]'));
+}
+
+function isTypingInInput(target) {
+  if (!target) return false;
+
+  if (target.isContentEditable) return true;
+
+  const tagName = target.tagName;
+  if (!tagName) return false;
+
+  return tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT';
+}
+
 /**
  * Generate HTML documentation for keyboard shortcuts with categories
  * @param {Object} shortcutsByCategory - Object with categories as keys and shortcuts arrays as values
@@ -223,6 +238,10 @@ function setupKeyboardHandlers() {
   
   // Global keyboard handler for modal
   document.addEventListener('keydown', (event) => {
+    if (isDrmPopupOpen() || isTypingInInput(event.target)) {
+      return;
+    }
+
     if (event.key === '?') {
       modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
     }
@@ -254,6 +273,10 @@ function setupKeyboardHandlers() {
   
   // Player keyboard controls
   player.addEventListener('keydown', (event) => {
+    if (isDrmPopupOpen() || isTypingInInput(event.target)) {
+      return;
+    }
+
     // Ignore if modifier keys are pressed
     if (event.ctrlKey || event.altKey || event.metaKey) return;
     

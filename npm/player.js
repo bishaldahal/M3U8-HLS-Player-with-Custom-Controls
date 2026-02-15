@@ -13,6 +13,256 @@ let currentStreamUrl = '';
 let currentStreamTitle = '';
 let saveHistoryTimeout = null;
 let currentStreamType = null;
+const drmConfigCache = new Map();
+
+async function waitForMediaApi(videoElement, timeoutMs = 6000) {
+  const startTime = Date.now();
+  while (!videoElement.api) {
+    if (Date.now() - startTime > timeoutMs) {
+      throw new Error(`Timed out after ${timeoutMs}ms waiting for player API initialization`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  return videoElement.api;
+}
+
+async function waitForDashApi(videoElement, timeoutMs = 5000) {
+  return waitForMediaApi(videoElement, timeoutMs);
+}
+
+function setupPlaybackErrorHandlers(videoElement, streamType, sourceUrl) {
+  let startupTimeoutId = null;
+  let nativeBindRetryIntervalId = null;
+  let fallbackMonitorIntervalId = null;
+  let hasPlaybackStarted = false;
+  const startedAt = Date.now();
+  const streamLabel = streamType.toUpperCase();
+  const sourceHost = safeUrlParse(sourceUrl)?.host || '';
+  const playbackErrors = createPlaybackErrorTracker(showPlaybackErrorUI);
+
+  const cleanupStartupWatchers = () => {
+    if (startupTimeoutId) {
+      clearTimeout(startupTimeoutId);
+      startupTimeoutId = null;
+    }
+    if (nativeBindRetryIntervalId) {
+      clearInterval(nativeBindRetryIntervalId);
+      nativeBindRetryIntervalId = null;
+    }
+    if (fallbackMonitorIntervalId) {
+      clearInterval(fallbackMonitorIntervalId);
+      fallbackMonitorIntervalId = null;
+    }
+  };
+
+  const getNetworkFailure = buildNetworkFailureMessage(streamLabel, sourceHost);
+  const unsubscribeNetworkErrors = subscribeToStreamNetworkErrors((event) => {
+    const failure = getNetworkFailure(event);
+    if (failure) {
+      playbackErrors.show(failure.title, failure.message);
+    }
+  });
+
+  const onPlaybackStarted = () => {
+    hasPlaybackStarted = true;
+    cleanupStartupWatchers();
+    clearPlaybackErrorUI();
+  };
+
+  videoElement.addEventListener('loadedmetadata', onPlaybackStarted);
+  videoElement.addEventListener('playing', onPlaybackStarted);
+
+  const attachNativeVideoErrorHandlers = () => {
+    const nativeVideo = videoElement.nativeEl || videoElement.shadowRoot?.querySelector('video');
+    if (!nativeVideo || nativeVideo.__playerErrorBound) {
+      return Boolean(nativeVideo);
+    }
+
+    nativeVideo.__playerErrorBound = true;
+
+    nativeVideo.addEventListener('error', () => {
+      const message = getMediaErrorMessage(nativeVideo.error || videoElement.error);
+      playbackErrors.show(`${streamLabel} Playback Error`, message);
+    });
+
+    nativeVideo.addEventListener('stalled', () => {
+      playbackErrors.show(
+        `${streamLabel} Playback Error`,
+        'Playback stalled while loading media data. This is often caused by network/CDN or manifest segment access issues.'
+      );
+    });
+
+    return true;
+  };
+
+  if (!attachNativeVideoErrorHandlers()) {
+    let retries = 0;
+    nativeBindRetryIntervalId = setInterval(() => {
+      retries += 1;
+      const bound = attachNativeVideoErrorHandlers();
+      if (bound || retries >= 40) {
+        if (nativeBindRetryIntervalId) {
+          clearInterval(nativeBindRetryIntervalId);
+          nativeBindRetryIntervalId = null;
+        }
+      }
+    }, 100);
+  }
+
+  startupTimeoutId = setTimeout(() => {
+    if (playbackErrors.hasConcreteError()) return;
+    playbackErrors.show(
+      `${streamLabel} Playback Error`,
+      'The stream did not start in time. This may be due to a blocked manifest/segment request, expired auth, or CORS/CDN restrictions.',
+      false
+    );
+  }, 10000);
+
+  fallbackMonitorIntervalId = setInterval(() => {
+    if (hasPlaybackStarted) {
+      cleanupStartupWatchers();
+      return;
+    }
+
+    if (!videoElement.isConnected) {
+      unsubscribeNetworkErrors();
+      cleanupStartupWatchers();
+      return;
+    }
+
+    const elapsedMs = Date.now() - startedAt;
+    if (elapsedMs < 10000) return;
+
+    const noVisibleError = !isPlaybackErrorUIVisible();
+    const cooldownElapsed = Date.now() - playbackErrors.getLastShownAt() > 8000;
+
+    if (noVisibleError && cooldownElapsed) {
+      const concreteError = playbackErrors.getConcreteError();
+      if (concreteError?.message) {
+        playbackErrors.show(concreteError.title, concreteError.message);
+      } else {
+        playbackErrors.show(
+          `${streamLabel} Playback Error`,
+          'Playback is still failing to start. Check stream URL, auth headers/token, and network access to manifest/segments.',
+          false
+        );
+      }
+    }
+  }, 3000);
+
+  const handleElementError = (event) => {
+    const message = normalizeErrorMessage(event?.detail || event);
+    playbackErrors.show(`${streamLabel} Playback Error`, message);
+  };
+
+  videoElement.addEventListener('error', () => {
+    const message = getMediaErrorMessage(videoElement.error);
+    playbackErrors.show('Playback Error', message);
+  });
+
+  videoElement.addEventListener('hlsError', handleElementError);
+  videoElement.addEventListener('dashError', handleElementError);
+
+  waitForMediaApi(videoElement)
+    .then((api) => {
+      attachNativeVideoErrorHandlers();
+
+      const engineLabel = streamType === 'dash' ? 'DASH' : 'HLS';
+      const onEngineError = (...args) => {
+        const payload = args.length > 1 ? args[1] : args[0];
+        const message = normalizeErrorMessage(payload);
+        playbackErrors.show(`${engineLabel} Playback Error`, message);
+      };
+
+      api.on?.('error', onEngineError);
+      if (streamType === 'hls') {
+        api.on?.('hlsError', onEngineError);
+      }
+    })
+    .catch(() => {
+      // API may not be available in some failure modes; media error handler remains active.
+    });
+}
+
+async function applyDashDrmConfig(videoElement, drmConfig, sourceUrl) {
+  if (!drmConfig?.widevineLicenseUrl) return;
+
+  if (!isChromiumBrowser()) {
+    console.warn('DRM config provided, but Chromium browser was not detected. Skipping Widevine setup.');
+    return;
+  }
+
+  try {
+    const dashApi = await waitForDashApi(videoElement);
+    const widevineConfig = {
+      serverURL: drmConfig.widevineLicenseUrl,
+      priority: 1,
+    };
+
+    if (drmConfig.headers && typeof drmConfig.headers === 'object') {
+      widevineConfig.httpRequestHeaders = drmConfig.headers;
+    }
+    if (drmConfig.robustness) {
+      widevineConfig.videoRobustness = drmConfig.robustness;
+      widevineConfig.audioRobustness = drmConfig.robustness;
+    }
+
+    dashApi.setProtectionData({
+      'com.widevine.alpha': widevineConfig,
+    });
+
+    if (sourceUrl) {
+      dashApi.attachSource(sourceUrl);
+    }
+  } catch (error) {
+    console.error('Failed to apply DASH DRM configuration:', error);
+  }
+}
+
+async function setupDashDrmHandler(videoElement, sourceUrl) {
+  if (!isChromiumBrowser()) {
+    return;
+  }
+
+  try {
+    const dashApi = await waitForDashApi(videoElement);
+    let promptShownForCurrentFailure = false;
+
+    const handleDrmFailure = async (errorEvent, forcePrompt = false) => {
+      const hasCachedConfig = Boolean(drmConfigCache.get(sourceUrl));
+      const shouldPrompt = forcePrompt || isLikelyDrmError(errorEvent) || !hasCachedConfig;
+
+      if (promptShownForCurrentFailure || !shouldPrompt) {
+        return;
+      }
+
+      promptShownForCurrentFailure = true;
+      const errorText = getDrmErrorText(errorEvent).slice(0, 500);
+      const drmConfig = await showDrmPrompt(errorText, sourceUrl, drmConfigCache.get(sourceUrl) || null);
+
+      if (!drmConfig) {
+        promptShownForCurrentFailure = false;
+        return;
+      }
+
+      drmConfigCache.set(sourceUrl, drmConfig);
+      persistDrmConfig(sourceUrl, drmConfig, drmConfig.rememberForHost);
+      await applyDashDrmConfig(videoElement, drmConfig, sourceUrl);
+      promptShownForCurrentFailure = false;
+    };
+
+    dashApi.on('error', (event) => handleDrmFailure(event, false));
+    dashApi.on('keyError', (event) => handleDrmFailure(event, true));
+
+    const cachedConfig = drmConfigCache.get(sourceUrl) || getStoredDrmConfig(sourceUrl);
+    if (cachedConfig) {
+      drmConfigCache.set(sourceUrl, cachedConfig);
+      await applyDashDrmConfig(videoElement, cachedConfig, sourceUrl);
+    }
+  } catch (error) {
+    console.error('Failed to initialize DASH DRM handler:', error);
+  }
+}
 
 /**
  * Detect stream type from URL
@@ -37,6 +287,7 @@ function detectStreamType(url) {
  */
 function playStream(url) {
   try {
+    clearPlaybackErrorUI();
     const streamUrl = new URL(url);
     const title = streamUrl.searchParams.get('extTitle');
     streamUrl.searchParams.delete('extTitle');
@@ -62,11 +313,19 @@ function playStream(url) {
     videoElement.setAttribute('slot', 'media');
     videoElement.setAttribute('crossorigin', '');
     videoElement.setAttribute('autoplay', '');
+
+    // Attach runtime error listeners before setting src, so early load errors are not missed.
+    setupPlaybackErrorHandlers(videoElement, streamType, streamUrl.href);
+
     videoElement.setAttribute('src', streamUrl.href);
 
     // Append to the media controller
     player.appendChild(videoElement);
     document.body.appendChild(player);
+
+    if (streamType === 'dash') {
+      setupDashDrmHandler(videoElement, streamUrl.href);
+    }
 
     return videoElement;
   } catch (error) {
@@ -359,7 +618,6 @@ function applySubtitleStyles(subtitleSettings) {
 function setupSettingsSaver() {
   if (!window.PlayerSettings) return;
 
-  // Save volume changes
   video.addEventListener('volumechange', () => {
     window.PlayerSettings.saveSettings({
       volume: video.volume,
@@ -367,29 +625,23 @@ function setupSettingsSaver() {
     });
   });
 
-  // Save playback rate changes
   video.addEventListener('ratechange', () => {
     window.PlayerSettings.saveSettings({
       playbackRate: video.playbackRate,
     });
   });
 
-  // Listen for external setting changes (e.g. from options page)
   const browserAPI = typeof browser !== 'undefined' ? browser : (typeof chrome !== 'undefined' ? chrome : null);
   if (browserAPI && browserAPI.storage && browserAPI.storage.onChanged) {
     browserAPI.storage.onChanged.addListener((changes, areaName) => {
-      // Check if the change is in local storage
       if ((areaName === 'local' || areaName === undefined) && changes.playerSettings) {
         const newSettings = changes.playerSettings.newValue;
         if (newSettings) {
-          // Apply settings including subtitle customizations immediately
           applySettings(newSettings);
-          
-          // If subtitle settings changed, force reapplication
+
           if (changes.playerSettings.oldValue && 
               JSON.stringify(changes.playerSettings.oldValue.subtitleSettings) !== 
               JSON.stringify(newSettings.subtitleSettings)) {
-            // Reapply subtitle styles after a short delay to ensure they take effect
             setTimeout(() => {
               if (newSettings.subtitleSettings) {
                 applySubtitleStyles(newSettings.subtitleSettings);
@@ -401,18 +653,15 @@ function setupSettingsSaver() {
     });
   }
 
-  // Save history on time update (throttled)
   let lastSaveTime = 0;
   video.addEventListener('timeupdate', () => {
     const now = Date.now();
-    // Save every 30 seconds during playback
     if (now - lastSaveTime > 30000 && !video.paused) {
       lastSaveTime = now;
       debouncedSaveHistory();
     }
   });
 
-  // Save before page unload
   window.addEventListener('beforeunload', () => {
     if (video && currentStreamUrl) {
       window.PlayerSettings.saveToHistory(
