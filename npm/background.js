@@ -53,15 +53,15 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
     }
 
-    // Open the player with the stream URL
-    openInPlayer(message.url, sender.tab ? sender.tab.id : null, streamType);
+    // Open the player with the stream URL in a new tab
+    openInPlayer(message.url, null, streamType);
     sendResponse({ success: true });
     return true;
   }
 
   // Backward compatibility with previous command name
   if (message.command === 'PLAY_M3U8' && message.url) {
-    openInPlayer(message.url, sender.tab ? sender.tab.id : null, 'hls');
+    openInPlayer(message.url, null, 'hls');
     sendResponse({ success: true });
     return true;
   }
