@@ -31,6 +31,12 @@ function detectStreamType(url) {
  * Handle stream link click
  */
 function handleStreamClick(e) {
+  // Only handle left clicks (button === 0). Middle (1) and right (2) clicks 
+  // should use the browser's default behavior.
+  if (e.button !== 0 || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) {
+    return;
+  }
+
   const target = e.target.closest('a');
   if (!target || !target.href) return;
   
