@@ -59,6 +59,9 @@ async function downloadFile(url, filename) {
       content = content.replace(rewrite.from, rewrite.to);
     }
     
+    // Rewrite source map URLs to use absolute jsdelivr URLs
+    content = content.replace(/\/\/# sourceMappingURL=\/sm\//g, '//# sourceMappingURL=https://cdn.jsdelivr.net/sm/');
+    
     const filePath = join(VENDOR_DIR, filename);
     await writeFile(filePath, content, 'utf-8');
     
