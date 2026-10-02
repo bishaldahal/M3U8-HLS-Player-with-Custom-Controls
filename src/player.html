@@ -80,5 +80,33 @@
         </div>
       </div>
     </template>
+
+    <template id="site-headers-template">
+      <div
+        class="overlay overlay--drm"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="site-headers-title"
+      >
+        <div class="overlay-panel">
+          <h2 class="drm-title" id="site-headers-title">Site headers</h2>
+          <p class="drm-hint">
+            Sent with every request the player makes to <strong data-sh-host></strong> and its
+            subdomains, e.g. <code>Referer: https://site.example/</code> or a <code>Cookie</code>.
+          </p>
+          <div class="drm-field">
+            <div data-drm-headers></div>
+            <button type="button" class="overlay-btn" data-drm-add-header>Add header</button>
+          </div>
+          <p class="drm-error" data-drm-error hidden></p>
+          <div class="overlay-actions">
+            <button type="button" class="overlay-btn" data-sh-cancel>Cancel</button>
+            <button type="button" class="overlay-btn overlay-btn--primary" data-sh-save>
+              Save and reload
+            </button>
+          </div>
+        </div>
+      </div>
+    </template>
   </body>
 </html>

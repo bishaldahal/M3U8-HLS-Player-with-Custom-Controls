@@ -3,6 +3,7 @@ import { nextPlaybackRate } from '../../src/lib/shortcuts';
 import {
   buildNetworkFailureMessage,
   createPlaybackErrorTracker,
+  failureHint,
   getMediaErrorMessage,
   isRecoverableEngineError,
   normalizeErrorMessage,
@@ -53,6 +54,20 @@ describe('error helpers', () => {
     const base = { status: 404, statusText: 'Not Found', responseText: '' };
     expect(toFailure({ ...base, url: 'https://other.test/x.ts' })).toBeNull();
     expect(toFailure({ ...base, url: 'https://cdn.test/x.ts' })?.message).toContain('HTTP 404');
+  });
+
+  it('adds a hint for blocked requests', () => {
+    const toFailure = buildNetworkFailureMessage('HLS', 'cdn.test');
+    const failure = toFailure({
+      url: 'https://cdn.test/a.m3u8',
+      status: 403,
+      statusText: 'Forbidden',
+      responseText: '',
+    });
+    expect(failure?.message).toMatch(/What to try: .*Site headers/s);
+    expect(failureHint(0, 'cdn.test')).toMatch(/No response from cdn.test/);
+    expect(failureHint(503, 'cdn.test')).toMatch(/server error/);
+    expect(failureHint(400, 'cdn.test')).toBe('');
   });
 
   it('tracks concrete vs. generic errors', () => {

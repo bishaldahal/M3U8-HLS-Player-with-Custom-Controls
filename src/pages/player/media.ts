@@ -105,7 +105,9 @@ export function setupPlaybackErrorHandlers(
     if (concrete) return errors.show(concrete.title, concrete.message);
     errors.show(
       `${label} Playback Error`,
-      'The stream did not start in time. This may be due to a blocked manifest/segment request, expired auth, or CORS/CDN restrictions.',
+      'The stream did not start in time. The manifest or segment requests may be blocked, the ' +
+        'link may have expired, or the site may require its own Referer or cookies; add them ' +
+        'under "Site headers" and reload.',
       false,
     );
   }, STARTUP_TIMEOUT_MS);
@@ -127,7 +129,8 @@ export function setupPlaybackErrorHandlers(
     } else {
       errors.show(
         `${label} Playback Error`,
-        'Playback is still failing to start. Check stream URL, auth headers/token, and network access to manifest/segments.',
+        'Playback is still failing to start. Check the stream URL, its token, network access, ' +
+          'and any Referer or cookie the site needs ("Site headers").',
         false,
       );
     }
