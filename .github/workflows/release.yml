@@ -84,9 +84,9 @@ jobs:
           CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
           CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
           CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
-          PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
-          CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          PRODUCT_ID: ${{ secrets.PRODUCT_ID }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
           EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
-          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
-          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+          WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
           RELEASE_NOTES: See https://github.com/${{ github.repository }}/releases/tag/${{ needs.release-please.outputs.tag_name }}
