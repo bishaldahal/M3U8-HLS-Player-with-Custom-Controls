@@ -127,7 +127,16 @@ function setupResumeTracking(video: HTMLVideoElement): void {
     if (video.paused) state.resumePosition = video.currentTime;
   });
   video.addEventListener('play', () => {
-    if (isLive()) return;
+    if (isLive()) {
+      // Return to the paused position, clamped to what is still in the live DVR window.
+      const { seekable } = video;
+      if (!state.resumePosition || !seekable.length) return;
+      const start = seekable.start(0);
+      const end = seekable.end(seekable.length - 1);
+      const target = Math.min(Math.max(state.resumePosition, start), end);
+      if (Math.abs(video.currentTime - target) > 1) video.currentTime = target;
+      return;
+    }
     video.currentTime = state.resumePosition;
     if (!isLive() && video.currentTime >= video.duration - 5) video.currentTime = 0;
   });
