@@ -20,13 +20,9 @@ export function buildManifest(browser: Browser, version: string): Manifest {
     permissions: ['webNavigation', 'storage', 'declarativeNetRequestWithHostAccess'],
     // Stream detection; requested only when the user turns it on.
     optional_permissions: ['webRequest'],
-    host_permissions: ['*://*/*', 'http://*/*', 'https://*/*', 'file:///*', '<all_urls>'],
-    web_accessible_resources: [
-      {
-        resources: ['*.html', '*.js', '*.css', '*.png'],
-        matches: ['<all_urls>'],
-      },
-    ],
+    host_permissions: ['<all_urls>'],
+    // The manifest redirect rule navigates pages to the player, which needs it to be web-accessible.
+    web_accessible_resources: [{ resources: ['player.html'], matches: ['<all_urls>'] }],
     content_scripts: [{ matches: ['<all_urls>'], js: ['js/content.js'] }],
     action: {
       default_title: 'M3U8/HLS/DASH Player',
@@ -34,7 +30,7 @@ export function buildManifest(browser: Browser, version: string): Manifest {
     },
     options_ui: { page: 'options.html', open_in_tab: true },
     content_security_policy: {
-      extension_pages: "script-src 'self' 'wasm-unsafe-eval' ; object-src 'self' ;",
+      extension_pages: "script-src 'self'; object-src 'self';",
     },
     icons: {
       16: 'icons/icon16.png',
