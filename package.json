@@ -1,35 +1,75 @@
 {
-  "name": "m3u8-hls-player-with-custom-keyboard-shortcuts",
-  "displayName": "M3U8-HLS Player with Custom Keyboard Shortcuts",
+  "name": "m3u8-hls-player",
+  "displayName": "M3U8/HLS/DASH Player with Custom Keyboard Shortcuts",
   "version": "1.5.0",
+  "description": "Browser extension that plays M3U8/HLS and MPD/DASH streams directly in the browser with keyboard shortcuts, subtitles, PiP and watch history.",
+  "private": true,
   "type": "module",
+  "author": "Bishal Dahal",
+  "homepage": "https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "download-deps": "node build_scripts/download-deps.js",
-    "start:chrome": "web-ext run -t chromium",
-    "obsfuscate": "npx javascript-obfuscator js --output js",
-    "build:icons": "node build_scripts/build-icons.js",
-    "zip": "node build_scripts/build-icons.js && node build_scripts/zip.js",
-    "publish": "node build_scripts/publish.js",
-    "publish:chrome": "npm run build:chrome && node build_scripts/publish.js chrome-webstore",
-    "publish:firefox": "npm run build:firefox && node build_scripts/publish.js firefox",
-    "publish:edge": "npm run build:chrome && node build_scripts/publish.js edge",
-    "copy": "node build_scripts/build.js",
-    "build": "node build_scripts/build-icons.js && npm run download-deps && npm run copy && npm run minify",
-    "build:chrome": "npm run build && node build_scripts/build-platform.js chrome",
-    "build:firefox": "npm run build && node build_scripts/build-platform.js firefox",
-    "build:all": "npm run build && npm run build:chrome && npm run build:firefox",
-    "release:minify": "npm run build && npm run zip",
-    "release:obfuscate": "npm run obsfuscate && npm run zip",
-    "minify": "npx terser npm/player-utils.js npm/player-drm.js npm/player.js npm/shortcuts.js -c sequences=true,dead_code=true,conditionals=true,booleans=true,unused=true,if_return=true,join_vars=true,drop_console=true -m toplevel=true -o js/player.min.js"
+    "fetch:vendor": "tsx scripts/fetch-vendor.ts",
+    "build:icons": "tsx scripts/build-icons.ts",
+    "prebuild": "npm run build:icons",
+    "build": "tsx scripts/build.ts",
+    "build:chrome": "npm run build:icons && tsx scripts/build.ts chrome",
+    "build:firefox": "npm run build:icons && tsx scripts/build.ts firefox",
+    "start:chrome": "web-ext run -s dist/chrome -t chromium",
+    "start:firefox": "web-ext run -s dist/firefox",
+    "lint": "eslint .",
+    "lint:ext": "web-ext lint -s dist/firefox",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "zip": "tsx scripts/zip.ts",
+    "publish:chrome": "tsx scripts/publish.ts chrome",
+    "publish:edge": "tsx scripts/publish.ts edge",
+    "publish:firefox": "tsx scripts/publish.ts firefox",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml,html,css}": "prettier --write"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
+    "@eslint/js": "^10.0.1",
     "@plasmohq/edge-addons-api": "^2.0.0",
+    "@types/archiver": "^6.0.4",
+    "@types/chrome": "^0.3.4",
+    "@types/node": "^22.20.5",
+    "@vitest/coverage-v8": "^5.0.3",
     "archiver": "^7.0.1",
     "chrome-webstore-upload": "^4.0.0",
-    "javascript-obfuscator": "^4.1.0",
+    "eslint": "^10.11.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.13.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.9.9",
     "sharp": "^0.34.5",
-    "terser": "^5.28.1",
+    "tsx": "^4.23.15",
+    "typescript": "~6.0",
+    "typescript-eslint": "^8.71.0",
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3",
     "web-ext": "^8.1.0"
-  },
-  "private": true
+  }
 }
