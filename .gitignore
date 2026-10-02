@@ -1,12 +1,23 @@
-node_modules
-js/player.min.js
-js/vendor/
-build/
-js/
-*.zip
-manifest.json
-icons/icon*.png
+# Dependencies
+node_modules/
 
-# Keep platform-specific manifests but track them
-# manifest.json is auto-generated during build
+# Build output
+dist/
+artifacts/
+coverage/
+*.zip
+*.tsbuildinfo
+
+# Generated at build time
+public/vendor/
+public/icons/icon*.png
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Editor / OS
 .DS_Store
+.idea/
+*.log
