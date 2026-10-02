@@ -8,12 +8,13 @@ import {
   type PlayerSettings,
   type SubtitleSettings,
 } from '../../lib/settings';
-import { detectStreamType, parseStreamUrl } from '../../lib/stream';
+import { detectStreamType, parseStreamUrl, safeUrlParse } from '../../lib/stream';
 import { buildCueCss } from '../../lib/subtitles';
 import { setupDashDrm } from './drm';
-import { clearPlaybackErrorUI, showFatalError } from './errors';
+import { clearPlaybackErrorUI, setSiteHeadersAction, showFatalError } from './errors';
 import { setupKeyboard } from './keyboard';
 import { createStreamElement, setupPlaybackErrorHandlers } from './media';
+import { showSiteHeadersDialog } from './site-headers';
 import { isLive, state } from './state';
 import type { StreamVideoElement } from './types';
 
@@ -249,6 +250,9 @@ function playStream(controller: HTMLElement, rawUrl: string): StreamVideoElement
     state.streamUrl = rawUrl;
     state.streamTitle = title || 'Untitled Stream';
     if (title) document.title = title;
+
+    const host = safeUrlParse(streamUrl)?.hostname;
+    if (host) setSiteHeadersAction(() => void showSiteHeadersDialog(host));
 
     const video = createStreamElement(streamType);
     setupPlaybackErrorHandlers(video, streamType, streamUrl);

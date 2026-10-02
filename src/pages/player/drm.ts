@@ -121,7 +121,7 @@ export function isLikelyDrmError(errorEvent: unknown): boolean {
   return Boolean(text) && DRM_KEYWORDS.some((keyword) => text.includes(keyword));
 }
 
-function createHeaderRow(key = '', value = ''): HTMLElement {
+export function createHeaderRow(key = '', value = ''): HTMLElement {
   const row = document.createElement('div');
   row.className = 'drm-header-row';
 
@@ -147,7 +147,7 @@ function createHeaderRow(key = '', value = ''): HTMLElement {
   return row;
 }
 
-function readHeaderRows(container: HTMLElement): Record<string, string> | null {
+export function readHeaderRows(container: HTMLElement): Record<string, string> | null {
   const headers: Record<string, string> = {};
   container.querySelectorAll<HTMLElement>('.drm-header-row').forEach((row) => {
     const key = row.querySelector<HTMLInputElement>('[data-header-key]')?.value.trim();

@@ -13,6 +13,12 @@ const subscribers = new Set<NetworkErrorListener>();
 const requestUrls = new WeakMap<XMLHttpRequest, string>();
 let probeInstalled = false;
 let activeOverlay: HTMLElement | null = null;
+let openSiteHeaders: (() => void) | null = null;
+
+/** Adds a "Site headers" button to error overlays. */
+export function setSiteHeadersAction(action: (() => void) | null): void {
+  openSiteHeaders = action;
+}
 
 export function truncateText(text: string, maxLength = 500): string {
   if (!text) return '';
@@ -71,6 +77,31 @@ export function subscribeToNetworkErrors(listener: NetworkErrorListener): () => 
   return () => subscribers.delete(listener);
 }
 
+/** What to try next for a failed request, by HTTP status (0 = no response). */
+export function failureHint(status: number, host: string): string {
+  if (status === 401 || status === 403) {
+    return (
+      `${host} refused the request. Many sites only serve streams to their own pages: open the ` +
+      `stream from a link on that page so its Referer is remembered, or add Referer, Origin or ` +
+      `Cookie headers for ${host} under "Site headers". Signed links also expire; reload the ` +
+      `source page for a fresh one.`
+    );
+  }
+  if (status === 404 || status === 410) {
+    return 'The stream is no longer at this address; the link may have expired.';
+  }
+  if (status === 429) return `${host} is rate limiting requests. Wait a little and retry.`;
+  if (status >= 500) return `${host} had a server error. Try again later.`;
+  if (status === 0) {
+    return (
+      `No response from ${host}. The host may be down, blocked by an ad blocker, firewall or ` +
+      `VPN, or using an invalid certificate. If the stream needs a Referer or cookie, add it ` +
+      `under "Site headers".`
+    );
+  }
+  return '';
+}
+
 export function buildNetworkFailureMessage(streamLabel: string, sourceHost: string) {
   return ({ url, status, statusText, responseText }: NetworkErrorEvent) => {
     const parsed = safeUrlParse(url);
@@ -78,9 +109,13 @@ export function buildNetworkFailureMessage(streamLabel: string, sourceHost: stri
 
     const statusLabel =
       status > 0 ? `HTTP ${status}${statusText ? ` ${statusText}` : ''}` : 'Network error';
+    const hint = failureHint(status, parsed.hostname);
     return {
       title: `${streamLabel} Network Error`,
-      message: `${statusLabel} while requesting ${url}${responseText ? `\n\n${responseText}` : ''}`,
+      message:
+        `${statusLabel} while requesting ${url}` +
+        (hint ? `\n\nWhat to try: ${hint}` : '') +
+        (responseText ? `\n\n${responseText}` : ''),
     };
   };
 }
@@ -211,6 +246,11 @@ export function showPlaybackErrorUI(title: string, detail: string): void {
     if (event.target === overlay) clearPlaybackErrorUI();
   });
 
+  if (openSiteHeaders) {
+    const headersBtn = button('Site headers');
+    headersBtn.addEventListener('click', openSiteHeaders);
+    actions.append(headersBtn);
+  }
   actions.append(copyBtn, closeBtn);
   panel.append(titleEl, subtitleEl, detailEl, actions);
   overlay.appendChild(panel);
