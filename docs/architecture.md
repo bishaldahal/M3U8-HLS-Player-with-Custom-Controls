@@ -3,10 +3,14 @@
 ```
 src/
 ├── manifest.ts          # buildManifest(browser, version) → manifest.json per target
-├── background/index.ts  # service worker / event page: redirects stream navigations to the player
+├── background/
+│   ├── index.ts         # service worker / event page: redirects, play requests, header rules
+│   └── detect.ts        # opt-in stream detection (webRequest) kept in storage.session per tab
 ├── content/index.ts     # intercepts clicks on .m3u8/.mpd links
 ├── lib/                 # shared, framework-free modules (unit-tested)
 │   ├── browser.ts       # `ext` = browser ?? chrome
+│   ├── detected.ts      # detected streams, replayable headers, tab-scoped DNR rules
+│   ├── site-headers.ts  # saved per-host headers and their DNR rules
 │   ├── stream.ts        # stream type detection, URL parsing/keys
 │   ├── settings.ts      # settings + watch history (validated, deep-merged)
 │   ├── storage.ts       # storage abstraction (swappable in tests)
@@ -16,8 +20,8 @@ src/
 │   └── ui-feedback.ts   # toasts, spinners, icons
 ├── pages/
 │   ├── player/          # player.html: playback, DRM dialog, keyboard, errors
-│   ├── popup/           # popup.html: open URL, recent history
-│   ├── options/         # options.html: settings + history management
+│   ├── popup/           # popup.html: streams on this page, recent history
+│   ├── options/         # options.html: settings, site headers, history management
 │   └── shortcuts/       # shortcuts.html: shortcut reference
 └── *.html               # page entry points (Vite multi-page inputs)
 
@@ -35,8 +39,20 @@ flowchart LR
   C --> D{detectStreamType}
   D -->|hls| E[hls-video-element → hls.js]
   D -->|dash| F[dash-video-element → dash.js]
-  C <--> G[(storage.local: settings, history)]
+  C <--> G[(storage.local: settings, history, site headers)]
 ```
+
+## Request headers
+
+The player never edits page requests. Headers are added with `declarativeNetRequest` rules that only match requests initiated by the extension:
+
+| Source                   | Rules             | IDs     | Scope                                                                       |
+| ------------------------ | ----------------- | ------- | --------------------------------------------------------------------------- |
+| Manifest redirect        | dynamic           | 1       | top-level `.m3u8`/`.mpd` navigations                                        |
+| Site headers (Settings)  | dynamic           | 1000+   | the saved host and its subdomains                                           |
+| Detected stream (opt-in) | session, `tabIds` | max + 1 | all headers to the manifest host; `Referer`/`Origin`/`User-Agent` to others |
+
+Detection needs the optional `webRequest` permission. Captured headers live in `storage.session` and are dropped when the tab navigates or closes, or the permission is revoked.
 
 ## Vendor libraries
 
