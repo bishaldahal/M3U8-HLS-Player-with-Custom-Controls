@@ -66,6 +66,13 @@ describe('validateSettings', () => {
     });
     expect(errors).toHaveLength(5);
   });
+
+  it('validates liveBufferWhilePausedMinutes', () => {
+    expect(validateSettings({ liveBufferWhilePausedMinutes: 10 })).toEqual([]);
+    expect(validateSettings({ liveBufferWhilePausedMinutes: -1 })).toHaveLength(1);
+    expect(validateSettings({ liveBufferWhilePausedMinutes: 31 })).toHaveLength(1);
+    expect(validateSettings({ liveBufferWhilePausedMinutes: 1.5 })).toHaveLength(1);
+  });
 });
 
 describe('deepMerge', () => {

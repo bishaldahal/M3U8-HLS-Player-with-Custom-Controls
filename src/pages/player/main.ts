@@ -100,6 +100,34 @@ async function resumeFrom(position: number, settings: PlayerSettings): Promise<v
   setTimeout(() => enableSubtitles(settings), 300);
 }
 
+/** Upper bound for hls.js buffered bytes; browsers also cap SourceBuffer size (~150 MB video). */
+const LIVE_BUFFER_MAX_BYTES = 150e6;
+
+/** Buffer ahead while paused and keep played content, so a long pause can resume where it was. */
+function applyLiveBuffer(video: StreamVideoElement, minutes: number): void {
+  const api = video.api;
+  if (!api || minutes <= 0) return;
+  const seconds = minutes * 60;
+  if (api.updateSettings) {
+    api.updateSettings({
+      streaming: {
+        scheduling: { scheduleWhilePaused: true },
+        buffer: {
+          bufferToKeep: seconds,
+          bufferTimeDefault: seconds,
+          bufferTimeAtTopQuality: seconds,
+          bufferTimeAtTopQualityLongForm: seconds,
+        },
+      },
+    });
+  } else if (api.config) {
+    const config = api.config;
+    config.maxBufferLength = seconds;
+    config.maxMaxBufferLength = Math.max(Number(config.maxMaxBufferLength) || 0, seconds);
+    config.maxBufferSize = Math.max(Number(config.maxBufferSize) || 0, LIVE_BUFFER_MAX_BYTES);
+  }
+}
+
 function setupLiveTimeDisplay(video: HTMLVideoElement): void {
   const display = document.querySelector('media-time-display');
   if (!display) return;
@@ -264,6 +292,7 @@ async function init(): Promise<void> {
   video.addEventListener('loadedmetadata', () => {
     state.mediaStreamType = controller.getAttribute('mediastreamtype');
     applySettings(settings);
+    if (isLive()) applyLiveBuffer(video, settings.liveBufferWhilePausedMinutes);
 
     const shouldResume =
       savedPosition > 0 && !isLive() && video.duration > 0 && savedPosition < video.duration - 10;
