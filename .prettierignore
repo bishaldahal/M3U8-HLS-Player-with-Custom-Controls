@@ -1,0 +1,6 @@
+dist/
+artifacts/
+public/vendor/
+coverage/
+package-lock.json
+CHANGELOG.md
