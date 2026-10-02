@@ -1,5 +1,6 @@
 dist/
 artifacts/
+.web-ext-profile/
 public/vendor/
 coverage/
 package-lock.json
