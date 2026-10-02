@@ -1,0 +1,37 @@
+{
+  "hls.js": {
+    "version": "1.6.15",
+    "url": "https://cdn.jsdelivr.net/npm/hls.js@1.6.15/+esm",
+    "sha256": "4320d4d6396fad8b5a45b232fc4ea2013538f2daf4ca6af313f5f9118d2a4d96"
+  },
+  "dashjs": {
+    "version": "5.1.1",
+    "url": "https://cdn.jsdelivr.net/npm/dashjs@5.1.1/+esm",
+    "sha256": "6ec26b86262425ca6dd44343931065b12e8621181ba12041c1b97ee29029eff4"
+  },
+  "custom-media-element": {
+    "version": "1.4.5",
+    "url": "https://cdn.jsdelivr.net/npm/custom-media-element@1.4.5/+esm",
+    "sha256": "b8c7464edebb3117f5c5f8e52ff83041d5d1658804b3dc0896b03267232005c6"
+  },
+  "media-tracks": {
+    "version": "0.3.4",
+    "url": "https://cdn.jsdelivr.net/npm/media-tracks@0.3.4/+esm",
+    "sha256": "76195b028856056c2bb6fe624e3a62ee561451afdd75c8e1c768ec16d336d803"
+  },
+  "media-chrome": {
+    "version": "3.1.1",
+    "url": "https://cdn.jsdelivr.net/npm/media-chrome@3.1.1/+esm",
+    "sha256": "8285d1a371c53c1aa5002bdacb6f12134a039763defa247883b895fc40874633"
+  },
+  "hls-video-element": {
+    "version": "1.5.10",
+    "url": "https://cdn.jsdelivr.net/npm/hls-video-element@1.5.10/+esm",
+    "sha256": "3f5587c2b98d7047a93ec57f3407fb18e3651e465a0a2b7be6820bb1daa0146a"
+  },
+  "dash-video-element": {
+    "version": "0.3.1",
+    "url": "https://cdn.jsdelivr.net/npm/dash-video-element@0.3.1/+esm",
+    "sha256": "7ed3b59eb528def8a3147a20cee8f7b9823e31f4593598a4e1661d559e647f92"
+  }
+}
