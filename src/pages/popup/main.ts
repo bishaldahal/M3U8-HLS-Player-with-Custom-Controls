@@ -1,5 +1,6 @@
 import '../../lib/ui-feedback.css';
 import { ext } from '../../lib/browser';
+import type { DetectedStream } from '../../lib/detected';
 import { loadHistory, loadSettings, saveSettings, type HistoryEntry } from '../../lib/settings';
 import { formatRelativeTime, formatTime } from '../../lib/time';
 import { toast } from '../../lib/ui-feedback';
@@ -64,7 +65,64 @@ function renderHistoryItem(entry: HistoryEntry): HTMLElement {
   return item;
 }
 
-async function renderHistory(): Promise<void> {
+function renderDetectedItem(stream: DetectedStream, tabId: number): HTMLElement {
+  const item = document.createElement('div');
+  item.className = 'history-item';
+  item.tabIndex = 0;
+  item.setAttribute('role', 'button');
+
+  const { hostname, pathname } = new URL(stream.url);
+  const name = decodeURIComponent(pathname.split('/').pop() || pathname);
+  item.setAttribute('aria-label', `Play ${name} from ${hostname}`);
+
+  const info = document.createElement('div');
+  info.className = 'history-info';
+  const title = document.createElement('div');
+  title.className = 'history-title';
+  title.textContent = `${stream.type.toUpperCase()} · ${name}`;
+  title.title = stream.url;
+  const meta = document.createElement('div');
+  meta.className = 'history-meta';
+  const headerCount = Object.keys(stream.headers).length;
+  meta.textContent = `${hostname} • ${formatRelativeTime(stream.seenAt)}${
+    headerCount ? ` • plays with the site's ${headerCount} headers` : ''
+  }`;
+  info.append(title, meta);
+  item.appendChild(info);
+
+  const play = () => {
+    void ext.runtime.sendMessage({
+      command: 'PLAY_STREAM',
+      url: stream.url,
+      streamType: stream.type,
+      tabId,
+    });
+    window.close();
+  };
+  item.addEventListener('click', play);
+  item.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      play();
+    }
+  });
+  return item;
+}
+
+async function renderDetected(): Promise<boolean> {
+  const [tab] = await ext.tabs.query({ active: true, currentWindow: true });
+  if (tab?.id === undefined) return false;
+  const streams = (await ext.runtime.sendMessage({ command: 'GET_DETECTED', tabId: tab.id })) as
+    DetectedStream[] | undefined;
+  if (!streams?.length) return false;
+  $<HTMLElement>('detected-list').replaceChildren(
+    ...[...streams].reverse().map((s) => renderDetectedItem(s, tab.id!)),
+  );
+  $<HTMLElement>('detected-section').hidden = false;
+  return true;
+}
+
+async function renderHistory(focusFirst = true): Promise<void> {
   const list = $<HTMLElement>('history-list');
   list.replaceChildren(emptyMessage('Loading...'));
 
@@ -81,7 +139,7 @@ async function renderHistory(): Promise<void> {
     }
     const items = history.slice(0, RECENT_COUNT).map(renderHistoryItem);
     list.replaceChildren(...items);
-    items[0]?.focus();
+    if (focusFirst) items[0]?.focus();
   } catch (error) {
     console.error('Error loading history:', error);
     list.replaceChildren(emptyMessage('Error loading history', 'Please try again'));
@@ -149,7 +207,13 @@ async function init(): Promise<void> {
     toast.error('Failed to load subtitle settings');
   }
 
-  await renderHistory();
+  const hasDetected = await renderDetected().catch((error) => {
+    console.error('Error loading detected streams:', error);
+    return false;
+  });
+  if (hasDetected)
+    $<HTMLElement>('detected-list').querySelector<HTMLElement>('[role=button]')?.focus();
+  await renderHistory(!hasDetected);
 }
 
 void init();

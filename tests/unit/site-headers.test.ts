@@ -114,7 +114,7 @@ describe('site header storage', () => {
 describe('buildHeaderRules', () => {
   it('limits rules to the extension and the stream host', () => {
     const [rule] = buildHeaderRules(
-      [{ host: 'cdn.test', headers: { Referer: 'https://a.test/' }, auto: true, updatedAt: 0 }],
+      [{ host: 'cdn.test', headers: { Referer: 'https://a.test/' } }],
       'extid',
     );
     expect(rule!.id).toBe(HEADER_RULE_ID_BASE);
