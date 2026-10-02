@@ -14,6 +14,16 @@ import {
   type HistoryEntry,
   type SubtitleSettings,
 } from '../../lib/settings';
+import {
+  SITE_HEADERS_KEY,
+  formatHeaderLines,
+  loadSiteHeaders,
+  normalizeHost,
+  parseHeaderLines,
+  removeSiteHeaders,
+  upsertSiteHeaders,
+  type SiteHeaderRule,
+} from '../../lib/site-headers';
 import { getEdgeStyleCSS, hexToRgba } from '../../lib/subtitles';
 import { formatRelativeTime, formatTime } from '../../lib/time';
 import { createIcon, createSpinner, toast } from '../../lib/ui-feedback';
@@ -38,6 +48,11 @@ const dom = {
   speedPresets: document.querySelectorAll<HTMLButtonElement>('.speed-preset'),
   saveHistoryToggle: byId<HTMLInputElement>('save-history'),
   liveBufferMinutes: byId<HTMLInputElement>('live-buffer-minutes'),
+  autoSiteHeaders: byId<HTMLInputElement>('auto-site-headers'),
+  siteHeadersList: byId<HTMLElement>('site-headers-list'),
+  siteHeadersForm: byId<HTMLFormElement>('site-headers-form'),
+  siteHeadersHost: byId<HTMLInputElement>('site-headers-host'),
+  siteHeadersText: byId<HTMLTextAreaElement>('site-headers-text'),
   resetSettingsBtn: byId<HTMLButtonElement>('reset-settings'),
   subtitlePreview: document.querySelector<HTMLElement>('.subtitle-text'),
   subtitleFontSize: byId<HTMLInputElement>('subtitle-font-size'),
@@ -114,6 +129,7 @@ function autoSave(): void {
         playbackRate: currentSpeed,
         saveHistory: dom.saveHistoryToggle.checked,
         liveBufferWhilePausedMinutes: readLiveBufferMinutes(),
+        autoSiteHeaders: dom.autoSiteHeaders.checked,
         subtitleSettings: readSubtitleSettings(),
       });
       showSaved();
@@ -154,6 +170,7 @@ async function populateSettings(): Promise<void> {
     setSpeed(settings.playbackRate || 1);
     dom.saveHistoryToggle.checked = settings.saveHistory !== false;
     dom.liveBufferMinutes.value = String(settings.liveBufferWhilePausedMinutes);
+    dom.autoSiteHeaders.checked = settings.autoSiteHeaders;
 
     const s = settings.subtitleSettings;
     dom.subtitleFontSize.value = dom.subtitleFontSizeNumber.value = String(s.fontSize);
@@ -400,6 +417,77 @@ async function clearAll(): Promise<void> {
   }
 }
 
+// --- Site headers ----------------------------------------------------------
+
+function renderSiteHeaderItem(rule: SiteHeaderRule): HTMLElement {
+  const item = document.createElement('div');
+  item.className = 'site-header-item';
+
+  const info = document.createElement('div');
+  info.className = 'site-header-info';
+  const host = document.createElement('div');
+  host.className = 'site-header-host';
+  host.textContent = rule.host;
+  if (rule.auto) {
+    const badge = document.createElement('span');
+    badge.className = 'site-header-badge';
+    badge.textContent = 'remembered';
+    badge.title = 'Captured from the page the stream was opened from';
+    host.appendChild(badge);
+  }
+  const values = document.createElement('pre');
+  values.className = 'site-header-values';
+  values.textContent = formatHeaderLines(rule.headers);
+  info.append(host, values);
+
+  const edit = actionButton('btn-secondary', 'Edit', `Edit headers for ${rule.host}`, () => {
+    dom.siteHeadersHost.value = rule.host;
+    dom.siteHeadersText.value = formatHeaderLines(rule.headers);
+    dom.siteHeadersText.focus();
+  });
+  const remove = actionButton('btn-danger', 'Remove', `Remove headers for ${rule.host}`, () => {
+    void runAction(() => removeSiteHeaders(rule.host), 'Failed to remove site headers');
+  });
+
+  item.append(info, edit, remove);
+  return item;
+}
+
+async function renderSiteHeaders(): Promise<void> {
+  const rules = await loadSiteHeaders();
+  if (!rules.length) {
+    const empty = document.createElement('div');
+    empty.className = 'setting-hint';
+    empty.textContent = 'No site headers yet.';
+    dom.siteHeadersList.replaceChildren(empty);
+    return;
+  }
+  dom.siteHeadersList.replaceChildren(...rules.map(renderSiteHeaderItem));
+}
+
+async function saveSiteHeaderForm(event: SubmitEvent): Promise<void> {
+  event.preventDefault();
+  const host = normalizeHost(dom.siteHeadersHost.value);
+  if (!host) {
+    toast.error('Enter a host such as cdn.example.com');
+    return;
+  }
+  const { headers, errors } = parseHeaderLines(dom.siteHeadersText.value);
+  if (errors.length) {
+    toast.error(errors[0]!);
+    return;
+  }
+  const ok = await runAction(
+    () =>
+      Object.keys(headers).length ? upsertSiteHeaders(host, headers) : removeSiteHeaders(host),
+    'Failed to save site headers',
+  );
+  if (ok) {
+    dom.siteHeadersForm.reset();
+    toast.success(`Headers saved for ${host}`);
+  }
+}
+
 // --- Wiring ----------------------------------------------------------------
 
 function bindPair(slider: HTMLInputElement, number: HTMLInputElement): void {
@@ -444,6 +532,12 @@ async function init(): Promise<void> {
   );
 
   dom.saveHistoryToggle.addEventListener('change', autoSave);
+  dom.autoSiteHeaders.addEventListener('change', autoSave);
+  dom.siteHeadersForm.addEventListener('submit', (e) => void saveSiteHeaderForm(e));
+  ext.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName === 'local' && changes[SITE_HEADERS_KEY]) void renderSiteHeaders();
+  });
+  await renderSiteHeaders();
   dom.liveBufferMinutes.addEventListener('change', () => {
     dom.liveBufferMinutes.value = String(readLiveBufferMinutes());
     autoSave();
