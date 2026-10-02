@@ -108,6 +108,25 @@
         font-size: 11px;
         color: #8b949e;
       }
+      .detect-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .detect-header .toggle-label span {
+        font-size: 11px;
+        text-transform: none;
+        letter-spacing: 0;
+      }
+      .detect-hint {
+        margin: 0;
+        padding: 0 16px 8px;
+        font-size: 12px;
+        color: #8b949e;
+      }
+      .detect-hint:empty {
+        display: none;
+      }
       .history-empty {
         color: #6e7681;
         text-align: center;
@@ -332,8 +351,15 @@
       </div>
     </div>
 
-    <div id="detected-section" hidden>
-      <div class="history-header">Streams on this page</div>
+    <div id="detected-section">
+      <div class="history-header detect-header">
+        <span>Streams on this page</span>
+        <label class="toggle-label" title="Lists streams that pages load so you can open them here">
+          <input type="checkbox" id="detect-streams" aria-describedby="detect-hint" />
+          <span>Detect</span>
+        </label>
+      </div>
+      <p id="detect-hint" class="detect-hint"></p>
       <div id="detected-list" class="history-list"></div>
     </div>
 

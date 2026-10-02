@@ -1191,6 +1191,27 @@
           >
         </div>
 
+        <div class="setting-group">
+          <div class="toggle-row">
+            <span class="toggle-label">Detect streams on pages</span>
+            <label class="toggle-switch">
+              <input
+                type="checkbox"
+                id="detect-streams"
+                aria-label="Detect streams that pages load"
+                aria-describedby="detect-streams-hint"
+              />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <span class="setting-hint" id="detect-streams-hint"
+            >Lists the streams a page plays in the toolbar popup, so you can open them here with the
+            headers the page used (Referer, cookies, tokens). Needs permission to read request
+            headers. Captured headers stay in memory, are only sent from the player tab, and are
+            cleared when you leave the page.</span
+          >
+        </div>
+
         <div id="site-headers-list" class="site-headers-list"></div>
 
         <form id="site-headers-form" class="site-headers-form">

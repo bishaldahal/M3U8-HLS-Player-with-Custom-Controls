@@ -59,13 +59,12 @@ function onRequest(details: chrome.webRequest.OnBeforeSendHeadersDetails): undef
   void updateTab(details.tabId, (list) => addDetected(list, stream));
 }
 
-export function startStreamDetection(): void {
-  if (!ext.webRequest || !ext.storage.session) return;
-  ext.storage.session.setAccessLevel?.({ accessLevel: 'TRUSTED_CONTEXTS' }).catch(() => {});
-
+function listen(): void {
+  const api = ext.webRequest as typeof ext.webRequest | undefined;
+  if (!api || api.onBeforeSendHeaders.hasListener(onRequest)) return;
   // Chrome hides Referer, Cookie and Origin unless 'extraHeaders' is requested; Firefox rejects it.
-  const extra = ext.webRequest.OnBeforeSendHeadersOptions?.EXTRA_HEADERS;
-  ext.webRequest.onBeforeSendHeaders.addListener(
+  const extra = api.OnBeforeSendHeadersOptions?.EXTRA_HEADERS;
+  api.onBeforeSendHeaders.addListener(
     onRequest,
     {
       urls: ['<all_urls>'],
@@ -73,6 +72,40 @@ export function startStreamDetection(): void {
     },
     ['requestHeaders', ...(extra ? [extra] : [])] as chrome.webRequest.OnBeforeSendHeadersOptions[],
   );
+}
+
+async function forgetAll(): Promise<void> {
+  const keys = Object.keys(await ext.storage.session.get(null)).filter((k) =>
+    k.startsWith('detected:'),
+  );
+  await ext.storage.session.remove(keys);
+  for (const key of keys) {
+    const tabId = Number(key.slice('detected:'.length));
+    void ext.action.setBadgeText({ tabId, text: '' }).catch(() => {});
+  }
+}
+
+const isDetectPermission = (p: chrome.permissions.Permissions) =>
+  p.permissions?.includes('webRequest') ?? false;
+
+export function startStreamDetection(): void {
+  if (!ext.storage.session) return;
+  ext.storage.session.setAccessLevel?.({ accessLevel: 'TRUSTED_CONTEXTS' }).catch(() => {});
+
+  // Synchronous on startup so an already granted permission can wake the service worker.
+  listen();
+  ext.permissions.onAdded.addListener((p) => {
+    if (isDetectPermission(p)) listen();
+  });
+  ext.permissions.onRemoved.addListener((p) => {
+    if (!isDetectPermission(p)) return;
+    try {
+      ext.webRequest?.onBeforeSendHeaders.removeListener(onRequest);
+    } catch {
+      // The API is already gone along with the permission.
+    }
+    void forgetAll();
+  });
 
   ext.webNavigation.onCommitted.addListener((details) => {
     if (details.frameId === 0) void updateTab(details.tabId, () => null);
