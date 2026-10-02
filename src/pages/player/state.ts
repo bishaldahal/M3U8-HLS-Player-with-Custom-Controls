@@ -13,5 +13,7 @@ export const state = {
 };
 
 export function isLive(): boolean {
-  return state.mediaStreamType === 'live';
+  // media-chrome sets mediastreamtype asynchronously, so re-read it and fall back to duration.
+  const type = state.controller?.getAttribute('mediastreamtype') ?? state.mediaStreamType;
+  return type === 'live' || state.video?.duration === Infinity;
 }
