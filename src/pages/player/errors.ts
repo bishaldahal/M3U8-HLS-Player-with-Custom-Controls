@@ -85,6 +85,12 @@ export function buildNetworkFailureMessage(streamLabel: string, sourceHost: stri
   };
 }
 
+/** hls.js marks recoverable errors with `fatal: false`; it retries/recovers those itself. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function isRecoverableEngineError(payload: any): boolean {
+  return payload?.fatal === false || payload?.data?.fatal === false;
+}
+
 export function getMediaErrorMessage(mediaError: MediaError | null | undefined): string {
   if (!mediaError) return 'Unknown media error';
   switch (mediaError.code) {
@@ -134,6 +140,10 @@ export function createPlaybackErrorTracker(showErrorUI: (title: string, message:
       lastShownAt = Date.now();
       if (isConcrete) concrete = { title, message };
       showErrorUI(title, message);
+    },
+    /** Remember an error as the likely cause without showing it yet. */
+    record(title: string, message: string) {
+      concrete = { title, message };
     },
     getLastShownAt: () => lastShownAt,
     hasConcreteError: () => Boolean(concrete?.message),
