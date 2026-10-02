@@ -1,7 +1,6 @@
 # M3U8/HLS/DASH Player with Custom Controls
 
 [![CI](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/actions/workflows/ci.yml/badge.svg)](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/actions/workflows/codeql.yml/badge.svg)](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/actions/workflows/codeql.yml)
 [![Latest release](https://img.shields.io/github/v/release/bishaldahal/M3U8-HLS-Player-with-Custom-Controls)](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/releases)
 
 A browser extension that plays **M3U8/HLS** and **MPD/DASH** streams directly in the browser, with keyboard shortcuts, Picture-in-Picture, frame stepping, subtitles, watch history and resume.
