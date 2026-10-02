@@ -4,6 +4,7 @@ import {
   buildNetworkFailureMessage,
   createPlaybackErrorTracker,
   getMediaErrorMessage,
+  isRecoverableEngineError,
   normalizeErrorMessage,
   truncateText,
 } from '../../src/pages/player/errors';
@@ -62,6 +63,21 @@ describe('error helpers', () => {
     tracker.show('Real', 'HTTP 403');
     expect(tracker.getConcreteError()).toEqual({ title: 'Real', message: 'HTTP 403' });
     expect(shown).toEqual(['Generic', 'Real']);
+  });
+
+  it('records errors without showing them', () => {
+    const shown: string[] = [];
+    const tracker = createPlaybackErrorTracker((title) => shown.push(title));
+    tracker.record('Network', 'HTTP 404');
+    expect(shown).toEqual([]);
+    expect(tracker.getConcreteError()).toEqual({ title: 'Network', message: 'HTTP 404' });
+  });
+
+  it('treats non-fatal engine errors as recoverable', () => {
+    expect(isRecoverableEngineError({ fatal: false, details: 'bufferStalledError' })).toBe(true);
+    expect(isRecoverableEngineError({ detail: {}, data: { fatal: false } })).toBe(true);
+    expect(isRecoverableEngineError({ fatal: true })).toBe(false);
+    expect(isRecoverableEngineError({ error: { message: 'dash failure' } })).toBe(false);
   });
 });
 

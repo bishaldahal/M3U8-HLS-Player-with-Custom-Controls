@@ -6,6 +6,7 @@ import {
   createPlaybackErrorTracker,
   getMediaErrorMessage,
   isPlaybackErrorUIVisible,
+  isRecoverableEngineError,
   normalizeErrorMessage,
   showPlaybackErrorUI,
   subscribeToNetworkErrors,
@@ -59,11 +60,18 @@ export function setupPlaybackErrorHandlers(
     clearInterval(monitor);
   };
 
+  // Engines retry failed requests, so these only explain a startup failure; they are never shown directly.
   const toFailure = buildNetworkFailureMessage(label, sourceHost);
   const unsubscribe = subscribeToNetworkErrors((event) => {
+    if (started) return;
     const failure = toFailure(event);
-    if (failure) errors.show(failure.title, failure.message);
+    if (failure) errors.record(failure.title, failure.message);
   });
+
+  const showMediaError = (mediaError: MediaError | null | undefined) => {
+    if (mediaError?.code === MediaError.MEDIA_ERR_ABORTED) return;
+    errors.show(`${label} Playback Error`, getMediaErrorMessage(mediaError));
+  };
 
   const onStarted = () => {
     started = true;
@@ -79,18 +87,7 @@ export function setupPlaybackErrorHandlers(
     if (boundNativeVideos.has(nativeVideo)) return true;
     boundNativeVideos.add(nativeVideo);
 
-    nativeVideo.addEventListener('error', () => {
-      errors.show(
-        `${label} Playback Error`,
-        getMediaErrorMessage(nativeVideo.error ?? video.error),
-      );
-    });
-    nativeVideo.addEventListener('stalled', () => {
-      errors.show(
-        `${label} Playback Error`,
-        'Playback stalled while loading media data. This is often caused by network/CDN or manifest segment access issues.',
-      );
-    });
+    nativeVideo.addEventListener('error', () => showMediaError(nativeVideo.error ?? video.error));
     return true;
   };
 
@@ -103,7 +100,9 @@ export function setupPlaybackErrorHandlers(
   }
 
   const startupTimeout = setTimeout(() => {
-    if (errors.hasConcreteError()) return;
+    if (isPlaybackErrorUIVisible()) return;
+    const concrete = errors.getConcreteError();
+    if (concrete) return errors.show(concrete.title, concrete.message);
     errors.show(
       `${label} Playback Error`,
       'The stream did not start in time. This may be due to a blocked manifest/segment request, expired auth, or CORS/CDN restrictions.',
@@ -135,14 +134,11 @@ export function setupPlaybackErrorHandlers(
   }, MONITOR_INTERVAL_MS);
 
   const onElementError = (event: Event) => {
-    errors.show(
-      `${label} Playback Error`,
-      normalizeErrorMessage((event as CustomEvent).detail ?? event),
-    );
+    const payload = (event as CustomEvent).detail ?? event;
+    if (isRecoverableEngineError(payload)) return;
+    errors.show(`${label} Playback Error`, normalizeErrorMessage(payload));
   };
-  video.addEventListener('error', () =>
-    errors.show('Playback Error', getMediaErrorMessage(video.error)),
-  );
+  video.addEventListener('error', () => showMediaError(video.error));
   video.addEventListener('hlsError', onElementError);
   video.addEventListener('dashError', onElementError);
 
@@ -151,6 +147,7 @@ export function setupPlaybackErrorHandlers(
       bindNativeVideo();
       const onEngineError = (...args: unknown[]) => {
         const payload = args.length > 1 ? args[1] : args[0];
+        if (isRecoverableEngineError(payload)) return;
         errors.show(`${label} Playback Error`, normalizeErrorMessage(payload));
       };
       api.on?.('error', onEngineError);
