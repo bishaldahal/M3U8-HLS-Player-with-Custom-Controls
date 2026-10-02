@@ -131,7 +131,7 @@ function autoSave(): void {
         playbackRate: currentSpeed,
         saveHistory: dom.saveHistoryToggle.checked,
         liveBufferWhilePausedMinutes: readLiveBufferMinutes(),
-        autoSiteHeaders: dom.autoSiteHeaders.checked,
+        rememberLinkSiteHeaders: dom.autoSiteHeaders.checked,
         subtitleSettings: readSubtitleSettings(),
       });
       showSaved();
@@ -172,7 +172,7 @@ async function populateSettings(): Promise<void> {
     setSpeed(settings.playbackRate || 1);
     dom.saveHistoryToggle.checked = settings.saveHistory !== false;
     dom.liveBufferMinutes.value = String(settings.liveBufferWhilePausedMinutes);
-    dom.autoSiteHeaders.checked = settings.autoSiteHeaders;
+    dom.autoSiteHeaders.checked = settings.rememberLinkSiteHeaders;
 
     const s = settings.subtitleSettings;
     dom.subtitleFontSize.value = dom.subtitleFontSizeNumber.value = String(s.fontSize);
@@ -433,8 +433,11 @@ function renderSiteHeaderItem(rule: SiteHeaderRule): HTMLElement {
   if (rule.auto) {
     const badge = document.createElement('span');
     badge.className = 'site-header-badge';
-    badge.textContent = 'remembered';
-    badge.title = 'Captured from the page the stream was opened from';
+    const active = dom.autoSiteHeaders.checked;
+    badge.textContent = active ? 'remembered' : 'remembered · not sent';
+    badge.title = active
+      ? 'Captured from the page the stream was opened from'
+      : 'Turn on remembering above to send these, or Edit to keep them as your own rule';
     host.appendChild(badge);
   }
   const values = document.createElement('pre');
@@ -557,7 +560,10 @@ async function init(): Promise<void> {
   );
 
   dom.saveHistoryToggle.addEventListener('change', autoSave);
-  dom.autoSiteHeaders.addEventListener('change', autoSave);
+  dom.autoSiteHeaders.addEventListener('change', () => {
+    autoSave();
+    void renderSiteHeaders();
+  });
   dom.siteHeadersForm.addEventListener('submit', (e) => void saveSiteHeaderForm(e));
   ext.storage.onChanged.addListener((changes, areaName) => {
     if (areaName === 'local' && changes[SITE_HEADERS_KEY]) void renderSiteHeaders();

@@ -9,7 +9,7 @@ The following is kept in your browser's local extension storage and never leaves
 - **Settings**: player preferences such as volume, playback speed and subtitle style.
 - **Watch history**: stream URLs, titles and playback positions, used for resume. You can turn history off or clear it on the options page.
 - **DRM settings** (optional): license URLs, request headers and robustness values you choose to remember, stored per stream host.
-- **Site headers** (optional): request headers such as `Referer` and `Origin` for a stream host, either entered by you or remembered from the page a stream link was opened on. You can turn remembering off, and edit or remove any entry, on the options page.
+- **Site headers** (optional): request headers such as `Referer` and `Origin` for a stream host, either entered by you or, if you turn on **Remember the page a stream link was opened from** (off by default), saved from the page a stream link was clicked on. You can edit or remove any entry on the options page.
 
 ## Stream detection (off by default)
 
