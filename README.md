@@ -1,128 +1,84 @@
 # M3U8/HLS/DASH Player with Custom Controls
 
-Advanced **M3U8/HLS/DASH** player with customizable controls. Supports keyboard shortcuts, **Picture-in-Picture (PiP)**, frame navigation, and live streams.
+[![CI](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/actions/workflows/ci.yml/badge.svg)](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/actions/workflows/codeql.yml/badge.svg)](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/actions/workflows/codeql.yml)
+[![Latest release](https://img.shields.io/github/v/release/bishaldahal/M3U8-HLS-Player-with-Custom-Controls)](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/releases)
 
-## 📦 Store Downloads
+A browser extension that plays **M3U8/HLS** and **MPD/DASH** streams directly in the browser, with keyboard shortcuts, Picture-in-Picture, frame stepping, subtitles, watch history and resume.
 
-[![Chrome Web Store](https://img.shields.io/badge/Chrome-Available_on_Chrome_Web_Store-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/gcefmpmkobjndjglciibnendclkahgma?utm_source=github-readme)
-[![Microsoft Edge](https://img.shields.io/badge/Edge-Available_on_Edge_Store-0078D4?style=for-the-badge&logo=microsoftedge&logoColor=white)](https://microsoftedge.microsoft.com/addons/detail/m3u8hls-player-with-cust/bmlnobfgkikeejhbbdlhjinbmdcfgaef?utm_source=github-readme)
-[![Firefox](https://img.shields.io/badge/Firefox-Available_on_Firefox_Addons-FF7139?style=for-the-badge&logo=firefox&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/m3u8-hls-player-with-shortcuts?utm_source=github_readme)
+[![Chrome Web Store](https://img.shields.io/badge/Chrome-Web_Store-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/gcefmpmkobjndjglciibnendclkahgma?utm_source=github-readme)
+[![Microsoft Edge](https://img.shields.io/badge/Edge-Add--ons-0078D4?style=for-the-badge&logo=microsoftedge&logoColor=white)](https://microsoftedge.microsoft.com/addons/detail/m3u8hls-player-with-cust/bmlnobfgkikeejhbbdlhjinbmdcfgaef?utm_source=github-readme)
+[![Firefox](https://img.shields.io/badge/Firefox-Add--ons-FF7139?style=for-the-badge&logo=firefox&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/m3u8-hls-player-with-shortcuts?utm_source=github-readme)
 
-## ✨ Features
+## Features
 
-- Customizable controls
-- Keyboard shortcuts
-- Picture in Picture (PiP) mode
-- Frame navigation
-- Support for live streams
-- Chromium DASH Widevine license URL support
+- Plays `.m3u8` (HLS via [hls.js](https://github.com/video-dev/hls.js)) and `.mpd` (DASH via [dash.js](https://github.com/Dash-Industry-Forum/dash.js)) links, including live streams
+- Opens stream links automatically when you navigate to them (configurable)
+- Controls built on [media-chrome](https://github.com/muxinc/media-chrome), plus keyboard shortcuts
+- Picture-in-Picture, frame-by-frame navigation, playback speed from 0.1× to 10×
+- Subtitle styling: size, color, background, font and edge style
+- Watch history with resume, pinning and renaming
+- Widevine license configuration for DASH DRM on Chromium browsers
 
-## 🔐 DASH DRM (Chromium)
+## Keyboard shortcuts
 
-For encrypted `.mpd` streams on Chromium browsers, the player now opens an in-player DRM popup when playback detects a DRM/key-system error.
+| Key         | Action                | Key       | Action                      |
+| ----------- | --------------------- | --------- | --------------------------- |
+| `Space`/`k` | Play / pause          | `f`       | Toggle fullscreen           |
+| `←` / `→`   | Seek −/+ 10 s         | `j` / `l` | Seek −/+ 5 s                |
+| `↓` / `↑`   | Volume −/+ 10 %       | `m`       | Toggle mute                 |
+| `<` / `>`   | Speed −/+ 0.1         | `-` / `+` | Speed −/+ 0.5               |
+| `,` / `.`   | Previous / next frame | `0`–`9`   | Seek to 0–90 %              |
+| `Home`      | Seek to start         | `End`     | Seek to end                 |
+| `p` / `P`   | Enter / exit PiP      | `?`       | Toggle the shortcuts dialog |
 
-In the popup, enter:
+## DASH DRM (Chromium)
 
-- Widevine license URL
-- Optional request headers as key/value rows
-- Add more headers as needed using the **Add header** button
-- Optional robustness string (for example `SW_SECURE_DECODE`)
+If an encrypted `.mpd` stream fails with a key-system error, the player shows a dialog where you can enter:
 
-Quality-of-life behavior:
+- a Widevine license URL
+- optional request headers, such as `Authorization: Bearer <token>`
+- an optional robustness level, such as `SW_SECURE_DECODE`
 
-- Last entered DRM values are auto-populated on next prompt
-- You can remember DRM values per stream host
+You can remember these values per stream host. They are stored locally in your browser and never sent anywhere except the license server you configure. See [PRIVACY.md](PRIVACY.md).
 
-Typical header examples:
+## Install from source
 
-- `Authorization` = `Bearer <token>`
-- `X-Custom-Auth` = `<value>`
-
-## 🔧 Installation
-
-### From Store (Recommended)
-
-- **Chrome Web Store**: https://chromewebstore.google.com/detail/gcefmpmkobjndjglciibnendclkahgma?utm_source=github-readme
-- **Microsoft Edge Add-ons**: https://microsoftedge.microsoft.com/addons/detail/m3u8hls-player-with-cust/bmlnobfgkikeejhbbdlhjinbmdcfgaef?utm_source=github-readme
-- **Firefox Add-ons**: https://addons.mozilla.org/en-US/firefox/addon/m3u8-hls-player-with-shortcuts?utm_source=github-readme
-
-### From Source
+You need Node.js 22 or later ([.nvmrc](.nvmrc)).
 
 ```bash
 git clone https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls.git
 cd M3U8-HLS-Player-with-Custom-Controls
-npm install
-npm run build:chrome    # for Chrome/Edge
-# or
-npm run build:firefox   # for Firefox
+npm ci
+npm run fetch:vendor   # downloads pinned, hash-verified player libraries
+npm run build          # outputs dist/chrome and dist/firefox
 ```
 
-### Load Unpacked / Temporary Add-on
+Then load the unpacked build:
 
-- **Chrome**: `chrome://extensions` → Enable **Developer mode** → **Load unpacked** → select the extension folder
-- **Edge**: `edge://extensions` → Enable **Developer mode** → **Load unpacked** → select the extension folder
-- **Firefox**: `about:debugging` → **This Firefox** → **Load Temporary Add-on** → select `manifest.json`
+- **Chrome / Edge**: open `chrome://extensions`, enable **Developer mode**, click **Load unpacked** and select `dist/chrome`
+- **Firefox**: open `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on** and select `dist/firefox/manifest.json`
 
-## 🧑‍💻 Development
+Read [docs/building.md](docs/building.md) for the details of the build pipeline.
 
-```bash
-npm run build              # Build source files
-npm run build:chrome       # Build + package for Chrome/Edge
-npm run build:firefox      # Build + package for Firefox
-npm run build:all          # Build both platforms
-```
+## Development
 
-## ⌨️ Keyboard Shortcuts
+| Command                                  | Description                                       |
+| ---------------------------------------- | ------------------------------------------------- |
+| `npm run build`                          | Build both targets into `dist/`                   |
+| `npm run build:chrome` / `build:firefox` | Build one target                                  |
+| `npm run start:chrome` / `start:firefox` | Launch a browser with the build loaded (web-ext)  |
+| `npm test` / `npm run test:watch`        | Run the unit tests (Vitest)                       |
+| `npm run lint` / `npm run typecheck`     | ESLint and TypeScript checks                      |
+| `npm run format`                         | Format with Prettier                              |
+| `npm run zip`                            | Package `dist/` and the sources into `artifacts/` |
 
-| Key | Action | Key | Action |
-| --- | --- | --- | --- |
-| `<` | Decrease playback speed by 0.1 | `-` | Decrease playback speed by 0.5 |
-| `>` | Increase playback speed by 0.1 | `+` | Increase playback speed by 0.5 |
-| `ArrowDown (↓)` | Decrease volume by 0.1 | `ArrowLeft (←)` | Seek backward 10 seconds |
-| `ArrowUp (↑)` | Increase volume by 0.1 | `ArrowRight (→)` | Seek forward 10 seconds |
-| `p` | Request Picture in Picture | `j` | Seek backward 5 seconds |
-| `P` | Exit Picture in Picture | `Space / k` | Toggle play/pause |
-| `,` | Previous frame | `l` | Seek forward 5 seconds |
-| `.` | Next frame | `Home` | Seek to the beginning of the video |
-| `0-9` | Seek to a percentage of the video | `End` | Seek to the end of the video |
-| `Esc` | Close keyboard shortcuts | `?` | Toggle keyboard shortcuts |
-| `f` | Toggle fullscreen | `m` | Toggle mute |
+[docs/architecture.md](docs/architecture.md) describes how the code is organized.
 
-## 🤝 Contributing
+## Contributing
 
-We welcome contributions from everyone. Whether you're an experienced developer or just getting started, there's a place for you to contribute.
+Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) and our [Code of Conduct](CODE_OF_CONDUCT.md) first. To report a security problem, follow [SECURITY.md](SECURITY.md) instead of opening a public issue.
 
-### Ways to Contribute
+## Acknowledgements
 
-1. **Bug Fixes**: Fork the repo, fix the issue, and open a PR with details.
-2. **New Features**: Open an issue to discuss the feature before implementing.
-3. **Improve Documentation**: Fix typos, add examples, or clarify usage.
-4. **Testing**: Add tests to ensure stability and prevent regressions.
-5. **Code Reviews**: Review PRs and help improve code quality.
-
-Before you start, please read:
-- [Contributing Guide](CONTRIBUTING.md)
-- [Code of Conduct](CODE_OF_CONDUCT.md)
-
-### Getting Started
-
-1. Fork the repository:
-   `git clone https://github.com/{yourusername}/M3U8-HLS-Player-with-Custom-Controls.git`
-2. Navigate to the project directory:
-   `cd M3U8-HLS-Player-with-Custom-Controls`
-3. Install the dependencies:
-   `npm install`
-4. Create a new branch:
-   `git checkout -b your-branch-name`
-5. Make your changes.
-6. Commit your changes:
-   `git commit -m "Your commit message"`
-7. Push your changes:
-   `git push origin your-branch-name`
-8. Open a Pull Request.
-
-## 🔗 Links
-
-- Chrome Web Store: https://chromewebstore.google.com/detail/gcefmpmkobjndjglciibnendclkahgma?utm_source=github-readme
-- Edge Add-ons: https://microsoftedge.microsoft.com/addons/detail/m3u8hls-player-with-cust/bmlnobfgkikeejhbbdlhjinbmdcfgaef?utm_source=github-readme
-- Firefox Add-ons: https://addons.mozilla.org/en-US/firefox/addon/m3u8-hls-player-with-shortcuts?utm_source=github_readme)utm_source=github-readme
+Built on [hls.js](https://github.com/video-dev/hls.js), [dash.js](https://github.com/Dash-Industry-Forum/dash.js), [media-chrome](https://github.com/muxinc/media-chrome) and their companion custom elements.
