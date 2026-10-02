@@ -87,6 +87,22 @@ describe('DRM helpers', () => {
     expect(isLikelyDrmError({ message: 'segment 404' })).toBe(false);
   });
 
+  it('does not treat codec or decoder failures as DRM errors', () => {
+    expect(
+      isLikelyDrmError({
+        error: { code: 0, message: 'audio decoder: kUnsupportedConfig' },
+      }),
+    ).toBe(false);
+    expect(isLikelyDrmError({ message: 'MEDIA_ERR_SRC_NOT_SUPPORTED in media element' })).toBe(
+      false,
+    );
+  });
+
+  it('detects dash.js protection error codes', () => {
+    expect(isLikelyDrmError({ error: { code: 111, message: 'x' } })).toBe(true);
+    expect(isLikelyDrmError({ error: { code: 27, message: 'x' } })).toBe(false);
+  });
+
   it('serializes error payloads to lowercase text', () => {
     expect(getDrmErrorText({ message: 'EME Failure' })).toContain('eme failure');
   });

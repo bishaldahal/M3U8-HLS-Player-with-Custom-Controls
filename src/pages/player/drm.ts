@@ -21,12 +21,18 @@ const DRM_KEYWORDS = [
   'encrypted',
   'key_system',
   'key system',
+  'keysystem',
   'license',
-  'eme',
-  'protection',
+  'mediakeys',
   'media key',
   'widevine',
+  'playready',
 ];
+
+/** dash.js 5 protection error codes (MEDIA_KEYERR_*, KEY_SYSTEM_*, licenser, etc.). */
+const DASH_DRM_ERROR_CODES = new Set([
+  24, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 111, 112, 113, 114,
+]);
 
 const configCache = new Map<string, DrmConfig>();
 let activeModal: Promise<DrmConfig | null> | null = null;
@@ -109,6 +115,8 @@ export function getDrmErrorText(errorEvent: any): string {
 }
 
 export function isLikelyDrmError(errorEvent: unknown): boolean {
+  const code = (errorEvent as { error?: { code?: unknown } } | null)?.error?.code;
+  if (typeof code === 'number' && DASH_DRM_ERROR_CODES.has(code)) return true;
   const text = getDrmErrorText(errorEvent);
   return Boolean(text) && DRM_KEYWORDS.some((keyword) => text.includes(keyword));
 }
@@ -259,9 +267,7 @@ export async function setupDashDrm(video: StreamVideoElement, sourceUrl: string)
     let prompting = false;
 
     const handleFailure = async (errorEvent: unknown, forcePrompt: boolean) => {
-      const hasCached = configCache.has(sourceUrl);
-      const shouldPrompt = forcePrompt || isLikelyDrmError(errorEvent) || !hasCached;
-      if (prompting || !shouldPrompt) return;
+      if (prompting || !(forcePrompt || isLikelyDrmError(errorEvent))) return;
 
       prompting = true;
       const errorText = getDrmErrorText(errorEvent).slice(0, 500);
@@ -275,7 +281,8 @@ export async function setupDashDrm(video: StreamVideoElement, sourceUrl: string)
     };
 
     api.on?.('error', (event) => handleFailure(event, false));
-    api.on?.('keyError', (event) => handleFailure(event, true));
+    // dash.js 5 prefixes protection events with `public_`.
+    api.on?.('public_keyError', (event) => handleFailure(event, true));
 
     const cached = configCache.get(sourceUrl) ?? getStoredConfig(sourceUrl);
     if (cached) {
