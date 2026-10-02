@@ -52,15 +52,53 @@ ext.runtime.onMessage.addListener((message: PlayMessage, sender, sendResponse) =
   }
 });
 
-// Intercept direct navigation (address bar) to manifest URLs.
-ext.webNavigation.onBeforeNavigate.addListener(
-  (details) => {
-    if (details.frameId === 0 && detectStreamType(details.url)) {
-      void ext.tabs.update(details.tabId, { url: playerUrlFor(details.url) });
-    }
-  },
-  { url: [{ urlMatches: '.*\\.(m3u8|mpd).*' }] },
-);
+const MANIFEST_REDIRECT_RULE_ID = 1;
+
+/**
+ * Redirect top-level manifest navigations (address bar, site scripts) before the request is sent;
+ * reacting in webNavigation is too late and the browser also downloads the file.
+ */
+async function registerManifestRedirect(): Promise<void> {
+  await ext.declarativeNetRequest.updateDynamicRules({
+    removeRuleIds: [MANIFEST_REDIRECT_RULE_ID],
+    addRules: [
+      {
+        id: MANIFEST_REDIRECT_RULE_ID,
+        priority: 1,
+        action: {
+          type: 'redirect' as chrome.declarativeNetRequest.RuleActionType,
+          redirect: { regexSubstitution: `${playerUrlFor('')}\\0` },
+        },
+        condition: {
+          regexFilter: '^https?://[^?#]*\\.(?:m3u8|mpd)(?:\\?.*)?$',
+          isUrlFilterCaseSensitive: false,
+          resourceTypes: ['main_frame' as chrome.declarativeNetRequest.ResourceType],
+        },
+      },
+    ],
+  });
+}
+
+function redirectViaWebNavigation(): void {
+  ext.webNavigation.onBeforeNavigate.addListener(
+    (details) => {
+      if (details.frameId === 0 && detectStreamType(details.url)) {
+        void ext.tabs.update(details.tabId, { url: playerUrlFor(details.url) });
+      }
+    },
+    { url: [{ urlMatches: '.*\\.(m3u8|mpd).*' }] },
+  );
+}
+
+// Missing when the browser lacks DNR or the permission was not granted.
+if ((ext.declarativeNetRequest as typeof ext.declarativeNetRequest | undefined) !== undefined) {
+  registerManifestRedirect().catch((error) => {
+    console.error('Manifest redirect rule failed; falling back to webNavigation:', error);
+    redirectViaWebNavigation();
+  });
+} else {
+  redirectViaWebNavigation();
+}
 
 ext.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {

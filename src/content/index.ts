@@ -8,8 +8,12 @@ function requestPlay(url: string, streamType: StreamType, replaceTab = false): P
 const CLICK_DEDUPE_MS = 1000;
 let lastRequest = { url: '', at: 0 };
 
+const PRIMARY_BUTTON = 0;
+const MIDDLE_BUTTON = 1;
+
 function handleStreamClick(event: MouseEvent): void {
-  if (event.button !== 0) return;
+  // Leave right-click alone so the context menu still works.
+  if (event.button !== PRIMARY_BUTTON && event.button !== MIDDLE_BUTTON) return;
   const anchor = (event.target as Element | null)?.closest?.('a');
   if (!anchor?.href) return;
 
@@ -48,6 +52,8 @@ function showRedirectNotice(streamType: StreamType): void {
 document.addEventListener('click', handleStreamClick, true);
 // Firefox may navigate on mousedown before click fires.
 document.addEventListener('mousedown', handleStreamClick, true);
+// Middle-click opens links via auxclick, not click.
+document.addEventListener('auxclick', handleStreamClick, true);
 
 const directStreamType = detectStreamType(window.location.href);
 if (directStreamType) {
