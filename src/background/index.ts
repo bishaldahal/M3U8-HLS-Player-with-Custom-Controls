@@ -1,6 +1,6 @@
 import { ext } from '../lib/browser';
 import { buildTabHeaderRules, type DetectedStream } from '../lib/detected';
-import { loadSettings } from '../lib/settings';
+import { SETTINGS_KEY, loadSettings } from '../lib/settings';
 import {
   HEADER_RULE_ID_BASE,
   SITE_HEADERS_KEY,
@@ -53,8 +53,9 @@ let headerSync: Promise<void> = Promise.resolve();
 function syncHeaderRules(): Promise<void> {
   const run = async () => {
     if (!hasDnr()) return;
+    const { rememberLinkSiteHeaders } = await loadSettings();
     const rules = buildHeaderRules(
-      await loadSiteHeaders(),
+      (await loadSiteHeaders()).filter((rule) => rememberLinkSiteHeaders || !rule.auto),
       new URL(ext.runtime.getURL('')).hostname,
     );
     const current = await ext.declarativeNetRequest.getDynamicRules();
@@ -75,7 +76,7 @@ async function captureSiteHeaders(streamUrl: string, pageUrl: string | undefined
   const host = safeUrlParse(streamUrl)?.hostname;
   const headers = headersFromPage(pageUrl);
   if (!host || !headers) return;
-  if (!(await loadSettings()).autoSiteHeaders) return;
+  if (!(await loadSettings()).rememberLinkSiteHeaders) return;
   if (await upsertSiteHeaders(host, headers, true)) await syncHeaderRules();
 }
 
@@ -211,7 +212,9 @@ if (hasDnr()) {
 
 void syncHeaderRules();
 ext.storage.onChanged.addListener((changes, areaName) => {
-  if (areaName === 'local' && changes[SITE_HEADERS_KEY]) void syncHeaderRules();
+  if (areaName === 'local' && (changes[SITE_HEADERS_KEY] || changes[SETTINGS_KEY])) {
+    void syncHeaderRules();
+  }
 });
 
 ext.runtime.onInstalled.addListener((details) => {
