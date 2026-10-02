@@ -1,0 +1,56 @@
+name: Bug report
+description: Something isn't working as expected
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please search [existing issues](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/issues) first.
+        **Do not include private stream URLs, tokens or DRM license details.**
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Press ...
+        3. See error
+    validations:
+      required: true
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      options: [Chrome, Edge, Firefox, Brave, Opera, Other Chromium]
+    validations:
+      required: true
+  - type: input
+    id: browser-version
+    attributes:
+      label: Browser version
+      placeholder: e.g. Chrome 140
+  - type: input
+    id: extension-version
+    attributes:
+      label: Extension version
+      placeholder: e.g. 1.5.0
+    validations:
+      required: true
+  - type: dropdown
+    id: stream-type
+    attributes:
+      label: Stream type
+      options: [HLS (.m3u8), DASH (.mpd), Not stream-specific]
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console output
+      description: Errors from the player page's DevTools console, if any.
+      render: text
