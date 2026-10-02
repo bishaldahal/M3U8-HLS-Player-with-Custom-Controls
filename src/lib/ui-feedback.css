@@ -171,7 +171,9 @@
 }
 
 @keyframes feedback-spinner-bounce {
-  0%, 60%, 100% {
+  0%,
+  60%,
+  100% {
     transform: scaleY(0.4);
     opacity: 0.4;
   }
@@ -343,12 +345,7 @@
 }
 
 .feedback-skeleton {
-  background: linear-gradient(
-    90deg,
-    #161b22 0%,
-    #21262d 50%,
-    #161b22 100%
-  );
+  background: linear-gradient(90deg, #161b22 0%, #21262d 50%, #161b22 100%);
   background-size: 200% 100%;
   border-radius: 4px;
   animation: feedback-skeleton-shimmer 1.5s infinite;
