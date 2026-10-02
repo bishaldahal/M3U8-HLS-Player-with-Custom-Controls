@@ -13,7 +13,10 @@ A browser extension that plays **M3U8/HLS** and **MPD/DASH** streams directly in
 ## Features
 
 - Plays `.m3u8` (HLS via [hls.js](https://github.com/video-dev/hls.js)) and `.mpd` (DASH via [dash.js](https://github.com/Dash-Industry-Forum/dash.js)) links, including live streams
-- Opens stream links automatically when you navigate to them (configurable)
+- Opens stream links automatically when you click or navigate to them
+- Optional stream detection: lists the streams a page plays in the toolbar popup and opens them with the headers that page used
+- Per-host site headers (`Referer`, `Origin`, cookies...) for streams that only play on their own site
+- Live streams keep buffering while paused (configurable) and resume where you left off
 - Controls built on [media-chrome](https://github.com/muxinc/media-chrome), plus keyboard shortcuts
 - Picture-in-Picture, frame-by-frame navigation, playback speed from 0.1× to 10×
 - Subtitle styling: size, color, background, font and edge style
@@ -31,6 +34,15 @@ A browser extension that plays **M3U8/HLS** and **MPD/DASH** streams directly in
 | `,` / `.`   | Previous / next frame | `0`–`9`   | Seek to 0–90 %              |
 | `Home`      | Seek to start         | `End`     | Seek to end                 |
 | `p` / `P`   | Enter / exit PiP      | `?`       | Toggle the shortcuts dialog |
+
+## Streams that only play on their own site
+
+Some hosts answer with **403 Forbidden** unless the request looks like it came from their own page.
+
+- **Detect streams on pages** (off by default): turn it on from the popup or Settings. The browser asks for permission to read request headers. Start the video on the site, then open the popup and pick it from **On this page**. The player sends the same headers the page did, from its own tab only, and forgets them when that tab closes.
+- **Site headers**: in Settings, or from the **Site headers** button on a player error, save headers for a stream host. They are sent with every request the player makes to that host.
+
+Nothing captured or saved here leaves your browser. See [PRIVACY.md](PRIVACY.md).
 
 ## DASH DRM (Chromium)
 
