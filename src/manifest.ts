@@ -17,7 +17,9 @@ export function buildManifest(browser: Browser, version: string): Manifest {
     version,
     description:
       'Advanced M3U8/HLS/DASH player with customizable controls. Supports keyboard shortcuts, PIP mode, frame navigation, and live streams.',
-    permissions: ['webNavigation', 'webRequest', 'storage', 'declarativeNetRequestWithHostAccess'],
+    permissions: ['webNavigation', 'storage', 'declarativeNetRequestWithHostAccess'],
+    // Stream detection; requested only when the user turns it on.
+    optional_permissions: ['webRequest'],
     host_permissions: ['*://*/*', 'http://*/*', 'https://*/*', 'file:///*', '<all_urls>'],
     web_accessible_resources: [
       {

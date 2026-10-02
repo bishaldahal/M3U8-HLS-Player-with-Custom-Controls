@@ -11,6 +11,9 @@ export interface DetectedStream {
 
 export const MAX_DETECTED_PER_TAB = 20;
 
+/** Optional permission that turns stream detection on. */
+export const DETECT_PERMISSIONS: chrome.permissions.Permissions = { permissions: ['webRequest'] };
+
 // Set by the browser per request, or describe the body/range rather than who is asking.
 const NOT_REPLAYED =
   /^(?:host|connection|keep-alive|content-length|content-type|accept|accept-encoding|range|if-.*|sec-.*|upgrade-insecure-requests|cache-control|pragma|te|trailer|transfer-encoding|proxy-.*|priority|purpose|x-client-data)$/i;

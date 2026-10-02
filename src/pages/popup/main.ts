@@ -1,6 +1,6 @@
 import '../../lib/ui-feedback.css';
 import { ext } from '../../lib/browser';
-import type { DetectedStream } from '../../lib/detected';
+import { DETECT_PERMISSIONS, type DetectedStream } from '../../lib/detected';
 import { loadHistory, loadSettings, saveSettings, type HistoryEntry } from '../../lib/settings';
 import { formatRelativeTime, formatTime } from '../../lib/time';
 import { toast } from '../../lib/ui-feedback';
@@ -110,16 +110,45 @@ function renderDetectedItem(stream: DetectedStream, tabId: number): HTMLElement 
 }
 
 async function renderDetected(): Promise<boolean> {
+  const list = $<HTMLElement>('detected-list');
+  const hint = $<HTMLElement>('detect-hint');
+  const enabled = await ext.permissions.contains(DETECT_PERMISSIONS);
+  $<HTMLInputElement>('detect-streams').checked = enabled;
+  list.replaceChildren();
+  if (!enabled) {
+    hint.textContent =
+      'Off. Turn on to list streams that pages play and open them here with the same headers.';
+    return false;
+  }
   const [tab] = await ext.tabs.query({ active: true, currentWindow: true });
-  if (tab?.id === undefined) return false;
-  const streams = (await ext.runtime.sendMessage({ command: 'GET_DETECTED', tabId: tab.id })) as
-    DetectedStream[] | undefined;
-  if (!streams?.length) return false;
-  $<HTMLElement>('detected-list').replaceChildren(
-    ...[...streams].reverse().map((s) => renderDetectedItem(s, tab.id!)),
-  );
-  $<HTMLElement>('detected-section').hidden = false;
+  const streams =
+    tab?.id === undefined
+      ? []
+      : ((await ext.runtime.sendMessage({ command: 'GET_DETECTED', tabId: tab.id })) as
+          DetectedStream[] | undefined);
+  if (!streams?.length) {
+    hint.textContent = 'None yet. Start the video on the page, then open this again.';
+    return false;
+  }
+  hint.textContent = '';
+  list.replaceChildren(...[...streams].reverse().map((s) => renderDetectedItem(s, tab!.id!)));
   return true;
+}
+
+function bindDetectToggle(): void {
+  const toggle = $<HTMLInputElement>('detect-streams');
+  toggle.addEventListener('change', () => {
+    // Must run straight from the click: browsers only show the prompt during a user gesture.
+    const change = toggle.checked
+      ? ext.permissions.request(DETECT_PERMISSIONS)
+      : ext.permissions.remove(DETECT_PERMISSIONS).then((removed) => !removed);
+    void change
+      .catch((error: unknown) => {
+        console.error('Failed to change stream detection:', error);
+        toast.error('Could not change stream detection');
+      })
+      .finally(() => void renderDetected());
+  });
 }
 
 async function renderHistory(focusFirst = true): Promise<void> {
@@ -207,6 +236,7 @@ async function init(): Promise<void> {
     toast.error('Failed to load subtitle settings');
   }
 
+  bindDetectToggle();
   const hasDetected = await renderDetected().catch((error) => {
     console.error('Error loading detected streams:', error);
     return false;
