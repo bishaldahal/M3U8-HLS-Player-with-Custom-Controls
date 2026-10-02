@@ -16,6 +16,8 @@ export interface PlayerSettings {
   playbackRate: number;
   preferredQuality: 'auto' | 'highest' | 'lowest';
   saveHistory: boolean;
+  /** Minutes of live stream to keep buffering and retain while paused; 0 uses engine defaults. */
+  liveBufferWhilePausedMinutes: number;
   subtitlesEnabled: boolean;
   subtitleSettings: SubtitleSettings;
 }
@@ -43,6 +45,7 @@ export const DEFAULT_SETTINGS: Readonly<PlayerSettings> = Object.freeze({
   playbackRate: 1.0,
   preferredQuality: 'auto',
   saveHistory: true,
+  liveBufferWhilePausedMinutes: 0,
   subtitlesEnabled: true,
   subtitleSettings: Object.freeze({
     fontSize: 100,
@@ -55,6 +58,7 @@ export const DEFAULT_SETTINGS: Readonly<PlayerSettings> = Object.freeze({
 });
 
 const HEX_COLOR = /^#[0-9A-Fa-f]{6}$/;
+export const MAX_LIVE_BUFFER_MINUTES = 30;
 
 export function validateSettings(settings: DeepPartial<PlayerSettings>): string[] {
   const errors: string[] = [];
@@ -66,6 +70,15 @@ export function validateSettings(settings: DeepPartial<PlayerSettings>): string[
   }
   if (settings.playbackRate !== undefined && !inRange(settings.playbackRate, 0.25, 4)) {
     errors.push('playbackRate must be between 0.25 and 4');
+  }
+  const liveMinutes = settings.liveBufferWhilePausedMinutes;
+  if (
+    liveMinutes !== undefined &&
+    !(Number.isInteger(liveMinutes) && inRange(liveMinutes, 0, MAX_LIVE_BUFFER_MINUTES))
+  ) {
+    errors.push(
+      `liveBufferWhilePausedMinutes must be a whole number between 0 and ${MAX_LIVE_BUFFER_MINUTES}`,
+    );
   }
 
   const sub = settings.subtitleSettings;

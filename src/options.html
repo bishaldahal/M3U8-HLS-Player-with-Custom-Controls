@@ -155,6 +155,11 @@
         border-color: #58a6ff;
       }
 
+      .setting-hint {
+        color: #8b949e;
+        font-size: 13px;
+      }
+
       .setting-value {
         min-width: 50px;
         text-align: right;
@@ -897,6 +902,27 @@
                 />
                 <span class="toggle-slider"></span>
               </label>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <label for="live-buffer-minutes" class="setting-label"
+              >Keep live stream while paused (minutes)</label
+            >
+            <div class="setting-control">
+              <input
+                type="number"
+                id="live-buffer-minutes"
+                min="0"
+                max="30"
+                step="1"
+                value="0"
+                aria-describedby="live-buffer-hint"
+              />
+              <span class="setting-hint" id="live-buffer-hint"
+                >0 = off. Keeps downloading while paused so you can resume where you left off; uses
+                more data and memory.</span
+              >
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@ import '../../lib/ui-feedback.css';
 import { ext } from '../../lib/browser';
 import {
   DEFAULT_SETTINGS,
+  MAX_LIVE_BUFFER_MINUTES,
   clearHistory,
   deleteHistoryEntry,
   loadHistory,
@@ -36,6 +37,7 @@ const dom = {
   speedReset: byId<HTMLButtonElement>('speed-reset'),
   speedPresets: document.querySelectorAll<HTMLButtonElement>('.speed-preset'),
   saveHistoryToggle: byId<HTMLInputElement>('save-history'),
+  liveBufferMinutes: byId<HTMLInputElement>('live-buffer-minutes'),
   resetSettingsBtn: byId<HTMLButtonElement>('reset-settings'),
   subtitlePreview: document.querySelector<HTMLElement>('.subtitle-text'),
   subtitleFontSize: byId<HTMLInputElement>('subtitle-font-size'),
@@ -97,6 +99,11 @@ function readSubtitleSettings(): SubtitleSettings {
   };
 }
 
+function readLiveBufferMinutes(): number {
+  const minutes = Math.round(Number(dom.liveBufferMinutes.value) || 0);
+  return Math.min(Math.max(minutes, 0), MAX_LIVE_BUFFER_MINUTES);
+}
+
 function autoSave(): void {
   clearTimeout(autoSaveTimer);
   showSaving();
@@ -106,6 +113,7 @@ function autoSave(): void {
         volume: Number.parseFloat(dom.volumeInput.value),
         playbackRate: currentSpeed,
         saveHistory: dom.saveHistoryToggle.checked,
+        liveBufferWhilePausedMinutes: readLiveBufferMinutes(),
         subtitleSettings: readSubtitleSettings(),
       });
       showSaved();
@@ -145,6 +153,7 @@ async function populateSettings(): Promise<void> {
     dom.volumeLabel.textContent = `${Math.round(settings.volume * 100)}%`;
     setSpeed(settings.playbackRate || 1);
     dom.saveHistoryToggle.checked = settings.saveHistory !== false;
+    dom.liveBufferMinutes.value = String(settings.liveBufferWhilePausedMinutes);
 
     const s = settings.subtitleSettings;
     dom.subtitleFontSize.value = dom.subtitleFontSizeNumber.value = String(s.fontSize);
@@ -435,6 +444,10 @@ async function init(): Promise<void> {
   );
 
   dom.saveHistoryToggle.addEventListener('change', autoSave);
+  dom.liveBufferMinutes.addEventListener('change', () => {
+    dom.liveBufferMinutes.value = String(readLiveBufferMinutes());
+    autoSave();
+  });
   dom.resetSettingsBtn.addEventListener('click', async () => {
     if (!confirm('Reset all settings to defaults?')) return;
     if (await runAction(resetSettings, 'Failed to reset settings')) {
