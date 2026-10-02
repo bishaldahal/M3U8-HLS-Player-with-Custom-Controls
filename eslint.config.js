@@ -4,7 +4,16 @@ import prettier from 'eslint-config-prettier';
 import globals from 'globals';
 
 export default tseslint.config(
-  { ignores: ['dist/', 'artifacts/', 'public/vendor/', 'coverage/', 'node_modules/'] },
+  {
+    ignores: [
+      'dist/',
+      'artifacts/',
+      'public/vendor/',
+      'coverage/',
+      'node_modules/',
+      '.web-ext-profile*/',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
