@@ -65,32 +65,55 @@ function renderHistoryItem(entry: HistoryEntry): HTMLElement {
   return item;
 }
 
+function el<K extends keyof HTMLElementTagNameMap>(
+  tag: K,
+  className: string,
+  text?: string,
+): HTMLElementTagNameMap[K] {
+  const node = document.createElement(tag);
+  node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
 function renderDetectedItem(stream: DetectedStream, tabId: number): HTMLElement {
-  const item = document.createElement('div');
-  item.className = 'history-item';
+  const item = el('div', 'detected-item');
   item.tabIndex = 0;
   item.setAttribute('role', 'button');
 
   const { hostname, pathname } = new URL(stream.url);
   const name = decodeURIComponent(pathname.split('/').pop() || pathname);
-  item.setAttribute('aria-label', `Play ${name} from ${hostname}`);
-
-  const info = document.createElement('div');
-  info.className = 'history-info';
-  const title = document.createElement('div');
-  title.className = 'history-title';
-  title.textContent = `${stream.type.toUpperCase()} · ${name}`;
-  title.title = stream.url;
-  const meta = document.createElement('div');
-  meta.className = 'history-meta';
   const headerCount = Object.keys(stream.headers).length;
-  meta.textContent = `${hostname} • ${formatRelativeTime(stream.seenAt)}${
-    headerCount ? ` • plays with the site's ${headerCount} headers` : ''
-  }`;
-  info.append(title, meta);
-  item.appendChild(info);
+  item.title = stream.url;
+  item.setAttribute(
+    'aria-label',
+    `Play ${stream.type.toUpperCase()} stream ${name} from ${hostname}` +
+      (headerCount ? ` with ${headerCount} site headers` : ''),
+  );
 
-  const play = () => {
+  const play = el('span', 'detected-play');
+  play.setAttribute('aria-hidden', 'true');
+
+  const info = el('div', 'detected-info');
+  const top = el('div', 'detected-top');
+  top.append(
+    el('span', `detected-type detected-type-${stream.type}`, stream.type.toUpperCase()),
+    el('span', 'detected-name', name),
+  );
+  const meta = el('div', 'detected-meta');
+  meta.append(
+    el('span', 'detected-host', hostname),
+    el('span', 'detected-time', formatRelativeTime(stream.seenAt)),
+  );
+  if (headerCount) {
+    const badge = el('span', 'detected-headers', `${headerCount} site headers`);
+    badge.title = `Sent the way the page sent them: ${Object.keys(stream.headers).join(', ')}`;
+    meta.append(badge);
+  }
+  info.append(top, meta);
+  item.append(play, info);
+
+  const open = () => {
     void ext.runtime.sendMessage({
       command: 'PLAY_STREAM',
       url: stream.url,
@@ -99,11 +122,11 @@ function renderDetectedItem(stream: DetectedStream, tabId: number): HTMLElement 
     });
     window.close();
   };
-  item.addEventListener('click', play);
+  item.addEventListener('click', open);
   item.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      play();
+      open();
     }
   });
   return item;
@@ -130,7 +153,7 @@ async function renderDetected(): Promise<boolean> {
     hint.textContent = 'None yet. Start the video on the page, then open this again.';
     return false;
   }
-  hint.textContent = '';
+  hint.textContent = `${streams.length} found on this tab`;
   list.replaceChildren(...[...streams].reverse().map((s) => renderDetectedItem(s, tab!.id!)));
   return true;
 }

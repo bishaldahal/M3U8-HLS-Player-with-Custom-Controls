@@ -108,10 +108,167 @@
         font-size: 11px;
         color: #8b949e;
       }
+      .detected-section {
+        margin: 12px;
+        border: 1px solid rgba(63, 185, 80, 0.35);
+        border-radius: 10px;
+        background: linear-gradient(180deg, rgba(63, 185, 80, 0.08), rgba(63, 185, 80, 0.02));
+        overflow: hidden;
+      }
+      .detected-section .history-header {
+        color: #3fb950;
+      }
       .detect-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
+      }
+      .detect-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .live-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #6e7681;
+      }
+      .detected-section:has(#detect-streams:checked) .live-dot {
+        background: #3fb950;
+        box-shadow: 0 0 0 0 rgba(63, 185, 80, 0.6);
+        animation: live-pulse 2s infinite;
+      }
+      @keyframes live-pulse {
+        70% {
+          box-shadow: 0 0 0 6px rgba(63, 185, 80, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(63, 185, 80, 0);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .detected-section:has(#detect-streams:checked) .live-dot {
+          animation: none;
+        }
+      }
+      .detected-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 0 8px 8px;
+        max-height: 260px;
+        overflow-y: auto;
+      }
+      .detected-list:empty {
+        display: none;
+      }
+      .detected-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        background: #161b22;
+        cursor: pointer;
+        outline: none;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+      }
+      .detected-item:hover,
+      .detected-item:focus-visible {
+        border-color: #3fb950;
+        background: #1b2a1f;
+      }
+      .detected-item:focus-visible {
+        outline: 2px solid #1f6feb;
+        outline-offset: 1px;
+      }
+      .detected-play {
+        flex: none;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #238636;
+        position: relative;
+        transition: transform 0.15s;
+      }
+      .detected-play::after {
+        content: '';
+        position: absolute;
+        left: 11px;
+        top: 9px;
+        border-style: solid;
+        border-width: 6px 0 6px 10px;
+        border-color: transparent transparent transparent #fff;
+      }
+      .detected-item:hover .detected-play {
+        transform: scale(1.08);
+      }
+      .detected-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .detected-top {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 4px;
+      }
+      .detected-type {
+        flex: none;
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+      .detected-type-hls {
+        background: rgba(88, 166, 255, 0.15);
+        color: #58a6ff;
+      }
+      .detected-type-dash {
+        background: rgba(188, 140, 255, 0.15);
+        color: #bc8cff;
+      }
+      .detected-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .detected-meta {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: #8b949e;
+        min-width: 0;
+      }
+      .detected-host {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+      }
+      .detected-time {
+        flex: none;
+      }
+      .detected-time::before {
+        content: '• ';
+      }
+      .detected-headers {
+        flex: none;
+        margin-left: auto;
+        padding: 1px 6px;
+        border-radius: 10px;
+        border: 1px solid rgba(63, 185, 80, 0.4);
+        color: #3fb950;
+        font-size: 10px;
       }
       .detect-header .toggle-label span {
         font-size: 11px;
@@ -351,16 +508,18 @@
       </div>
     </div>
 
-    <div id="detected-section">
+    <div id="detected-section" class="detected-section">
       <div class="history-header detect-header">
-        <span>Streams on this page</span>
+        <span class="detect-title"
+          ><span class="live-dot" aria-hidden="true"></span>On this page</span
+        >
         <label class="toggle-label" title="Lists streams that pages load so you can open them here">
           <input type="checkbox" id="detect-streams" aria-describedby="detect-hint" />
           <span>Detect</span>
         </label>
       </div>
       <p id="detect-hint" class="detect-hint"></p>
-      <div id="detected-list" class="history-list"></div>
+      <div id="detected-list" class="detected-list"></div>
     </div>
 
     <div class="history-header">Recent History</div>
