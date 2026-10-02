@@ -18,6 +18,8 @@ export interface PlayerSettings {
   saveHistory: boolean;
   /** Minutes of live stream to keep buffering and retain while paused; 0 uses engine defaults. */
   liveBufferWhilePausedMinutes: number;
+  /** Remember the Referer/Origin of the page a stream link was opened from. */
+  autoSiteHeaders: boolean;
   subtitlesEnabled: boolean;
   subtitleSettings: SubtitleSettings;
 }
@@ -47,6 +49,7 @@ export const DEFAULT_SETTINGS: Readonly<PlayerSettings> = Object.freeze({
   saveHistory: true,
   // ~3 min of 1080p stays within the browser's ~150 MB SourceBuffer quota.
   liveBufferWhilePausedMinutes: 3,
+  autoSiteHeaders: true,
   subtitlesEnabled: true,
   subtitleSettings: Object.freeze({
     fontSize: 100,

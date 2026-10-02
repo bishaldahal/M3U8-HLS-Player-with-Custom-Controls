@@ -1,5 +1,14 @@
 import { ext } from '../lib/browser';
-import { detectStreamType, type StreamType } from '../lib/stream';
+import { loadSettings } from '../lib/settings';
+import {
+  HEADER_RULE_ID_BASE,
+  SITE_HEADERS_KEY,
+  buildHeaderRules,
+  headersFromPage,
+  loadSiteHeaders,
+  upsertSiteHeaders,
+} from '../lib/site-headers';
+import { detectStreamType, safeUrlParse, type StreamType } from '../lib/stream';
 
 const WELCOME_URL = 'https://extension.bishalbabudahal.com.np/docs';
 
@@ -31,7 +40,57 @@ function openInPlayer(message: PlayMessage, tab?: { id?: number; index?: number 
   }
 }
 
+const hasDnr = () =>
+  (ext.declarativeNetRequest as typeof ext.declarativeNetRequest | undefined) !== undefined;
+
+let headerSync: Promise<void> = Promise.resolve();
+
+/** Replace the dynamic header rules with the stored site headers. */
+function syncHeaderRules(): Promise<void> {
+  const run = async () => {
+    if (!hasDnr()) return;
+    const rules = buildHeaderRules(
+      await loadSiteHeaders(),
+      new URL(ext.runtime.getURL('')).hostname,
+    );
+    const current = await ext.declarativeNetRequest.getDynamicRules();
+    await ext.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: current.map((r) => r.id).filter((id) => id >= HEADER_RULE_ID_BASE),
+      addRules: rules,
+    });
+  };
+  // Serialise updates so overlapping syncs can't add the same rule id twice.
+  headerSync = headerSync.then(run, run).catch((error) => {
+    console.error('Failed to update site header rules:', error);
+  });
+  return headerSync;
+}
+
+/** Remember the Referer/Origin of the page a stream link was clicked on (#8). */
+async function captureSiteHeaders(streamUrl: string, pageUrl: string | undefined): Promise<void> {
+  const host = safeUrlParse(streamUrl)?.hostname;
+  const headers = headersFromPage(pageUrl);
+  if (!host || !headers) return;
+  if (!(await loadSettings()).autoSiteHeaders) return;
+  if (await upsertSiteHeaders(host, headers, true)) await syncHeaderRules();
+}
+
+async function handlePlay(message: PlayMessage, sender: chrome.runtime.MessageSender) {
+  if (!message.replaceTab) {
+    // Rules must be in place before the player's first request.
+    await captureSiteHeaders(message.url!, sender.url).catch((error) =>
+      console.error('Failed to capture site headers:', error),
+    );
+  }
+  openInPlayer(message, sender.tab);
+}
+
 ext.runtime.onMessage.addListener((message: PlayMessage, sender, sendResponse) => {
+  // Lets a page wait until saved headers are active before reloading the stream.
+  if (message?.command === 'SYNC_SITE_HEADERS') {
+    void syncHeaderRules().then(() => sendResponse({ success: true }));
+    return true;
+  }
   if (!message?.url) return;
 
   if (message.command === 'PLAY_STREAM') {
@@ -40,9 +99,8 @@ ext.runtime.onMessage.addListener((message: PlayMessage, sender, sendResponse) =
       sendResponse({ success: false, error: 'Unsupported stream type' });
       return;
     }
-    openInPlayer(message, sender.tab);
-    sendResponse({ success: true });
-    return;
+    void handlePlay(message, sender).then(() => sendResponse({ success: true }));
+    return true;
   }
 
   // Legacy command name kept for compatibility.
@@ -91,7 +149,7 @@ function redirectViaWebNavigation(): void {
 }
 
 // Missing when the browser lacks DNR or the permission was not granted.
-if ((ext.declarativeNetRequest as typeof ext.declarativeNetRequest | undefined) !== undefined) {
+if (hasDnr()) {
   registerManifestRedirect().catch((error) => {
     console.error('Manifest redirect rule failed; falling back to webNavigation:', error);
     redirectViaWebNavigation();
@@ -99,6 +157,11 @@ if ((ext.declarativeNetRequest as typeof ext.declarativeNetRequest | undefined) 
 } else {
   redirectViaWebNavigation();
 }
+
+void syncHeaderRules();
+ext.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === 'local' && changes[SITE_HEADERS_KEY]) void syncHeaderRules();
+});
 
 ext.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
