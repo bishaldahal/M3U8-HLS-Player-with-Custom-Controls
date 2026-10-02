@@ -19,6 +19,7 @@ import type { StreamVideoElement } from './types';
 
 const HISTORY_SAVE_DEBOUNCE_MS = 1000;
 const HISTORY_SAVE_INTERVAL_MS = 30_000;
+const MEDIA_PREFS_SAVE_DEBOUNCE_MS = 300;
 const SUBTITLE_STYLE_ID = 'subtitle-custom-style';
 
 let historySaveTimer: ReturnType<typeof setTimeout> | undefined;
@@ -109,6 +110,8 @@ function setupLiveTimeDisplay(video: HTMLVideoElement): void {
     if (!seekable) return;
     const end = parseFloat(seekable.split(':')[1] ?? '');
     if (Number.isFinite(end)) {
+      // Live times can be wall-clock based (DASH), so only show the offset from the live edge.
+      display.removeAttribute('showduration');
       display.setAttribute('mediaduration', String(end));
       display.setAttribute('remaining', '');
     }
@@ -124,22 +127,39 @@ function setupResumeTracking(video: HTMLVideoElement): void {
     if (video.paused) state.resumePosition = video.currentTime;
   });
   video.addEventListener('play', () => {
+    if (isLive()) return;
     video.currentTime = state.resumePosition;
     if (!isLive() && video.currentTime >= video.duration - 5) video.currentTime = 0;
   });
 }
 
 function setupPersistence(video: HTMLVideoElement): void {
-  video.addEventListener('volumechange', () => {
-    void saveSettings({ volume: video.volume, muted: video.muted }).catch(console.error);
-  });
-  video.addEventListener('ratechange', () => {
-    void saveSettings({ playbackRate: video.playbackRate }).catch(console.error);
-  });
+  const written: Partial<Pick<PlayerSettings, 'volume' | 'muted' | 'playbackRate'>> = {};
+  let prefsTimer: ReturnType<typeof setTimeout> | undefined;
+  const saveMediaPrefs = () => {
+    clearTimeout(prefsTimer);
+    prefsTimer = setTimeout(() => {
+      written.volume = video.volume;
+      written.muted = video.muted;
+      written.playbackRate = video.playbackRate;
+      void saveSettings({ ...written }).catch(console.error);
+    }, MEDIA_PREFS_SAVE_DEBOUNCE_MS);
+  };
+  video.addEventListener('volumechange', saveMediaPrefs);
+  video.addEventListener('ratechange', saveMediaPrefs);
 
-  ext.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName !== 'local' || !changes.playerSettings?.newValue) return;
-    applySettings(changes.playerSettings.newValue as PlayerSettings);
+  ext?.storage?.onChanged?.addListener((changes, areaName) => {
+    const next = changes.playerSettings?.newValue as PlayerSettings | undefined;
+    if (areaName !== 'local' || !next) return;
+    // Ignore echoes of our own writes; applying them would fight an in-progress slider drag.
+    const prev = changes.playerSettings?.oldValue as Partial<PlayerSettings> | undefined;
+    const external = (key: keyof typeof written) =>
+      next[key] !== prev?.[key] && next[key] !== written[key];
+    if (external('volume')) video.volume = next.volume;
+    if (external('muted')) video.muted = next.muted;
+    if (external('playbackRate')) video.playbackRate = next.playbackRate;
+    if (next.subtitlesEnabled) applySubtitleStyles(next.subtitleSettings);
+    else subtitleTracks(video).forEach((t) => (t.mode = 'disabled'));
   });
 
   video.textTracks?.addEventListener('addtrack', (event) => {
