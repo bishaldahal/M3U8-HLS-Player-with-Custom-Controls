@@ -1,11 +1,15 @@
 import { ext } from '../lib/browser';
 import { detectStreamType, type StreamType } from '../lib/stream';
 
-function requestPlay(url: string, streamType: StreamType): Promise<unknown> {
-  return ext.runtime.sendMessage({ command: 'PLAY_STREAM', url, streamType });
+function requestPlay(url: string, streamType: StreamType, replaceTab = false): Promise<unknown> {
+  return ext.runtime.sendMessage({ command: 'PLAY_STREAM', url, streamType, replaceTab });
 }
 
+const CLICK_DEDUPE_MS = 1000;
+let lastRequest = { url: '', at: 0 };
+
 function handleStreamClick(event: MouseEvent): void {
+  if (event.button !== 0) return;
   const anchor = (event.target as Element | null)?.closest?.('a');
   if (!anchor?.href) return;
 
@@ -14,6 +18,10 @@ function handleStreamClick(event: MouseEvent): void {
 
   event.preventDefault();
   event.stopPropagation();
+  // mousedown and click both land here for one click; open a single tab.
+  const now = Date.now();
+  if (lastRequest.url === anchor.href && now - lastRequest.at < CLICK_DEDUPE_MS) return;
+  lastRequest = { url: anchor.href, at: now };
   requestPlay(anchor.href, streamType).catch((error) =>
     console.error('Error sending message:', error),
   );
@@ -43,7 +51,7 @@ document.addEventListener('mousedown', handleStreamClick, true);
 
 const directStreamType = detectStreamType(window.location.href);
 if (directStreamType) {
-  requestPlay(window.location.href, directStreamType)
+  requestPlay(window.location.href, directStreamType, true)
     .then(() => showRedirectNotice(directStreamType))
     .catch((error) => console.error('Error opening stream:', error));
 }
