@@ -118,6 +118,25 @@ function setupLiveTimeDisplay(video: HTMLVideoElement): void {
   });
 }
 
+function inRanges(ranges: TimeRanges, time: number): boolean {
+  for (let i = 0; i < ranges.length; i++) {
+    if (time >= ranges.start(i) && time <= ranges.end(i)) return true;
+  }
+  return false;
+}
+
+/**
+ * Live resume target: the paused position while it is still buffered or in the DVR window,
+ * otherwise the oldest position that is still available.
+ */
+function liveResumeTarget(video: HTMLVideoElement, position: number): number | undefined {
+  if (!position) return undefined;
+  if (inRanges(video.buffered, position) || inRanges(video.seekable, position)) return position;
+  const { seekable } = video;
+  if (!seekable.length) return undefined;
+  return Math.min(Math.max(position, seekable.start(0)), seekable.end(seekable.length - 1));
+}
+
 function setupResumeTracking(video: HTMLVideoElement): void {
   video.addEventListener('pause', () => {
     state.resumePosition = video.currentTime;
@@ -128,13 +147,10 @@ function setupResumeTracking(video: HTMLVideoElement): void {
   });
   video.addEventListener('play', () => {
     if (isLive()) {
-      // Return to the paused position, clamped to what is still in the live DVR window.
-      const { seekable } = video;
-      if (!state.resumePosition || !seekable.length) return;
-      const start = seekable.start(0);
-      const end = seekable.end(seekable.length - 1);
-      const target = Math.min(Math.max(state.resumePosition, start), end);
-      if (Math.abs(video.currentTime - target) > 1) video.currentTime = target;
+      const target = liveResumeTarget(video, state.resumePosition);
+      if (target !== undefined && Math.abs(video.currentTime - target) > 1) {
+        video.currentTime = target;
+      }
       return;
     }
     video.currentTime = state.resumePosition;
