@@ -62,7 +62,7 @@
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.13.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.4.0",
+    "lint-staged": "^17.6.0",
     "prettier": "^3.9.9",
     "sharp": "^0.35.5",
     "tsx": "^4.23.15",
