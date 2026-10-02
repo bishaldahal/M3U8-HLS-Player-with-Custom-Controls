@@ -45,7 +45,8 @@ export const DEFAULT_SETTINGS: Readonly<PlayerSettings> = Object.freeze({
   playbackRate: 1.0,
   preferredQuality: 'auto',
   saveHistory: true,
-  liveBufferWhilePausedMinutes: 0,
+  // ~3 min of 1080p stays within the browser's ~150 MB SourceBuffer quota.
+  liveBufferWhilePausedMinutes: 3,
   subtitlesEnabled: true,
   subtitleSettings: Object.freeze({
     fontSize: 100,
