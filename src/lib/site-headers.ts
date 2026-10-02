@@ -138,12 +138,14 @@ export function headersFromPage(pageUrl: string | undefined): Record<string, str
 
 /** DNR rules that add the headers only to requests made by the extension's own pages. */
 export function buildHeaderRules(
-  rules: SiteHeaderRule[],
+  rules: Pick<SiteHeaderRule, 'host' | 'headers'>[],
   extensionHost: string,
+  idBase = HEADER_RULE_ID_BASE,
+  priority = 1,
 ): chrome.declarativeNetRequest.Rule[] {
   return rules.map((rule, i) => ({
-    id: HEADER_RULE_ID_BASE + i,
-    priority: 1,
+    id: idBase + i,
+    priority,
     action: {
       type: 'modifyHeaders' as chrome.declarativeNetRequest.RuleActionType,
       requestHeaders: Object.entries(rule.headers).map(([header, value]) => ({

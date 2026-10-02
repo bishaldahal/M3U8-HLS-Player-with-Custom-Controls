@@ -1,4 +1,5 @@
 import { ext } from '../lib/browser';
+import { buildTabHeaderRules, type DetectedStream } from '../lib/detected';
 import { loadSettings } from '../lib/settings';
 import {
   HEADER_RULE_ID_BASE,
@@ -9,6 +10,7 @@ import {
   upsertSiteHeaders,
 } from '../lib/site-headers';
 import { detectStreamType, safeUrlParse, type StreamType } from '../lib/stream';
+import { findDetected, getDetected, startStreamDetection } from './detect';
 
 const WELCOME_URL = 'https://extension.bishalbabudahal.com.np/docs';
 
@@ -18,6 +20,8 @@ interface PlayMessage {
   streamType?: StreamType;
   /** Replace the sender tab (the tab itself is the manifest) instead of opening a new one. */
   replaceTab?: boolean;
+  /** Tab the stream was detected in (popup requests). */
+  tabId?: number;
 }
 
 function playerUrlFor(url: string): string {
@@ -75,7 +79,45 @@ async function captureSiteHeaders(streamUrl: string, pageUrl: string | undefined
   if (await upsertSiteHeaders(host, headers, true)) await syncHeaderRules();
 }
 
+const extensionHost = () => new URL(ext.runtime.getURL('')).hostname;
+
+async function removeTabRules(tabId: number): Promise<void> {
+  const rules = await ext.declarativeNetRequest.getSessionRules();
+  const ids = rules.filter((r) => r.condition.tabIds?.includes(tabId)).map((r) => r.id);
+  if (ids.length) await ext.declarativeNetRequest.updateSessionRules({ removeRuleIds: ids });
+}
+
+/**
+ * Opens the player with the headers the site's own player used. They are kept in session rules
+ * for that tab only, since they can carry cookies and tokens.
+ */
+async function playDetected(stream: DetectedStream, opener?: chrome.tabs.Tab): Promise<void> {
+  const tab = await ext.tabs.create({
+    url: 'about:blank',
+    ...(opener?.id !== undefined && { openerTabId: opener.id }),
+    ...(opener?.index !== undefined && { index: opener.index + 1 }),
+  });
+  try {
+    if (hasDnr() && tab.id !== undefined) {
+      const existing = await ext.declarativeNetRequest.getSessionRules();
+      const firstId = Math.max(0, ...existing.map((r) => r.id)) + 1;
+      await ext.declarativeNetRequest.updateSessionRules({
+        addRules: buildTabHeaderRules(stream, tab.id, extensionHost(), firstId),
+      });
+    }
+  } catch (error) {
+    console.error('Failed to apply the stream headers:', error);
+  }
+  await ext.tabs.update(tab.id!, { url: playerUrlFor(stream.url) });
+}
+
 async function handlePlay(message: PlayMessage, sender: chrome.runtime.MessageSender) {
+  const detected = await findDetected(message.tabId ?? sender.tab?.id, message.url!);
+  if (detected && !message.replaceTab) {
+    const opener = message.tabId !== undefined ? await ext.tabs.get(message.tabId) : sender.tab;
+    await playDetected({ ...detected, url: message.url! }, opener);
+    return;
+  }
   if (!message.replaceTab) {
     // Rules must be in place before the player's first request.
     await captureSiteHeaders(message.url!, sender.url).catch((error) =>
@@ -89,6 +131,10 @@ ext.runtime.onMessage.addListener((message: PlayMessage, sender, sendResponse) =
   // Lets a page wait until saved headers are active before reloading the stream.
   if (message?.command === 'SYNC_SITE_HEADERS') {
     void syncHeaderRules().then(() => sendResponse({ success: true }));
+    return true;
+  }
+  if (message?.command === 'GET_DETECTED' && message.tabId !== undefined) {
+    void getDetected(message.tabId).then(sendResponse);
     return true;
   }
   if (!message?.url) return;
@@ -156,6 +202,11 @@ if (hasDnr()) {
   });
 } else {
   redirectViaWebNavigation();
+}
+
+startStreamDetection();
+if (hasDnr()) {
+  ext.tabs.onRemoved.addListener((tabId) => void removeTabRules(tabId).catch(() => {}));
 }
 
 void syncHeaderRules();
