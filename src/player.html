@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>HLS/DASH Player</title>
+    <!-- Vendor web components (fetched by scripts/fetch-vendor.ts, not bundled) -->
+    <script type="module" src="/vendor/hls-video-element.js"></script>
+    <script type="module" src="/vendor/dash-video-element.js"></script>
+    <script type="module" src="/vendor/media-chrome.js"></script>
+    <script type="module" src="./pages/player/main.ts"></script>
+  </head>
+
+  <body>
+    <media-controller defaultsubtitles liveedgeoffset="5" noautoseektolive>
+      <media-loading-indicator slot="centered-chrome"></media-loading-indicator>
+      <media-audio-track-menu hidden anchor="auto"></media-audio-track-menu>
+      <media-rendition-menu hidden anchor="auto"></media-rendition-menu>
+      <media-captions-menu hidden anchor="auto"></media-captions-menu>
+      <media-control-bar>
+        <media-play-button></media-play-button>
+        <media-seek-backward-button seekoffset="5"></media-seek-backward-button>
+        <media-seek-forward-button seekoffset="5"></media-seek-forward-button>
+        <media-mute-button></media-mute-button>
+        <media-volume-range></media-volume-range>
+        <media-time-range></media-time-range>
+        <media-time-display showduration></media-time-display>
+        <media-playback-rate-button></media-playback-rate-button>
+        <media-audio-track-menu-button></media-audio-track-menu-button>
+        <media-rendition-menu-button></media-rendition-menu-button>
+        <media-captions-menu-button></media-captions-menu-button>
+        <media-pip-button></media-pip-button>
+        <media-fullscreen-button></media-fullscreen-button>
+      </media-control-bar>
+    </media-controller>
+
+    <div
+      class="keyboard-shortcuts"
+      id="keyboard-shortcuts"
+      role="dialog"
+      aria-label="Keyboard shortcuts"
+      hidden
+    >
+      <h1>Keyboard Shortcuts</h1>
+      <button id="close-shortcuts" type="button">Close</button>
+      <div id="shortcuts-list"></div>
+    </div>
+
+    <template id="drm-template">
+      <div class="overlay overlay--drm" role="dialog" aria-modal="true" aria-labelledby="drm-title">
+        <div class="overlay-panel">
+          <h2 class="drm-title" id="drm-title">DRM License Required</h2>
+          <p class="drm-hint">
+            Enter Widevine license details to continue this encrypted DASH stream.
+          </p>
+          <p class="drm-message" data-drm-message></p>
+          <label class="drm-field">
+            License URL
+            <input type="url" placeholder="https://license.example.com/widevine" data-drm-license />
+          </label>
+          <div class="drm-field">
+            Request Headers (optional)
+            <div data-drm-headers></div>
+            <button type="button" class="overlay-btn" data-drm-add-header>Add header</button>
+          </div>
+          <label class="drm-field">
+            Robustness (optional)
+            <input type="text" placeholder="SW_SECURE_DECODE" data-drm-robustness />
+          </label>
+          <label class="drm-remember">
+            <input type="checkbox" checked data-drm-remember />
+            Remember for this stream host
+          </label>
+          <p class="drm-error" data-drm-error hidden></p>
+          <div class="overlay-actions">
+            <button type="button" class="overlay-btn" data-drm-cancel>Cancel</button>
+            <button type="button" class="overlay-btn overlay-btn--primary" data-drm-apply>
+              Apply DRM
+            </button>
+          </div>
+        </div>
+      </div>
+    </template>
+  </body>
+</html>
