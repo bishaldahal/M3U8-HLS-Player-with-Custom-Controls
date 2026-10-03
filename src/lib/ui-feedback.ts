@@ -2,7 +2,7 @@ import './ui-feedback.css';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
-const TOAST_DURATION_MS = 3000;
+const TOAST_DURATION_MS = 4500;
 const TOAST_ANIMATION_MS = 300;
 const MAX_TOASTS = 3;
 const SVG_NS = 'http://www.w3.org/2000/svg';
