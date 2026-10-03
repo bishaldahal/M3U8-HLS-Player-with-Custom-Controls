@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.1.0](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/compare/v2.0.0...v2.1.0) (2026-10-03)
+
+
+### Features
+
+* **firefox:** declare Firefox for Android support ([81fe49b](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/81fe49b72817cafd21775fa287efa86d3efd5c8f))
+* **player:** add touch gestures and a phone layout ([1bf61c5](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/1bf61c5880e20b042a317a22a9da63385195e888))
+* **popup:** ask for site access when it has not been granted ([f869875](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/f869875a0ce07cd088a9a02d7d08aec557dfb66e))
+* **ui:** make popup, settings and shortcuts pages fit phone screens ([0c611c3](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/0c611c35c9e31ce26fec3b5d2ed9e1da02455f84))
+
+
+### Bug Fixes
+
+* **background:** open what's new on major and minor updates ([e309c66](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/e309c66790057d76fe45fe2dcf4a2c815a4896b5))
+* **firefox:** drop strict_min_version so older Firefox keeps updates ([5fe3972](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/5fe39720a60b0a69dfa57faae83dbaa4d130c819))
+* **player:** keep the player dialogs usable on narrow screens ([5443a62](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/5443a629edaab2eb04cf7afd81fc1b187e5611da))
+* **publish:** print the store's error response when an upload fails ([7f051c6](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/7f051c62598f32b27e96c25019cc2ac0e4fa6ff9))
+
 ## [2.0.0](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/compare/v1.5.0...v2.0.0) (2026-10-02)
 
 
