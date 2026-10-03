@@ -5,75 +5,239 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HLS/DASH Player - Settings</title>
     <style>
+      :root {
+        --brand: #e6bc48;
+        --brand-hover: #d8aa30;
+        --brand-ink: #8a6410;
+        --brand-tint: #fdf6e3;
+        --charcoal: #2a292a;
+        --charcoal-2: #3a393a;
+        --bg: #f3f4f6;
+        --surface: #ffffff;
+        --surface-2: #f9fafb;
+        --border: #dfe2e6;
+        --border-strong: #c8cdd3;
+        --text: #24292f;
+        --text-2: #4b5563;
+        --muted: #6b7280;
+        --danger: #d9534f;
+        --danger-hover: #c9302c;
+        --success: #3c9d5d;
+        --radius: 4px;
+        --shadow: 0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.04);
+        --focus: 0 0 0 3px rgba(230, 188, 72, 0.45);
+      }
+
       * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
       }
 
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 80px;
+      }
+
       body {
         font-family:
           -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        background: #0d1117;
-        color: #c9d1d9;
-        min-height: 100vh;
-        padding: 40px 20px;
-      }
-
-      .container {
-        max-width: 900px;
-        margin: 0 auto;
-        position: relative;
-      }
-
-      .header {
-        text-align: center;
-        margin-bottom: 40px;
-      }
-
-      .header h1 {
-        color: #fff;
-        font-size: 32px;
-        font-weight: 600;
-        margin-bottom: 8px;
-      }
-
-      .header p {
-        color: #888;
         font-size: 14px;
+        line-height: 1.5;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
       }
 
-      .card {
-        background: #161b22;
-        border: 1px solid #30363d;
-        border-radius: 12px;
-        padding: 30px;
-        margin-bottom: 24px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-        min-height: 200px;
-        /* display: flex; */
-        /* flex-direction: column; */
+      a {
+        color: var(--brand-ink);
       }
 
-      .card-header {
+      :focus-visible {
+        outline: none;
+        box-shadow: var(--focus);
+      }
+
+      /* ---------- Top bar ---------- */
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: var(--charcoal);
+        border-bottom: 3px solid var(--brand);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      }
+
+      .topbar-inner {
+        max-width: 1120px;
+        margin: 0 auto;
+        height: 56px;
+        padding: 0 24px;
         display: flex;
         align-items: center;
         gap: 12px;
-        margin-bottom: 24px;
-        padding-bottom: 16px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       }
 
-      .card-icon {
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #fff;
+        text-decoration: none;
+      }
+
+      .brand img {
+        width: 32px;
+        height: 32px;
+      }
+
+      .brand-name {
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+      }
+
+      .brand-sub {
+        color: #a9a8a9;
+        font-weight: 400;
+        padding-left: 10px;
+        margin-left: 2px;
+        border-left: 1px solid #555;
+      }
+
+      .auto-save-indicator {
+        margin-left: auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: #7fd29b;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+
+      .auto-save-indicator.visible {
+        opacity: 1;
+      }
+
+      .auto-save-indicator.saving {
+        color: var(--brand);
+      }
+
+      .auto-save-indicator svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .auto-save-indicator .feedback-spinner-bar {
+        background: var(--brand);
+      }
+
+      /* ---------- Layout ---------- */
+      .layout {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 32px 24px 64px;
+        display: grid;
+        grid-template-columns: 200px minmax(0, 1fr);
+        gap: 32px;
+        align-items: start;
+      }
+
+      .sidenav {
+        position: sticky;
+        top: 88px;
+      }
+
+      .sidenav-title {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        padding: 0 12px 8px;
+      }
+
+      .sidenav a {
+        display: block;
+        padding: 8px 12px;
+        color: var(--text-2);
+        text-decoration: none;
+        border-left: 3px solid transparent;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        transition:
+          background 0.15s,
+          color 0.15s;
+      }
+
+      .sidenav a:hover {
+        background: #e8eaed;
+        color: var(--text);
+      }
+
+      .sidenav a:focus-visible {
+        border-left-color: var(--brand);
+      }
+
+      .page-head {
+        margin-bottom: 24px;
+      }
+
+      .page-head h1 {
         font-size: 24px;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .page-head p {
+        color: var(--muted);
+        margin-top: 2px;
+      }
+
+      /* ---------- Cards ---------- */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        margin-bottom: 24px;
+      }
+
+      .card-header {
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface-2);
+        border-radius: var(--radius) var(--radius) 0 0;
       }
 
       .card-title {
-        color: #fff;
-        font-size: 20px;
+        font-size: 16px;
         font-weight: 600;
+        color: var(--text);
       }
 
+      .card-desc {
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 2px;
+      }
+
+      .card-body {
+        padding: 24px;
+      }
+
+      .card-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 12px 24px;
+        border-top: 1px solid var(--border);
+        background: var(--surface-2);
+        border-radius: 0 0 var(--radius) var(--radius);
+      }
+
+      /* ---------- Form controls ---------- */
       .setting-group {
         margin-bottom: 24px;
       }
@@ -84,143 +248,423 @@
 
       .setting-label {
         display: block;
-        color: #bbb;
+        color: var(--text);
         font-size: 13px;
-        font-weight: 500;
-        margin-bottom: 8px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        font-weight: 600;
+        margin-bottom: 6px;
       }
 
       .setting-control {
         display: flex;
         align-items: center;
         gap: 12px;
-        background: #0d1117;
-        border: 1px solid #30363d;
-        border-radius: 8px;
-        padding: 12px 16px;
-        transition: all 0.2s;
-      }
-
-      .setting-control:focus-within {
-        border-color: #58a6ff;
-        background: rgba(88, 166, 255, 0.1);
-      }
-
-      .setting-control input[type='range'] {
-        flex: 1;
-        height: 6px;
-        -webkit-appearance: none;
-        appearance: none;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 3px;
-        outline: none;
-      }
-
-      .setting-control input[type='range']::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: #58a6ff;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(88, 166, 255, 0.5);
-      }
-
-      .setting-control input[type='range']::-moz-range-thumb {
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: #58a6ff;
-        cursor: pointer;
-        border: none;
-        box-shadow: 0 2px 8px rgba(88, 166, 255, 0.5);
-      }
-
-      .setting-control input[type='number'] {
-        width: 80px;
-        padding: 8px 12px;
-        background: #0d1117;
-        border: 1px solid #30363d;
-        border-radius: 6px;
-        color: #c9d1d9;
-        font-size: 14px;
-        text-align: center;
-      }
-
-      .setting-control input[type='number']:focus {
-        outline: none;
-        border-color: #58a6ff;
       }
 
       .setting-hint {
-        color: #8b949e;
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 6px;
+      }
+
+      .lead {
+        margin: 0 0 20px;
+        color: var(--text-2);
         font-size: 13px;
       }
 
-      .site-headers-list {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        margin: 16px 0;
-      }
-
-      .site-header-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        padding: 12px 16px;
-        border: 1px solid #30363d;
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.03);
-      }
-
-      .site-header-info {
+      input[type='range'] {
         flex: 1;
+        accent-color: var(--brand-hover);
+        cursor: pointer;
+      }
+
+      input[type='checkbox'] {
+        accent-color: var(--brand-hover);
+      }
+
+      input[type='number'],
+      .select-input,
+      .search-input {
+        height: 36px;
+        padding: 6px 10px;
+        background: var(--surface);
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius);
+        color: var(--text);
+        font: inherit;
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s;
+      }
+
+      input[type='number'] {
+        width: 80px;
+        text-align: center;
+      }
+
+      .select-input {
+        flex: 1;
+        cursor: pointer;
+      }
+
+      .search-input {
+        width: 100%;
+      }
+
+      textarea.search-input {
+        height: auto;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 13px;
+        resize: vertical;
+      }
+
+      input[type='number']:focus,
+      .select-input:focus,
+      .search-input:focus {
+        outline: none;
+        border-color: var(--brand-hover);
+        box-shadow: var(--focus);
+      }
+
+      .search-input::placeholder {
+        color: #9ca3af;
+      }
+
+      .setting-value {
+        min-width: 48px;
+        text-align: right;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        color: var(--text);
+      }
+
+      /* ---------- Buttons ---------- */
+      button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: 36px;
+        padding: 0 16px;
+        border: 1px solid transparent;
+        border-radius: var(--radius);
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition:
+          background 0.15s,
+          border-color 0.15s,
+          color 0.15s;
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .btn-primary {
+        background: var(--brand);
+        border-color: var(--brand-hover);
+        color: var(--charcoal);
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        background: var(--brand-hover);
+      }
+
+      .btn-secondary {
+        background: var(--surface);
+        border-color: var(--border-strong);
+        color: var(--text);
+      }
+
+      .btn-secondary:hover:not(:disabled) {
+        background: #f1f2f4;
+        border-color: #b4bac2;
+      }
+
+      .btn-danger {
+        background: var(--danger);
+        border-color: var(--danger-hover);
+        color: #fff;
+      }
+
+      .btn-danger:hover:not(:disabled) {
+        background: var(--danger-hover);
+      }
+
+      .btn-text {
+        height: auto;
+        padding: 4px 0;
+        background: none;
+        border: none;
+        color: var(--brand-ink);
+        font-weight: 600;
+      }
+
+      .btn-text:hover:not(:disabled) {
+        text-decoration: underline;
+      }
+
+      .btn-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      /* ---------- Playback ---------- */
+      .speed-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .speed-btn {
+        width: 36px;
+        padding: 0;
+        background: var(--surface);
+        border-color: var(--border-strong);
+        color: var(--text);
+        font-size: 18px;
+      }
+
+      .speed-btn:hover,
+      .speed-reset:hover {
+        background: #f1f2f4;
+      }
+
+      .speed-display {
+        min-width: 56px;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .speed-reset {
+        background: var(--surface);
+        border-color: var(--border-strong);
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      .speed-presets {
+        display: inline-flex;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+
+      .speed-preset {
+        height: 32px;
+        padding: 0 14px;
+        background: var(--surface);
+        border: 1px solid var(--border-strong);
+        border-radius: 0;
+        margin-left: -1px;
+        color: var(--text-2);
+        font-weight: 500;
+      }
+
+      .speed-preset:first-child {
+        margin-left: 0;
+        border-radius: var(--radius) 0 0 var(--radius);
+      }
+
+      .speed-preset:last-child {
+        border-radius: 0 var(--radius) var(--radius) 0;
+      }
+
+      .speed-preset:hover {
+        background: #f1f2f4;
+      }
+
+      .speed-preset.active {
+        position: relative;
+        background: var(--brand);
+        border-color: var(--brand-hover);
+        color: var(--charcoal);
+        font-weight: 600;
+      }
+
+      /* ---------- Toggle switch ---------- */
+      .toggle-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .toggle-label {
+        color: var(--text);
+      }
+
+      .toggle-switch {
+        position: relative;
+        flex: none;
+        display: inline-block;
+        width: 40px;
+        height: 22px;
+      }
+
+      .toggle-switch input {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        cursor: pointer;
+        z-index: 1;
+      }
+
+      .toggle-slider {
+        position: absolute;
+        inset: 0;
+        background: #c4c9d0;
+        border-radius: 22px;
+        transition: background 0.2s;
+      }
+
+      .toggle-slider::before {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        left: 3px;
+        top: 3px;
+        background: #fff;
+        border-radius: 50%;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+        transition: transform 0.2s;
+      }
+
+      .toggle-switch input:checked + .toggle-slider {
+        background: var(--brand-hover);
+      }
+
+      .toggle-switch input:checked + .toggle-slider::before {
+        transform: translateX(18px);
+      }
+
+      .toggle-switch input:focus-visible + .toggle-slider {
+        box-shadow: var(--focus);
+      }
+
+      .divided > .setting-group {
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eceef1;
+      }
+
+      .divided > .setting-group:last-child {
+        padding-bottom: 0;
+        margin-bottom: 0;
+        border-bottom: none;
+      }
+
+      /* ---------- Subtitles ---------- */
+      .subtitle-preview-container {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        min-height: 140px;
+        padding: 24px 20px;
+        margin-bottom: 24px;
+        border-radius: var(--radius);
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.55)),
+          linear-gradient(135deg, #3d5a73 0%, #2b3a4a 45%, #4a3f35 100%);
+      }
+
+      .subtitle-preview {
+        text-align: center;
+      }
+
+      .subtitle-text {
+        padding: 6px 14px;
+        border-radius: 2px;
+        font-size: 24px;
+        color: #ffffff;
+        background-color: rgba(0, 0, 0, 0.8);
+        font-family: sans-serif;
+      }
+
+      .subtitle-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        align-items: flex-end;
+      }
+
+      .subtitle-grid > .setting-group {
+        flex: 1 1 160px;
         min-width: 0;
       }
 
-      .site-header-host {
-        font-weight: 600;
-        color: #f0f6fc;
+      .subtitle-grid > .setting-group:first-child {
+        flex: 2 1 320px;
       }
 
-      .site-header-badge {
-        margin-left: 8px;
-        padding: 1px 6px;
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: 500;
-        background: #1f6feb33;
-        color: #58a6ff;
+      .setting-group.compact {
+        margin-bottom: 0;
       }
 
-      .site-header-values {
-        margin: 4px 0 0;
-        font-family: ui-monospace, monospace;
-        font-size: 12px;
-        color: #8b949e;
-        white-space: pre-wrap;
-        word-break: break-all;
+      .color-control input[type='color'] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 44px;
+        height: 36px;
+        padding: 3px;
+        background: var(--surface);
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius);
+        cursor: pointer;
       }
 
-      .site-header-item button {
-        flex: none;
-        padding: 6px 12px;
+      .color-control input[type='color']::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+
+      .color-control input[type='color']::-webkit-color-swatch,
+      .color-control input[type='color']::-moz-color-swatch {
+        border: none;
+        border-radius: 2px;
+      }
+
+      .color-value {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         font-size: 13px;
+        color: var(--text-2);
+        text-transform: uppercase;
       }
 
+      .advanced-toggle-container {
+        margin-top: 16px;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      /* ---------- Shortcuts ---------- */
       .shortcut-group + .shortcut-group {
-        margin-top: 20px;
+        margin-top: 24px;
       }
 
       .shortcut-group-title {
-        color: #58a6ff;
-        font-size: 14px;
+        color: var(--muted);
+        font-size: 11px;
         font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
         margin-bottom: 8px;
+      }
+
+      .shortcut-group-rows {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
       }
 
       .shortcut-row {
@@ -228,11 +672,16 @@
         grid-template-columns: minmax(160px, 1fr) minmax(120px, 1fr) auto;
         align-items: center;
         gap: 12px;
-        padding: 10px 12px;
-        border: 1px solid #30363d;
-        border-radius: 8px;
-        background: #0d1117;
-        margin-bottom: 6px;
+        padding: 10px 14px;
+        border-top: 1px solid #eceef1;
+      }
+
+      .shortcut-row:first-child {
+        border-top: none;
+      }
+
+      .shortcut-row:hover {
+        background: var(--surface-2);
       }
 
       .shortcut-keys {
@@ -244,37 +693,42 @@
       .shortcut-key {
         display: inline-flex;
         align-items: center;
-        border: 1px solid #30363d;
-        border-radius: 6px;
-        background: #21262d;
+        background: #f6f7f9;
+        border: 1px solid var(--border-strong);
+        border-bottom-width: 2px;
+        border-radius: var(--radius);
       }
 
       .shortcut-key kbd {
-        padding: 3px 8px;
+        padding: 2px 8px;
         font:
           600 12px ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          Consolas,
           monospace;
-        color: #c9d1d9;
+        color: var(--text);
       }
 
-      .shortcut-key-remove,
-      .shortcut-key-remove:hover {
-        flex: none;
-        padding: 2px 8px;
-        border-radius: 0 6px 6px 0;
+      .shortcut-key-remove {
+        height: 22px;
+        padding: 0 6px;
         background: transparent;
-        color: #8b949e;
+        border: none;
+        border-left: 1px solid var(--border);
+        border-radius: 0;
+        color: var(--muted);
         font-size: 14px;
-        transform: none;
-        box-shadow: none;
+        font-weight: 400;
       }
 
       .shortcut-key-remove:hover {
-        color: #f85149;
+        color: var(--danger);
+        background: #fdecea;
       }
 
       .shortcut-none {
-        color: #6e7681;
+        color: var(--muted);
         font-size: 13px;
         font-style: italic;
       }
@@ -289,183 +743,182 @@
       }
 
       .shortcut-small-btn {
-        flex: none;
-        padding: 6px 12px;
+        height: 30px;
+        padding: 0 12px;
         font-size: 13px;
       }
 
-      .shortcut-small-btn:disabled,
-      #reset-shortcuts:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none;
+      .btn-text.shortcut-small-btn {
+        height: auto;
+        padding: 0 4px;
       }
 
       .shortcut-capture {
-        flex: none;
-        padding: 6px 12px;
+        height: 30px;
+        padding: 0 12px;
         font-size: 13px;
-        background: rgba(88, 166, 255, 0.1);
-        color: #58a6ff;
-        border: 1px dashed #58a6ff;
+        background: var(--brand-tint);
+        border: 1px dashed var(--brand-hover);
+        color: var(--brand-ink);
       }
 
       .shortcut-capture:focus {
-        outline: 2px solid #58a6ff;
-        outline-offset: 2px;
+        outline: none;
+        box-shadow: var(--focus);
       }
 
       .shortcut-select {
+        flex: none;
+        height: 30px;
         max-width: 220px;
+        padding: 2px 8px;
+        font-size: 13px;
       }
 
       .shortcut-select option.in-use {
-        color: #8b949e;
+        color: var(--muted);
       }
 
-      @media (max-width: 600px) {
-        .shortcut-row {
-          grid-template-columns: 1fr auto;
-        }
-
-        .shortcut-actions {
-          grid-column: 1 / -1;
-          justify-content: flex-start;
-        }
+      /* ---------- Site headers ---------- */
+      .site-headers-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin: 4px 0 20px;
       }
 
-      .site-headers-form textarea {
-        font-family: ui-monospace, monospace;
-        resize: vertical;
+      .site-header-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-2);
+      }
+
+      .site-header-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .site-header-host {
+        font-weight: 600;
+      }
+
+      .site-header-badge {
+        margin-left: 8px;
+        padding: 1px 6px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 600;
+        background: var(--brand-tint);
+        color: var(--brand-ink);
+        border: 1px solid #f0dca0;
+      }
+
+      .site-header-values {
+        margin: 4px 0 0;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 12px;
+        color: var(--text-2);
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+
+      .site-header-item button {
+        height: 30px;
+        padding: 0 12px;
+        font-size: 13px;
+      }
+
+      .site-headers-form {
+        padding-top: 20px;
+        border-top: 1px solid #eceef1;
       }
 
       .site-headers-form .setting-label {
-        display: block;
         margin: 12px 0 6px;
       }
 
-      .setting-value {
-        min-width: 50px;
-        text-align: right;
-        color: #58a6ff;
-        font-weight: 600;
-        font-size: 14px;
+      .site-headers-form .setting-label:first-child {
+        margin-top: 0;
       }
 
-      .btn-group {
-        display: flex;
-        gap: 12px;
-        margin-top: 24px;
+      /* ---------- History ---------- */
+      .search-box {
+        margin-bottom: 16px;
       }
 
-      button {
-        flex: 1;
-        padding: 14px 24px;
-        border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 600;
-        transition: all 0.2s;
-        display: flex;
+      .batch-actions {
+        display: none;
         align-items: center;
-        justify-content: center;
-        gap: 8px;
+        gap: 12px;
+        padding: 8px 8px 8px 14px;
+        margin-bottom: 12px;
+        background: var(--brand-tint);
+        border: 1px solid #f0dca0;
+        border-radius: var(--radius);
       }
 
-      button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      .batch-actions.visible {
+        display: flex;
       }
 
-      button:active {
-        transform: translateY(0);
+      .batch-actions-text {
+        flex: 1;
+        font-weight: 600;
       }
 
-      .btn-primary {
-        background: #238636;
-        color: #fff;
-      }
-
-      .btn-primary:hover {
-        background: #2ea043;
-      }
-
-      .btn-secondary {
-        background: #21262d;
-        color: #c9d1d9;
-        border: 1px solid #30363d;
-      }
-
-      .btn-secondary:hover {
-        background: #30363d;
-      }
-
-      .btn-danger {
-        background: #da3633;
-        color: #fff;
-      }
-
-      .btn-danger:hover {
-        background: #f85149;
-      }
-
-      /* History styles */
       .history-list {
-        max-height: 500px;
+        max-height: 520px;
         overflow-y: auto;
-        padding-right: 8px;
-      }
-
-      .history-list::-webkit-scrollbar {
-        width: 8px;
-      }
-
-      .history-list::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 4px;
-      }
-
-      .history-list::-webkit-scrollbar-thumb {
-        background: #30363d;
-        border-radius: 4px;
-      }
-
-      .history-list::-webkit-scrollbar-thumb:hover {
-        background: #484f58;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
       }
 
       .history-empty {
-        color: #6e7681;
+        color: var(--muted);
         text-align: center;
-        padding: 60px 20px;
-        font-size: 14px;
+        padding: 48px 20px;
       }
 
       .history-item {
         display: flex;
         align-items: center;
-        padding: 16px;
-        background: #0d1117;
-        border: 1px solid #30363d;
-        border-radius: 8px;
-        margin-bottom: 12px;
-        transition: all 0.2s;
+        padding: 12px 14px;
+        border-top: 1px solid #eceef1;
+        border-left: 3px solid transparent;
+        transition: background 0.15s;
       }
 
-      .history-item.pinned {
-        background: linear-gradient(90deg, rgba(88, 166, 255, 0.05) 0%, #0d1117 100%);
-        border-left: 3px solid #58a6ff;
+      .history-item:first-child {
+        border-top: none;
       }
 
       .history-item:hover {
-        background: #161b22;
-        border-color: #58a6ff;
-        transform: translateX(4px);
+        background: var(--surface-2);
       }
 
-      .history-item.pinned:hover {
-        background: linear-gradient(90deg, rgba(88, 166, 255, 0.1) 0%, #161b22 100%);
+      .history-item.pinned {
+        border-left-color: var(--brand);
+        background: #fffcf3;
+      }
+
+      .history-checkbox {
+        flex-shrink: 0;
+        width: 16px;
+        height: 16px;
+        margin-right: 14px;
+        cursor: pointer;
+      }
+
+      .history-pin-indicator {
+        flex-shrink: 0;
+        width: 16px;
+        margin-right: 14px;
+        font-size: 13px;
+        text-align: center;
       }
 
       .history-info {
@@ -475,1003 +928,662 @@
 
       .history-title {
         font-weight: 600;
-        font-size: 15px;
-        color: #fff;
-        margin-bottom: 6px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
 
       .history-url {
-        font-size: 11px;
-        color: #58a6ff;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 12px;
+        color: var(--muted);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        margin-bottom: 6px;
-        font-family: 'Courier New', monospace;
-        opacity: 0.8;
+        margin: 1px 0 4px;
       }
 
       .history-meta {
-        font-size: 12px;
-        color: #888;
         display: flex;
-        align-items: center;
         gap: 12px;
+        font-size: 12px;
+        color: var(--text-2);
       }
 
       .history-time {
-        color: #666;
+        color: var(--muted);
       }
 
       .history-progress {
-        height: 4px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 2px;
+        height: 3px;
+        max-width: 320px;
         margin-top: 8px;
+        background: #e5e7eb;
+        border-radius: 2px;
         overflow: hidden;
       }
 
       .history-progress-bar {
         height: 100%;
-        background: #58a6ff;
-        border-radius: 2px;
-        transition: width 0.3s;
+        background: var(--brand-hover);
       }
 
       .history-actions {
         display: flex;
-        gap: 8px;
+        gap: 6px;
         margin-left: 16px;
-        flex-wrap: wrap;
       }
 
       .history-actions button {
-        width: 40px;
-        height: 40px;
+        width: 34px;
+        height: 34px;
         padding: 0;
-        font-size: 16px;
-        border-radius: 10px;
-        flex: none;
-      }
-
-      .btn-pin {
-        background: #21262d;
-        color: #8b949e;
-        border: 1px solid #30363d;
-      }
-
-      .btn-pin:hover {
-        background: #30363d;
-        color: #58a6ff;
-        border-color: #58a6ff;
-      }
-
-      .btn-pin.pinned {
-        background: rgba(88, 166, 255, 0.15);
-        color: #58a6ff;
-        border-color: #58a6ff;
-      }
-
-      .btn-rename {
-        background: #21262d;
-        color: #8b949e;
-        border: 1px solid #30363d;
-      }
-
-      .btn-rename:hover {
-        background: #30363d;
-        color: #d29922;
-        border-color: #d29922;
-      }
-
-      .btn-play {
-        background: #238636;
-        color: #fff;
-      }
-
-      .btn-play:hover {
-        background: #2ea043;
-      }
-
-      .btn-delete {
-        background: #da3633;
-        color: #fff;
-        border: 1px solid #da3633;
-      }
-
-      .btn-delete:hover:not(:disabled) {
-        background: #f85149;
-        border-color: #f85149;
-      }
-
-      .btn-delete:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-
-      /* Toast notification */
-      .toast {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        transform: translateX(400px);
-        background: #238636;
-        color: #fff;
-        padding: 16px 24px;
-        border-radius: 8px;
-        opacity: 0;
-        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        z-index: 1000;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-        font-weight: 500;
-        border: 1px solid #2ea043;
-      }
-
-      .toast.show {
-        transform: translateX(0);
-        opacity: 1;
-      }
-
-      /* Toggle switch */
-      .toggle-switch {
-        position: relative;
-        display: inline-block;
-        width: 48px;
-        height: 24px;
-      }
-
-      .toggle-switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-      }
-
-      .toggle-slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #30363d;
-        transition: 0.3s;
-        border-radius: 24px;
-      }
-
-      .toggle-slider:before {
-        position: absolute;
-        content: '';
-        height: 18px;
-        width: 18px;
-        left: 3px;
-        bottom: 3px;
-        background-color: #8b949e;
-        transition: 0.3s;
-        border-radius: 50%;
-      }
-
-      .toggle-switch input:checked + .toggle-slider {
-        background-color: #238636;
-      }
-
-      .toggle-switch input:checked + .toggle-slider:before {
-        background-color: #fff;
-        transform: translateX(24px);
-      }
-
-      /* Speed presets */
-      .speed-presets {
-        display: flex;
-        gap: 8px;
-        margin-top: 12px;
-        flex-wrap: wrap;
-      }
-
-      .speed-preset {
-        padding: 6px 12px;
-        background: #21262d;
-        border: 1px solid #30363d;
-        border-radius: 6px;
-        color: #c9d1d9;
-        cursor: pointer;
-        font-size: 13px;
-        transition: all 0.2s;
-      }
-
-      .speed-preset:hover {
-        background: #30363d;
-        border-color: #58a6ff;
-      }
-
-      .speed-preset.active {
-        background: #58a6ff;
-        border-color: #58a6ff;
-        color: #fff;
-      }
-
-      .speed-controls {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .speed-btn {
-        width: 36px;
-        height: 36px;
-        padding: 0;
-        background: #21262d;
-        border: 1px solid #30363d;
-        border-radius: 6px;
-        color: #c9d1d9;
-        font-size: 18px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .speed-btn:hover {
-        background: #30363d;
-        border-color: #58a6ff;
-        transform: none;
-        box-shadow: none;
-      }
-
-      .speed-btn:active {
-        transform: scale(0.95);
-      }
-
-      .speed-display {
-        min-width: 60px;
-        text-align: center;
-        font-size: 16px;
-        font-weight: 600;
-        color: #58a6ff;
-      }
-
-      .speed-reset {
-        padding: 6px 12px;
-        height: 36px;
-        background: #21262d;
-        border: 1px solid #30363d;
-        border-radius: 6px;
-        color: #c9d1d9;
-        font-size: 13px;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-
-      .speed-reset:hover {
-        background: #30363d;
-        border-color: #58a6ff;
-        transform: none;
-        box-shadow: none;
-      }
-
-      .toggle-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 16px;
-        background: #0d1117;
-        border: 1px solid #30363d;
-        border-radius: 8px;
-      }
-
-      .toggle-label {
-        color: #c9d1d9;
         font-size: 14px;
+        background: var(--surface);
+        border-color: var(--border-strong);
+        color: var(--text-2);
       }
 
-      /* Subtitle Settings Styles */
-      .subtitle-preview-container {
-        background: #000;
-        border: 1px solid #30363d;
-        border-radius: 8px;
-        padding: 40px 20px;
-        margin-bottom: 24px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 120px;
+      .history-actions button:hover:not(:disabled) {
+        background: #f1f2f4;
       }
 
-      .subtitle-preview {
-        text-align: center;
+      .history-actions .btn-pin.pinned {
+        background: var(--brand-tint);
+        border-color: var(--brand-hover);
       }
 
-      .subtitle-text {
-        padding: 8px 16px;
-        border-radius: 4px;
-        font-size: 24px;
-        /* Default styles - will be overwritten by JS */
-        color: #ffffff;
-        background-color: rgba(0, 0, 0, 0.8);
-        font-family: sans-serif;
+      .history-actions .btn-play {
+        background: var(--brand);
+        border-color: var(--brand-hover);
+        color: var(--charcoal);
       }
 
-      .color-control {
-        display: flex;
-        align-items: center;
-        gap: 12px;
+      .history-actions .btn-play:hover {
+        background: var(--brand-hover);
       }
 
-      .color-control input[type='color'] {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 50px;
-        height: 36px;
-        border: 2px solid #30363d;
-        border-radius: 6px;
-        cursor: pointer;
-        padding: 2px;
-        background: transparent;
+      .history-actions .btn-delete:hover:not(:disabled) {
+        background: #fdecea;
+        border-color: var(--danger);
       }
 
-      .color-control input[type='color']::-webkit-color-swatch-wrapper {
-        padding: 0;
+      /* ---------- Toasts (light theme) ---------- */
+      .feedback-toast-container {
+        top: 72px;
       }
 
-      .color-control input[type='color']::-webkit-color-swatch {
-        border: none;
-        border-radius: 4px;
+      .feedback-toast {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-left-width: 4px;
+        border-radius: var(--radius);
+        box-shadow: 0 6px 16px rgba(16, 24, 40, 0.12);
       }
 
-      .color-control input[type='color']::-moz-color-swatch {
-        border: none;
-        border-radius: 4px;
+      .feedback-toast-message {
+        color: var(--text);
       }
 
-      .color-value {
-        color: #58a6ff;
-        font-family: 'Courier New', monospace;
-        font-size: 13px;
-        min-width: 70px;
+      .feedback-toast-close {
+        color: var(--muted);
       }
 
-      .select-input {
-        flex: 1;
-        padding: 10px 14px;
-        background: #0d1117;
-        border: 1px solid #30363d;
-        border-radius: 6px;
-        color: #c9d1d9;
-        font-size: 14px;
-        cursor: pointer;
-        outline: none;
-        transition: all 0.2s;
-      }
+      /* ---------- Responsive ---------- */
+      @media (max-width: 900px) {
+        .layout {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 0;
+          padding-top: 0;
+        }
 
-      .select-input:focus {
-        border-color: #58a6ff;
-      }
+        .sidenav {
+          top: 59px;
+          z-index: 50;
+          display: flex;
+          gap: 4px;
+          margin: 0 -24px 24px;
+          padding: 8px 16px;
+          overflow-x: auto;
+          scrollbar-width: none;
+          background: var(--surface);
+          border-bottom: 1px solid var(--border);
+        }
 
-      .select-input option {
-        background: #161b22;
-        color: #c9d1d9;
-      }
+        .sidenav-title {
+          display: none;
+        }
 
-      /* Compact Grid Layout */
-      .subtitle-grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 16px;
-        align-items: flex-end;
-      }
+        .sidenav a {
+          flex: none;
+          border-left: none;
+          border-radius: var(--radius);
+        }
 
-      .subtitle-grid > .setting-group {
-        flex: 1 1 160px;
-        min-width: 0; /* Prevent overflow */
-      }
+        .page-head {
+          display: none;
+        }
 
-      /* Make the first item (Size / Opacity) wider */
-      .subtitle-grid > .setting-group:first-child {
-        flex: 2 1 320px;
-      }
-
-      .setting-group.compact {
-        margin-bottom: 0;
-      }
-
-      .setting-group.compact .setting-label {
-        margin-bottom: 8px;
-        font-size: 12px;
-      }
-
-      .hidden {
-        display: none;
-      }
-
-      .btn-text {
-        background: none;
-        border: none;
-        color: #58a6ff;
-        padding: 8px 0;
-        font-size: 13px;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        width: auto;
-        justify-content: flex-start;
-        margin-top: 12px;
-      }
-
-      .btn-text:hover {
-        text-decoration: underline;
-        transform: none;
-        box-shadow: none;
-        background: transparent;
-      }
-
-      /* Auto-save indicator */
-      .auto-save-indicator {
-        position: absolute;
-        top: 24px;
-        right: 20px;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 13px;
-        color: #3fb950;
-        opacity: 0;
-        transition: opacity 0.3s;
-      }
-
-      .auto-save-indicator.visible {
-        opacity: 1;
-      }
-
-      .auto-save-indicator.saving {
-        color: #58a6ff;
-      }
-
-      .auto-save-indicator svg {
-        width: 14px;
-        height: 14px;
-      }
-
-      /* Batch actions */
-      .batch-actions {
-        display: none;
-        align-items: center;
-        gap: 12px;
-        padding: 12px;
-        background: #161b22;
-        border: 1px solid #30363d;
-        border-radius: 8px;
-        margin-bottom: 16px;
-      }
-
-      .batch-actions.visible {
-        display: flex;
-      }
-
-      .batch-actions-text {
-        flex: 1;
-        color: #c9d1d9;
-        font-size: 14px;
-      }
-
-      .history-checkbox {
-        margin-right: 12px;
-        width: 18px;
-        height: 18px;
-        cursor: pointer;
-        accent-color: #58a6ff;
-        flex-shrink: 0;
-      }
-
-      .history-pin-indicator {
-        margin-right: 12px;
-        width: 18px;
-        height: 18px;
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-        cursor: default;
-      }
-
-      /* Search box */
-      .search-box {
-        margin-bottom: 16px;
-      }
-
-      .search-input {
-        width: 100%;
-        padding: 12px 16px;
-        background: #0d1117;
-        border: 1px solid #30363d;
-        border-radius: 8px;
-        color: #c9d1d9;
-        font-size: 14px;
-        outline: none;
-        transition: all 0.2s;
-      }
-
-      .search-input:focus {
-        border-color: #58a6ff;
-        background: rgba(88, 166, 255, 0.05);
-      }
-
-      .search-input::placeholder {
-        color: #6e7681;
+        html {
+          scroll-padding-top: 120px;
+        }
       }
 
       @media (max-width: 600px) {
-        body {
-          padding: 20px 12px;
+        .topbar-inner,
+        .layout {
+          padding-left: 12px;
+          padding-right: 12px;
         }
-        .header h1 {
-          font-size: 24px;
+
+        .sidenav {
+          margin: 0 -12px 16px;
         }
-        .header img {
-          width: 64px;
-          height: 64px;
+
+        .brand-sub {
+          display: none;
         }
-        .card {
-          padding: 18px 14px;
+
+        .card-header,
+        .card-body,
+        .card-footer {
+          padding-left: 16px;
+          padding-right: 16px;
         }
-        .btn-group {
+
+        .card-footer {
           flex-wrap: wrap;
         }
-        .btn-group > button {
+
+        .card-footer > button {
           flex: 1 1 140px;
         }
+
         .subtitle-grid > .setting-group:first-child {
           flex-basis: 100%;
         }
+
+        .shortcut-row {
+          grid-template-columns: 1fr auto;
+        }
+
+        .shortcut-actions,
+        .shortcut-picker {
+          grid-column: 1 / -1;
+          justify-content: flex-start;
+        }
+
         .history-item {
           flex-wrap: wrap;
         }
+
         .history-actions {
-          margin: 12px 0 0;
           width: 100%;
+          margin: 10px 0 0;
           justify-content: flex-end;
         }
+
         .history-list {
           max-height: none;
-          padding-right: 0;
         }
-        .auto-save-indicator {
-          position: fixed;
-          top: auto;
-          bottom: 16px;
-          right: 16px;
+
+        .site-header-item {
+          flex-wrap: wrap;
+        }
+
+        .site-header-info {
+          flex-basis: 100%;
         }
       }
 
       @media (hover: none) and (pointer: coarse) {
-        button:hover,
-        .history-item:hover {
-          transform: none;
-          box-shadow: none;
+        .history-actions button {
+          width: 44px;
+          height: 44px;
         }
+
         .history-checkbox {
           width: 22px;
           height: 22px;
         }
-        .history-actions button {
-          width: 44px;
-          height: 44px;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
         }
       }
     </style>
   </head>
 
   <body>
-    <div class="container">
-      <span class="auto-save-indicator" id="auto-save-indicator">
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M10 0C4.48 0 0 4.48 0 10C0 15.52 4.48 20 10 20C15.52 20 20 15.52 20 10C20 4.48 15.52 0 10 0ZM8 15L3 10L4.41 8.59L8 12.17L15.59 4.58L17 6L8 15Z"
-            fill="currentColor"
-          />
-        </svg>
-        <span id="auto-save-text">Saved</span>
-      </span>
-
-      <div class="header">
-        <img src="/icons/icon.svg" alt="App Icon" width="96" height="96" />
-        <h1>HLS/DASH Player Settings</h1>
-        <p>Customize your streaming experience</p>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="#playback">
+          <img src="/icons/icon.svg" alt="" width="32" height="32" />
+          <span class="brand-name">HLS/DASH Player</span>
+          <span class="brand-sub">Settings</span>
+        </a>
+        <span class="auto-save-indicator" id="auto-save-indicator" role="status">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M10 0C4.48 0 0 4.48 0 10C0 15.52 4.48 20 10 20C15.52 20 20 15.52 20 10C20 4.48 15.52 0 10 0ZM8 15L3 10L4.41 8.59L8 12.17L15.59 4.58L17 6L8 15Z"
+              fill="currentColor"
+            />
+          </svg>
+          <span id="auto-save-text">Saved</span>
+        </span>
       </div>
+    </header>
 
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">Playback Settings</h2>
+    <div class="layout">
+      <nav class="sidenav" aria-label="Settings sections">
+        <div class="sidenav-title">Settings</div>
+        <a href="#playback">Playback</a>
+        <a href="#subtitles">Subtitles</a>
+        <a href="#shortcuts">Keyboard Shortcuts</a>
+        <a href="#site-headers">Site Headers</a>
+        <a href="#history">Watch History</a>
+      </nav>
+
+      <main>
+        <div class="page-head">
+          <h1>Settings</h1>
+          <p>Changes are saved automatically.</p>
         </div>
 
-        <div id="playback-settings-content">
-          <div class="setting-group">
-            <label for="volume" class="setting-label">Volume Level</label>
-            <div class="setting-control">
-              <input
-                type="range"
-                id="volume"
-                min="0"
-                max="1"
-                step="0.01"
-                value="1"
-                aria-label="Volume level"
-              />
-              <span class="setting-value" id="volume-label" aria-live="polite">100%</span>
-            </div>
+        <section class="card" id="playback">
+          <div class="card-header">
+            <h2 class="card-title">Playback</h2>
+            <p class="card-desc">Defaults used when a stream opens.</p>
           </div>
 
-          <div class="setting-group">
-            <label for="speed-display" class="setting-label">Playback Speed</label>
-            <div class="setting-control">
-              <div class="speed-controls">
-                <button class="speed-btn" id="speed-decrease">−</button>
-                <span class="speed-display" id="speed-display">1.0x</span>
-                <button class="speed-btn" id="speed-increase">+</button>
-                <button class="speed-reset" id="speed-reset">Reset</button>
+          <div class="card-body divided" id="playback-settings-content">
+            <div class="setting-group">
+              <label for="volume" class="setting-label">Volume</label>
+              <div class="setting-control">
+                <input
+                  type="range"
+                  id="volume"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value="1"
+                  aria-label="Volume level"
+                />
+                <span class="setting-value" id="volume-label" aria-live="polite">100%</span>
               </div>
             </div>
-            <div class="speed-presets">
-              <button class="speed-preset" data-speed="0.5">0.5x</button>
-              <button class="speed-preset" data-speed="0.75">0.75x</button>
-              <button class="speed-preset active" data-speed="1">1x</button>
-              <button class="speed-preset" data-speed="1.25">1.25x</button>
-              <button class="speed-preset" data-speed="1.5">1.5x</button>
-              <button class="speed-preset" data-speed="2">2x</button>
-            </div>
-          </div>
 
-          <div class="setting-group">
-            <label for="save-history" class="setting-label">Watch History</label>
-            <div class="toggle-row">
-              <span class="toggle-label">Save watch history</span>
-              <label class="toggle-switch">
+            <div class="setting-group">
+              <label for="speed-display" class="setting-label">Playback speed</label>
+              <div class="setting-control">
+                <div class="speed-controls">
+                  <button class="speed-btn" id="speed-decrease" aria-label="Slower">−</button>
+                  <span class="speed-display" id="speed-display">1.0x</span>
+                  <button class="speed-btn" id="speed-increase" aria-label="Faster">+</button>
+                  <button class="speed-reset" id="speed-reset">Reset</button>
+                </div>
+              </div>
+              <div class="speed-presets" role="group" aria-label="Speed presets">
+                <button class="speed-preset" data-speed="0.5">0.5x</button>
+                <button class="speed-preset" data-speed="0.75">0.75x</button>
+                <button class="speed-preset active" data-speed="1">1x</button>
+                <button class="speed-preset" data-speed="1.25">1.25x</button>
+                <button class="speed-preset" data-speed="1.5">1.5x</button>
+                <button class="speed-preset" data-speed="2">2x</button>
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <div class="toggle-row">
+                <div>
+                  <span class="setting-label">Watch history</span>
+                  <span class="toggle-label">Save streams you play and where you stopped</span>
+                </div>
+                <label class="toggle-switch">
+                  <input
+                    type="checkbox"
+                    id="save-history"
+                    checked
+                    aria-label="Toggle watch history saving"
+                  />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <label for="live-buffer-minutes" class="setting-label"
+                >Keep live stream while paused (minutes)</label
+              >
+              <div class="setting-control">
                 <input
-                  type="checkbox"
-                  id="save-history"
-                  checked
-                  aria-label="Toggle watch history saving"
+                  type="number"
+                  id="live-buffer-minutes"
+                  min="0"
+                  max="30"
+                  step="1"
+                  value="3"
+                  aria-describedby="live-buffer-hint"
                 />
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-          </div>
-
-          <div class="setting-group">
-            <label for="live-buffer-minutes" class="setting-label"
-              >Keep live stream while paused (minutes)</label
-            >
-            <div class="setting-control">
-              <input
-                type="number"
-                id="live-buffer-minutes"
-                min="0"
-                max="30"
-                step="1"
-                value="3"
-                aria-describedby="live-buffer-hint"
-              />
+              </div>
               <span class="setting-hint" id="live-buffer-hint"
                 >Default 3; 0 = off. Keeps downloading while paused so you can resume where you left
                 off. Higher values use more data and memory.</span
               >
             </div>
           </div>
-        </div>
 
-        <div class="btn-group">
-          <button
-            id="reset-settings"
-            class="btn-secondary"
-            aria-label="Reset playback settings to defaults"
-          >
-            <span>Reset to Defaults</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">Subtitle / Caption Settings</h2>
-        </div>
-
-        <div id="subtitle-settings-content">
-          <div class="subtitle-preview-container">
-            <div class="subtitle-preview" id="subtitle-preview">
-              <span class="subtitle-text">Sample Subtitle Text</span>
-            </div>
-          </div>
-
-          <!-- Main Row -->
-          <div class="subtitle-grid">
-            <div class="setting-group compact">
-              <label for="subtitle-font-size" class="setting-label">Font Size</label>
-              <div class="setting-control">
-                <input
-                  type="range"
-                  id="subtitle-font-size"
-                  min="50"
-                  max="400"
-                  step="5"
-                  value="100"
-                  style="flex: 1"
-                  aria-label="Subtitle font size"
-                />
-                <input
-                  type="number"
-                  id="subtitle-font-size-number"
-                  min="50"
-                  max="400"
-                  step="5"
-                  value="100"
-                  title="Font Size %"
-                  aria-label="Subtitle font size percentage"
-                />
-                <span class="setting-value" id="subtitle-font-size-label" style="display: none"
-                  >100%</span
-                >
-              </div>
-            </div>
-
-            <div class="setting-group compact">
-              <label for="subtitle-font-color" class="setting-label">Text Color</label>
-              <div class="setting-control color-control">
-                <input
-                  type="color"
-                  id="subtitle-font-color"
-                  value="#ffffff"
-                  aria-label="Subtitle text color"
-                />
-                <span class="color-value" id="subtitle-font-color-label">#ffffff</span>
-              </div>
-            </div>
-
-            <div class="setting-group compact">
-              <label for="subtitle-bg-color" class="setting-label">Bg Color</label>
-              <div class="setting-control color-control">
-                <input
-                  type="color"
-                  id="subtitle-bg-color"
-                  value="#000000"
-                  aria-label="Subtitle background color"
-                />
-                <span class="color-value" id="subtitle-bg-color-label">#000000</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Advanced Options Toggle -->
-          <div class="advanced-toggle-container">
+          <div class="card-footer">
             <button
-              id="toggle-advanced-subtitles"
-              class="btn-text"
-              aria-expanded="false"
-              aria-controls="advanced-subtitle-settings"
+              id="reset-settings"
+              class="btn-secondary"
+              aria-label="Reset playback settings to defaults"
             >
-              <span>More Options</span>
+              <span>Reset to Defaults</span>
             </button>
           </div>
+        </section>
 
-          <!-- Advanced Options (Hidden by default) -->
-          <div
-            id="advanced-subtitle-settings"
-            class="subtitle-grid hidden"
-            style="margin-top: 16px"
-            aria-hidden="true"
-          >
-            <div class="setting-group compact">
-              <label for="subtitle-bg-opacity" class="setting-label">Bg Opacity</label>
-              <div class="setting-control">
-                <input
-                  type="range"
-                  id="subtitle-bg-opacity"
-                  min="0"
-                  max="100"
-                  step="5"
-                  value="80"
-                  aria-label="Background opacity"
-                />
-                <input
-                  type="number"
-                  id="subtitle-bg-opacity-number"
-                  min="0"
-                  max="100"
-                  step="5"
-                  value="80"
-                  title="Background Opacity %"
-                  aria-label="Background opacity percentage"
-                />
-                <span class="setting-value" id="subtitle-bg-opacity-label" style="display: none"
-                  >80%</span
-                >
+        <section class="card" id="subtitles">
+          <div class="card-header">
+            <h2 class="card-title">Subtitles &amp; Captions</h2>
+            <p class="card-desc">How captions look on top of the video.</p>
+          </div>
+
+          <div class="card-body" id="subtitle-settings-content">
+            <div class="subtitle-preview-container">
+              <div class="subtitle-preview" id="subtitle-preview">
+                <span class="subtitle-text">Sample Subtitle Text</span>
               </div>
             </div>
 
-            <div class="setting-group compact">
-              <label for="subtitle-font-family" class="setting-label">Font Family</label>
-              <div class="setting-control">
-                <select
-                  id="subtitle-font-family"
-                  class="select-input"
-                  aria-label="Subtitle font family"
-                >
-                  <option value="sans-serif">Sans-Serif</option>
-                  <option value="serif">Serif</option>
-                  <option value="monospace">Monospace</option>
-                  <option value="cursive">Cursive</option>
-                </select>
+            <div class="subtitle-grid">
+              <div class="setting-group compact">
+                <label for="subtitle-font-size" class="setting-label">Font size (%)</label>
+                <div class="setting-control">
+                  <input
+                    type="range"
+                    id="subtitle-font-size"
+                    min="50"
+                    max="400"
+                    step="5"
+                    value="100"
+                    aria-label="Subtitle font size"
+                  />
+                  <input
+                    type="number"
+                    id="subtitle-font-size-number"
+                    min="50"
+                    max="400"
+                    step="5"
+                    value="100"
+                    title="Font Size %"
+                    aria-label="Subtitle font size percentage"
+                  />
+                  <span class="setting-value hidden" id="subtitle-font-size-label">100%</span>
+                </div>
+              </div>
+
+              <div class="setting-group compact">
+                <label for="subtitle-font-color" class="setting-label">Text color</label>
+                <div class="setting-control color-control">
+                  <input
+                    type="color"
+                    id="subtitle-font-color"
+                    value="#ffffff"
+                    aria-label="Subtitle text color"
+                  />
+                  <span class="color-value" id="subtitle-font-color-label">#ffffff</span>
+                </div>
+              </div>
+
+              <div class="setting-group compact">
+                <label for="subtitle-bg-color" class="setting-label">Background</label>
+                <div class="setting-control color-control">
+                  <input
+                    type="color"
+                    id="subtitle-bg-color"
+                    value="#000000"
+                    aria-label="Subtitle background color"
+                  />
+                  <span class="color-value" id="subtitle-bg-color-label">#000000</span>
+                </div>
               </div>
             </div>
 
-            <div class="setting-group compact">
-              <label for="subtitle-edge-style" class="setting-label">Edge Style</label>
-              <div class="setting-control">
-                <select
-                  id="subtitle-edge-style"
-                  class="select-input"
-                  aria-label="Subtitle edge style"
+            <div class="advanced-toggle-container">
+              <button
+                id="toggle-advanced-subtitles"
+                class="btn-text"
+                aria-expanded="false"
+                aria-controls="advanced-subtitle-settings"
+              >
+                <span>More Options</span>
+              </button>
+            </div>
+
+            <div
+              id="advanced-subtitle-settings"
+              class="subtitle-grid hidden"
+              style="margin-top: 16px"
+              aria-hidden="true"
+            >
+              <div class="setting-group compact">
+                <label for="subtitle-bg-opacity" class="setting-label"
+                  >Background opacity (%)</label
                 >
-                  <option value="none">None</option>
-                  <option value="shadow">Shadow</option>
-                  <option value="raised">Raised</option>
-                  <option value="depressed">Depressed</option>
-                  <option value="outline">Outline</option>
-                </select>
+                <div class="setting-control">
+                  <input
+                    type="range"
+                    id="subtitle-bg-opacity"
+                    min="0"
+                    max="100"
+                    step="5"
+                    value="80"
+                    aria-label="Background opacity"
+                  />
+                  <input
+                    type="number"
+                    id="subtitle-bg-opacity-number"
+                    min="0"
+                    max="100"
+                    step="5"
+                    value="80"
+                    title="Background Opacity %"
+                    aria-label="Background opacity percentage"
+                  />
+                  <span class="setting-value hidden" id="subtitle-bg-opacity-label">80%</span>
+                </div>
+              </div>
+
+              <div class="setting-group compact">
+                <label for="subtitle-font-family" class="setting-label">Font family</label>
+                <div class="setting-control">
+                  <select
+                    id="subtitle-font-family"
+                    class="select-input"
+                    aria-label="Subtitle font family"
+                  >
+                    <option value="sans-serif">Sans-Serif</option>
+                    <option value="serif">Serif</option>
+                    <option value="monospace">Monospace</option>
+                    <option value="cursive">Cursive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="setting-group compact">
+                <label for="subtitle-edge-style" class="setting-label">Edge style</label>
+                <div class="setting-control">
+                  <select
+                    id="subtitle-edge-style"
+                    class="select-input"
+                    aria-label="Subtitle edge style"
+                  >
+                    <option value="none">None</option>
+                    <option value="shadow">Shadow</option>
+                    <option value="raised">Raised</option>
+                    <option value="depressed">Depressed</option>
+                    <option value="outline">Outline</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="btn-group" style="margin-top: 24px">
-          <button
-            id="reset-subtitle-settings"
-            class="btn-secondary"
-            aria-label="Reset subtitle settings to defaults"
-          >
-            <span>Reset Defaults</span>
-          </button>
-        </div>
-      </div>
+          <div class="card-footer">
+            <button
+              id="reset-subtitle-settings"
+              class="btn-secondary"
+              aria-label="Reset subtitle settings to defaults"
+            >
+              <span>Reset to Defaults</span>
+            </button>
+          </div>
+        </section>
 
-      <div class="card" id="shortcuts">
-        <div class="card-header">
-          <h2 class="card-title">Keyboard Shortcuts</h2>
-        </div>
-        <p class="setting-hint" style="margin: 0 0 16px">
-          Click <strong>+ Add key</strong>, then press a key or pick one from the list. Each key can
-          only do one thing; picking a key that is already in use moves it. Number keys (seek to
-          0–90%) and Esc are fixed. Changes apply to open players right away.
-        </p>
-        <div id="shortcut-editor" class="shortcut-editor"></div>
-        <div class="btn-group">
-          <button id="reset-shortcuts" class="btn-secondary" type="button">
-            <span>Reset All Shortcuts</span>
-          </button>
-        </div>
-      </div>
+        <section class="card" id="shortcuts">
+          <div class="card-header">
+            <h2 class="card-title">Keyboard Shortcuts</h2>
+            <p class="card-desc">Changes apply to open players right away.</p>
+          </div>
+          <div class="card-body">
+            <p class="lead">
+              Click <strong>+ Add key</strong>, then press a key or pick one from the list. Each key
+              can only do one thing; picking a key that is already in use moves it. Number keys
+              (seek to 0–90%) and Esc are fixed.
+            </p>
+            <div id="shortcut-editor" class="shortcut-editor"></div>
+          </div>
+          <div class="card-footer">
+            <button id="reset-shortcuts" class="btn-secondary" type="button">
+              <span>Reset All Shortcuts</span>
+            </button>
+          </div>
+        </section>
 
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">Site Headers</h2>
-        </div>
-        <p class="setting-hint" style="margin: 0 0 16px">
-          Some sites only serve streams to their own pages and answer the player with 403 Forbidden.
-          Headers listed here are sent with the player's requests to that host and its subdomains.
-        </p>
+        <section class="card" id="site-headers">
+          <div class="card-header">
+            <h2 class="card-title">Site Headers</h2>
+            <p class="card-desc">For streams that answer the player with 403 Forbidden.</p>
+          </div>
+          <div class="card-body">
+            <p class="lead">
+              Some sites only serve streams to their own pages. Headers listed here are sent with
+              the player's requests to that host and its subdomains.
+            </p>
 
-        <div class="setting-group">
-          <div class="toggle-row">
-            <span class="toggle-label">Remember the page a stream link was opened from</span>
-            <label class="toggle-switch">
+            <div class="divided">
+              <div class="setting-group">
+                <div class="toggle-row">
+                  <span class="toggle-label">Remember the page a stream link was opened from</span>
+                  <label class="toggle-switch">
+                    <input
+                      type="checkbox"
+                      id="auto-site-headers"
+                      aria-label="Remember Referer and Origin of the page a stream was opened from"
+                    />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <span class="setting-hint"
+                  >Off by default. When on, clicking a stream link saves that page's address as
+                  Referer and Origin for the stream host. Rules you edit are never
+                  overwritten.</span
+                >
+              </div>
+
+              <div class="setting-group">
+                <div class="toggle-row">
+                  <span class="toggle-label">Detect streams on pages</span>
+                  <label class="toggle-switch">
+                    <input
+                      type="checkbox"
+                      id="detect-streams"
+                      aria-label="Detect streams that pages load"
+                      aria-describedby="detect-streams-hint"
+                    />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <span class="setting-hint" id="detect-streams-hint"
+                  >Lists the streams a page plays in the toolbar popup, so you can open them here
+                  with the headers the page used (Referer, cookies, tokens). Needs permission to
+                  read request headers. Captured headers stay in memory, are only sent from the
+                  player tab, and are cleared when you leave the page.</span
+                >
+              </div>
+            </div>
+
+            <h3 class="setting-label" style="margin-top: 24px">Saved rules</h3>
+            <div id="site-headers-list" class="site-headers-list"></div>
+
+            <form id="site-headers-form" class="site-headers-form">
+              <label for="site-headers-host" class="setting-label">Stream host</label>
               <input
-                type="checkbox"
-                id="auto-site-headers"
-                aria-label="Remember Referer and Origin of the page a stream was opened from"
+                type="text"
+                id="site-headers-host"
+                class="search-input"
+                placeholder="cdn.example.com"
+                autocomplete="off"
+                required
               />
-              <span class="toggle-slider"></span>
-            </label>
+              <label for="site-headers-text" class="setting-label">Headers, one per line</label>
+              <textarea
+                id="site-headers-text"
+                class="search-input"
+                rows="4"
+                placeholder="Referer: https://site.example/&#10;Cookie: session=..."
+                spellcheck="false"
+              ></textarea>
+              <div class="btn-group">
+                <button type="submit" class="btn-primary"><span>Save Site Headers</span></button>
+                <button type="reset" class="btn-secondary"><span>Clear Form</span></button>
+              </div>
+            </form>
           </div>
-          <span class="setting-hint"
-            >Off by default. When on, clicking a stream link saves that page's address as Referer
-            and Origin for the stream host. Rules you edit are never overwritten.</span
-          >
-        </div>
+        </section>
 
-        <div class="setting-group">
-          <div class="toggle-row">
-            <span class="toggle-label">Detect streams on pages</span>
-            <label class="toggle-switch">
+        <section class="card" id="history">
+          <div class="card-header">
+            <h2 class="card-title">Watch History</h2>
+            <p class="card-desc">Pin streams to keep them; pinned items can't be deleted.</p>
+          </div>
+          <div class="card-body">
+            <div class="search-box">
               <input
-                type="checkbox"
-                id="detect-streams"
-                aria-label="Detect streams that pages load"
-                aria-describedby="detect-streams-hint"
+                type="search"
+                id="history-search"
+                class="search-input"
+                placeholder="Search history by title or URL..."
+                aria-label="Search watch history"
               />
-              <span class="toggle-slider"></span>
-            </label>
+            </div>
+
+            <div class="batch-actions" id="batch-actions">
+              <span class="batch-actions-text"><span id="selected-count">0</span> selected</span>
+              <button id="delete-selected" class="btn-danger">Delete Selected</button>
+            </div>
+
+            <div id="history-list" class="history-list">
+              <div class="history-empty">Loading history...</div>
+            </div>
           </div>
-          <span class="setting-hint" id="detect-streams-hint"
-            >Lists the streams a page plays in the toolbar popup, so you can open them here with the
-            headers the page used (Referer, cookies, tokens). Needs permission to read request
-            headers. Captured headers stay in memory, are only sent from the player tab, and are
-            cleared when you leave the page.</span
-          >
-        </div>
-
-        <div id="site-headers-list" class="site-headers-list"></div>
-
-        <form id="site-headers-form" class="site-headers-form">
-          <label for="site-headers-host" class="setting-label">Stream host</label>
-          <input
-            type="text"
-            id="site-headers-host"
-            class="search-input"
-            placeholder="cdn.example.com"
-            autocomplete="off"
-            required
-          />
-          <label for="site-headers-text" class="setting-label">Headers, one per line</label>
-          <textarea
-            id="site-headers-text"
-            class="search-input"
-            rows="4"
-            placeholder="Referer: https://site.example/&#10;Cookie: session=..."
-            spellcheck="false"
-          ></textarea>
-          <div class="btn-group">
-            <button type="submit" class="btn-primary"><span>Save Site Headers</span></button>
-            <button type="reset" class="btn-secondary"><span>Clear Form</span></button>
+          <div class="card-footer">
+            <button id="clear-history" class="btn-danger" aria-label="Clear all watch history">
+              <span>Clear All History</span>
+            </button>
           </div>
-        </form>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">Watch History</h2>
-        </div>
-
-        <div class="search-box">
-          <input
-            type="search"
-            id="history-search"
-            class="search-input"
-            placeholder="Search history by title or URL..."
-            aria-label="Search watch history"
-          />
-        </div>
-
-        <div class="batch-actions" id="batch-actions">
-          <span class="batch-actions-text"><span id="selected-count">0</span> selected</span>
-          <button
-            id="delete-selected"
-            class="btn-danger"
-            style="flex: none; width: auto; padding: 8px 16px"
-          >
-            Delete Selected
-          </button>
-        </div>
-
-        <div id="history-list" class="history-list">
-          <div class="history-empty">Loading history...</div>
-        </div>
-
-        <div class="btn-group">
-          <button id="clear-history" class="btn-danger" aria-label="Clear all watch history">
-            <span>Clear All History</span>
-          </button>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
 
     <script type="module" src="./pages/options/main.ts"></script>
