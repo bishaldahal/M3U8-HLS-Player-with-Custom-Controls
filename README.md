@@ -79,6 +79,7 @@ Read [docs/building.md](docs/building.md) for the details of the build pipeline.
 | `npm run build`                          | Build both targets into `dist/`                   |
 | `npm run build:chrome` / `build:firefox` | Build one target                                  |
 | `npm run start:chrome` / `start:firefox` | Launch a browser with the build loaded (web-ext)  |
+| `npm run start:android`                  | Run the build in Firefox for Android over adb     |
 | `npm test` / `npm run test:watch`        | Run the unit tests (Vitest)                       |
 | `npm run lint` / `npm run typecheck`     | ESLint and TypeScript checks                      |
 | `npm run format`                         | Format with Prettier                              |

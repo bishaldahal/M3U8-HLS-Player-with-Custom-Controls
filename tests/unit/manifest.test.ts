@@ -16,6 +16,14 @@ describe('buildManifest', () => {
     expect(m.browser_specific_settings).toMatchObject({ gecko: { id: FIREFOX_ADDON_ID } });
   });
 
+  it('declares Firefox for Android support', () => {
+    const m = buildManifest('firefox', '1.2.3');
+    expect(m.browser_specific_settings).toMatchObject({
+      gecko: { strict_min_version: '140.0' },
+      gecko_android: { strict_min_version: '142.0' },
+    });
+  });
+
   it('references files emitted by the build', () => {
     const m = buildManifest('chrome', '1.0.0');
     expect(m.content_scripts?.[0]?.js).toEqual(['js/content.js']);

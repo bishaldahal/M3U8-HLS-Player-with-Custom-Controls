@@ -10,6 +10,10 @@ const NAME: Record<Browser, string> = {
 
 export const FIREFOX_ADDON_ID = '{1dcebb07-6afe-48b8-9b52-2dd1d15979e4}';
 
+// data_collection_permissions needs Firefox 140 on desktop and 142 on Android.
+const FIREFOX_MIN_VERSION = '140.0';
+const FIREFOX_ANDROID_MIN_VERSION = '142.0';
+
 export function buildManifest(browser: Browser, version: string): Manifest {
   const base: Manifest = {
     manifest_version: 3,
@@ -50,8 +54,10 @@ export function buildManifest(browser: Browser, version: string): Manifest {
     browser_specific_settings: {
       gecko: {
         id: FIREFOX_ADDON_ID,
+        strict_min_version: FIREFOX_MIN_VERSION,
         data_collection_permissions: { required: ['none'] },
       },
+      gecko_android: { strict_min_version: FIREFOX_ANDROID_MIN_VERSION },
     },
   };
 }

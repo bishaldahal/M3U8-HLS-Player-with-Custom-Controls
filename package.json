@@ -26,6 +26,7 @@
     "build:firefox": "npm run build:icons && tsx scripts/build.ts firefox",
     "start:chrome": "npm run build:chrome && web-ext run -s dist/chrome -t chromium",
     "start:firefox": "npm run build:firefox && web-ext run -s dist/firefox --firefox-profile ./.web-ext-profile --profile-create-if-missing --keep-profile-changes",
+    "start:android": "npm run build:firefox && web-ext run -s dist/firefox -t firefox-android --firefox-apk org.mozilla.firefox",
     "lint": "eslint .",
     "lint:ext": "web-ext lint -s dist/firefox",
     "format": "prettier --write .",
