@@ -93,5 +93,8 @@ PUBLISHERS[store]()
   .then(() => console.log(`✓ Published to ${store}`))
   .catch((error: unknown) => {
     console.error(`✗ ${store}:`, error instanceof Error ? error.message : error);
+    // got's HTTPError keeps the store's explanation in the response body.
+    const response = (error as { response?: { url?: string; body?: unknown } }).response;
+    if (response) console.error(`  ${response.url ?? ''}\n  ${String(response.body ?? '')}`);
     process.exit(1);
   });
