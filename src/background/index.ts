@@ -10,9 +10,11 @@ import {
   upsertSiteHeaders,
 } from '../lib/site-headers';
 import { detectStreamType, safeUrlParse, type StreamType } from '../lib/stream';
+import { isFeatureUpdate } from '../lib/version';
 import { findDetected, getDetected, startStreamDetection } from './detect';
 
 const WELCOME_URL = 'https://extension.bishalbabudahal.com.np/docs';
+const WHATS_NEW_URL = 'https://extension.bishalbabudahal.com.np/#whats-new';
 
 interface PlayMessage {
   command?: string;
@@ -220,5 +222,10 @@ ext.storage.onChanged.addListener((changes, areaName) => {
 ext.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
     void ext.tabs.create({ url: WELCOME_URL });
+  } else if (
+    details.reason === 'update' &&
+    isFeatureUpdate(details.previousVersion, ext.runtime.getManifest().version)
+  ) {
+    void ext.tabs.create({ url: WHATS_NEW_URL });
   }
 });
