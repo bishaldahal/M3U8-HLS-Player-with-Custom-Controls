@@ -28,6 +28,7 @@ import {
 import { getEdgeStyleCSS, hexToRgba } from '../../lib/subtitles';
 import { formatRelativeTime, formatTime } from '../../lib/time';
 import { createIcon, createSpinner, toast } from '../../lib/ui-feedback';
+import { setupShortcutEditor } from './shortcuts';
 
 const AUTO_SAVE_DEBOUNCE_MS = 300;
 const MAX_HISTORY_DISPLAY = 50;
@@ -611,6 +612,8 @@ async function init(): Promise<void> {
       toast.success('Subtitle settings reset');
     }
   });
+
+  await setupShortcutEditor();
 
   dom.historySearch.addEventListener('input', renderHistory);
   dom.deleteSelectedBtn.addEventListener('click', () => void deleteSelected());

@@ -352,6 +352,18 @@ media-time-range {
   transform: translateY(-2px);
 }
 
+#customize-shortcuts {
+  display: inline-block;
+  margin-bottom: 20px;
+  color: #58a6ff;
+  font-size: 14px;
+}
+
+.key-none {
+  color: #6e7681;
+  font-style: italic;
+}
+
 /* Shared overlay (playback error + DRM prompt) */
 .overlay {
   position: fixed;
