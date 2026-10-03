@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.1](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/compare/v2.1.0...v2.1.1) (2026-10-03)
+
+
+### Bug Fixes
+
+* **publish:** omit malformed Edge certification notes ([80a2dd6](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/80a2dd628eebb11d63e70fe72b065255db2617ea))
+
 ## [2.1.0](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/compare/v2.0.0...v2.1.0) (2026-10-03)
 
 
