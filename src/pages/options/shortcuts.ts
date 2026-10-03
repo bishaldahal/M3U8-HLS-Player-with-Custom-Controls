@@ -39,7 +39,7 @@ async function commit(next: ShortcutBindings, message?: string): Promise<void> {
     if (message) toast.success(message);
   } catch (error) {
     console.error('Failed to save shortcuts:', error);
-    toast.error('Failed to save shortcuts');
+    toast.error('Shortcuts could not be saved. Try again.');
     bindings = previous;
     render();
   }
@@ -47,7 +47,7 @@ async function commit(next: ShortcutBindings, message?: string): Promise<void> {
 
 function tryAssign(target: ShortcutAction, key: string): void {
   if (bindings[target].includes(key)) {
-    toast.info(`${keyLabel(key)} is already set for this action`);
+    toast.info(`${keyLabel(key)} is already assigned to this action.`);
     return;
   }
   const owner = actionForKey(bindings, key);
@@ -58,7 +58,9 @@ function tryAssign(target: ShortcutAction, key: string): void {
   const label = keyLabel(key);
   void commit(
     assignKey(bindings, target, key),
-    owner ? `${label} moved from "${getActionDef(owner).description}"` : `${label} assigned`,
+    owner
+      ? `${label} moved to "${getActionDef(target).description}".`
+      : `${label} assigned to "${getActionDef(target).description}".`,
   );
 }
 
