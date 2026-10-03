@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>HLS/DASH Player</title>
     <!-- Vendor web components (fetched by scripts/fetch-vendor.ts, not bundled) -->
     <script type="module" src="/vendor/hls-video-element.js"></script>
@@ -12,6 +13,12 @@
 
   <body>
     <media-controller defaultsubtitles liveedgeoffset="5" noautoseektolive>
+      <div class="gesture-layer" slot="gestures-chrome" noautohide>
+        <span class="seek-feedback" data-side="left" aria-hidden="true"></span>
+        <span class="seek-feedback" data-side="right" aria-hidden="true"></span>
+        <span class="rate-feedback" role="status" hidden>2× ▸▸</span>
+      </div>
+      <media-play-button class="center-play" slot="centered-chrome"></media-play-button>
       <media-loading-indicator slot="centered-chrome"></media-loading-indicator>
       <media-audio-track-menu hidden anchor="auto"></media-audio-track-menu>
       <media-rendition-menu hidden anchor="auto"></media-rendition-menu>

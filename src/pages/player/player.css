@@ -29,6 +29,146 @@ media-time-range {
   --media-range-bar-color: #fa50b5;
 }
 
+/* Touch gestures: replaces media-chrome's default gesture receiver */
+.gesture-layer {
+  position: relative;
+  align-self: stretch;
+  flex-grow: 1;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+}
+
+.seek-feedback {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 38%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font:
+    600 16px system-ui,
+    sans-serif;
+  line-height: 1;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  background: rgba(255, 255, 255, 0.12);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.seek-feedback[data-side='left'] {
+  left: 0;
+  border-radius: 0 50% 50% 0 / 0 50% 50% 0;
+}
+
+.seek-feedback[data-side='right'] {
+  right: 0;
+  border-radius: 50% 0 0 50% / 50% 0 0 50%;
+}
+
+.seek-feedback.show {
+  opacity: 1;
+  transition: none;
+  animation: seek-pulse 0.3s ease-out;
+}
+
+@keyframes seek-pulse {
+  from {
+    background: rgba(255, 255, 255, 0.25);
+  }
+}
+
+.rate-feedback {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font:
+    600 14px system-ui,
+    sans-serif;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
+.rate-feedback[hidden] {
+  display: none;
+}
+
+.center-play {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seek-feedback.show {
+    animation: none;
+  }
+}
+
+/* Phones and tablets */
+@media (pointer: coarse) {
+  body {
+    margin: 0;
+  }
+
+  media-controller {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  media-control-bar {
+    --media-control-height: 28px;
+    --media-button-icon-width: 28px;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Volume is set with the hardware buttons; seek buttons are replaced by double-tap. */
+  media-volume-range,
+  media-mute-button,
+  media-seek-backward-button,
+  media-seek-forward-button,
+  media-control-bar > media-play-button,
+  media-pip-button {
+    display: none;
+  }
+
+  .center-play {
+    display: inline-flex;
+    width: 72px;
+    height: 72px;
+    padding: 16px;
+    border-radius: 50%;
+    --media-control-background: rgba(255, 255, 255, 0.16);
+    --media-control-hover-background: rgba(255, 255, 255, 0.24);
+    --media-button-icon-width: 40px;
+    --media-button-icon-height: 40px;
+  }
+
+  media-loading-indicator {
+    position: absolute;
+  }
+}
+
+@media (pointer: coarse) and (max-width: 480px) {
+  media-playback-rate-button {
+    display: none;
+  }
+
+  media-time-display {
+    padding-inline: 4px;
+    font-size: 13px;
+  }
+}
+
 /* Keyboard shortcuts modal */
 .keyboard-shortcuts {
   padding: 40px;

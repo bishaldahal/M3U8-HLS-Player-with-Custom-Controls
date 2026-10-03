@@ -26,7 +26,7 @@ function seekToFraction(video: HTMLVideoElement, fraction: number): void {
   }
 }
 
-function seekBy(video: HTMLVideoElement, seconds: number): void {
+export function seekBy(video: HTMLVideoElement, seconds: number): void {
   video.currentTime += seconds;
   state.resumePosition = video.currentTime;
 }
@@ -105,14 +105,6 @@ export function setupKeyboard(controller: HTMLElement): void {
   });
 
   document.getElementById('close-shortcuts')!.addEventListener('click', () => setModalOpen(false));
-
-  controller.addEventListener('dblclick', () => {
-    if (document.fullscreenElement) {
-      document.exitFullscreen?.();
-    } else {
-      controller.requestFullscreen?.();
-    }
-  });
 
   controller.addEventListener('keydown', handlePlayerKey);
 }

@@ -12,6 +12,7 @@ import { detectStreamType, parseStreamUrl, safeUrlParse } from '../../lib/stream
 import { buildCueCss } from '../../lib/subtitles';
 import { setupDashDrm } from './drm';
 import { clearPlaybackErrorUI, setSiteHeadersAction, showFatalError } from './errors';
+import { setupGestures } from './gestures';
 import { setupKeyboard } from './keyboard';
 import { createStreamElement, setupPlaybackErrorHandlers } from './media';
 import { showSiteHeadersDialog } from './site-headers';
@@ -314,6 +315,7 @@ async function init(): Promise<void> {
   setupResumeTracking(video);
   setupPersistence(video);
   setupKeyboard(controller);
+  setupGestures(controller);
   video.focus();
 }
 
