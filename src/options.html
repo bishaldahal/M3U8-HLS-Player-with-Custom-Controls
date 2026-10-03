@@ -219,10 +219,10 @@
       .layout {
         max-width: 1120px;
         margin: 0 auto;
-        padding: 32px 24px 64px;
+        padding: 28px 24px 56px;
         display: grid;
         grid-template-columns: 200px minmax(0, 1fr);
-        gap: 32px;
+        gap: 28px;
         align-items: start;
       }
 
@@ -269,7 +269,7 @@
       }
 
       .page-head {
-        margin-bottom: 24px;
+        margin-bottom: 20px;
       }
 
       .page-head h1 {
@@ -289,11 +289,12 @@
         border: 1px solid var(--border);
         border-radius: var(--radius);
         box-shadow: var(--shadow);
-        margin-bottom: 24px;
+        margin-bottom: 20px;
+        scroll-margin-top: 80px;
       }
 
       .card-header {
-        padding: 16px 24px;
+        padding: 14px 20px;
         border-bottom: 1px solid var(--border);
         background: var(--surface-2);
         border-radius: var(--radius) var(--radius) 0 0;
@@ -312,14 +313,14 @@
       }
 
       .card-body {
-        padding: 24px;
+        padding: 20px;
       }
 
       .card-footer {
         display: flex;
         justify-content: flex-end;
         gap: 8px;
-        padding: 12px 24px;
+        padding: 10px 20px;
         border-top: 1px solid var(--border);
         background: var(--surface-2);
         border-radius: 0 0 var(--radius) var(--radius);
@@ -327,7 +328,7 @@
 
       /* ---------- Form controls ---------- */
       .setting-group {
-        margin-bottom: 24px;
+        margin-bottom: 20px;
       }
 
       .setting-group:last-child {
@@ -352,13 +353,17 @@
         display: block;
         color: var(--muted);
         font-size: 13px;
+        line-height: 1.55;
         margin-top: 6px;
+        max-width: 72ch;
       }
 
       .lead {
         margin: 0 0 20px;
         color: var(--text-2);
         font-size: 13px;
+        line-height: 1.55;
+        max-width: 72ch;
       }
 
       input[type='range'] {
@@ -417,6 +422,12 @@
 
       .search-input::placeholder {
         color: var(--muted);
+      }
+
+      input[type='number']:hover,
+      .select-input:hover,
+      .search-input:hover {
+        border-color: var(--hover-border);
       }
 
       .setting-value {
@@ -494,6 +505,20 @@
 
       .btn-text:hover:not(:disabled) {
         text-decoration: underline;
+      }
+
+      #toggle-advanced-subtitles::after {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-right: 1.5px solid currentColor;
+        border-bottom: 1.5px solid currentColor;
+        transform: rotate(45deg) translateY(-2px);
+        transition: transform 0.15s;
+      }
+
+      #toggle-advanced-subtitles[aria-expanded='true']::after {
+        transform: rotate(225deg) translate(-1px, -1px);
       }
 
       .btn-group {
@@ -589,6 +614,10 @@
         color: var(--text);
       }
 
+      label.toggle-label {
+        cursor: pointer;
+      }
+
       .toggle-switch {
         position: relative;
         flex: none;
@@ -641,8 +670,8 @@
       }
 
       .divided > .setting-group {
-        padding-bottom: 20px;
-        margin-bottom: 20px;
+        padding-bottom: 16px;
+        margin-bottom: 16px;
         border-bottom: 1px solid var(--divider);
       }
 
@@ -769,6 +798,10 @@
       }
 
       .shortcut-row:hover {
+        background: var(--surface-2);
+      }
+
+      .shortcut-row:focus-within {
         background: var(--surface-2);
       }
 
@@ -985,6 +1018,10 @@
       }
 
       .history-item:hover {
+        background: var(--surface-2);
+      }
+
+      .history-item:focus-within {
         background: var(--surface-2);
       }
 
@@ -1217,6 +1254,21 @@
           padding-right: 16px;
         }
 
+        .card-header {
+          padding-top: 16px;
+          padding-bottom: 16px;
+        }
+
+        .card-body {
+          padding-top: 20px;
+          padding-bottom: 20px;
+        }
+
+        .card-footer {
+          padding-top: 12px;
+          padding-bottom: 12px;
+        }
+
         .card-footer {
           flex-wrap: wrap;
         }
@@ -1375,7 +1427,9 @@
               <div class="toggle-row">
                 <div>
                   <span class="setting-label">Watch history</span>
-                  <span class="toggle-label">Save streams you play and where you stopped</span>
+                  <label class="toggle-label" for="save-history"
+                    >Save streams you play and where you stopped</label
+                  >
                 </div>
                 <label class="toggle-switch">
                   <input
@@ -1614,7 +1668,9 @@
             <div class="divided">
               <div class="setting-group">
                 <div class="toggle-row">
-                  <span class="toggle-label">Remember the page a stream link was opened from</span>
+                  <label class="toggle-label" for="auto-site-headers"
+                    >Remember the page a stream link was opened from</label
+                  >
                   <label class="toggle-switch">
                     <input
                       type="checkbox"
@@ -1633,7 +1689,7 @@
 
               <div class="setting-group">
                 <div class="toggle-row">
-                  <span class="toggle-label">Detect streams on pages</span>
+                  <label class="toggle-label" for="detect-streams">Detect streams on pages</label>
                   <label class="toggle-switch">
                     <input
                       type="checkbox"
