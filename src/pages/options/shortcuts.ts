@@ -85,7 +85,7 @@ function keyPicker(id: ShortcutAction): HTMLElement {
   const capture = document.createElement('button');
   capture.type = 'button';
   capture.className = 'shortcut-capture';
-  capture.textContent = 'Press a key…';
+  capture.textContent = 'Listening: press a key';
   capture.setAttribute('aria-label', `Press a key for ${getActionDef(id).description}`);
   capture.addEventListener('keydown', (event) => {
     if (event.key === 'Tab') return;
@@ -109,7 +109,7 @@ function keyPicker(id: ShortcutAction): HTMLElement {
   const select = document.createElement('select');
   select.className = 'select-input shortcut-select';
   select.setAttribute('aria-label', `Choose a key for ${getActionDef(id).description}`);
-  const placeholder = new Option('…or choose a key', '');
+  const placeholder = new Option('Or choose a key', '');
   placeholder.disabled = true;
   placeholder.selected = true;
   select.add(placeholder);
@@ -158,6 +158,8 @@ function renderRow(id: ShortcutAction): HTMLElement {
 
   const keys = document.createElement('div');
   keys.className = 'shortcut-keys';
+  keys.setAttribute('role', 'group');
+  keys.setAttribute('aria-label', `Assigned shortcuts for ${def.description}`);
   if (bindings[id].length === 0) {
     const none = document.createElement('span');
     none.className = 'shortcut-none';
@@ -169,12 +171,13 @@ function renderRow(id: ShortcutAction): HTMLElement {
   const actions = document.createElement('div');
   actions.className = 'shortcut-actions';
   if (capturing === id) {
+    row.classList.add('is-editing');
     actions.appendChild(keyPicker(id));
   } else {
     const add = document.createElement('button');
     add.type = 'button';
     add.className = 'btn-secondary shortcut-small-btn';
-    add.textContent = '+ Add key';
+    add.textContent = 'Add shortcut';
     add.disabled = bindings[id].length >= MAX_KEYS_PER_ACTION;
     add.title = add.disabled ? `At most ${MAX_KEYS_PER_ACTION} keys per action` : '';
     add.addEventListener('click', () => {

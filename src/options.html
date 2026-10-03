@@ -767,7 +767,7 @@
 
       /* ---------- Shortcuts ---------- */
       .shortcut-group + .shortcut-group {
-        margin-top: 24px;
+        margin-top: 20px;
       }
 
       .shortcut-group-title {
@@ -786,10 +786,10 @@
 
       .shortcut-row {
         display: grid;
-        grid-template-columns: minmax(160px, 1fr) minmax(120px, 1fr) auto;
+        grid-template-columns: minmax(180px, 1.2fr) minmax(140px, 1fr) auto;
         align-items: center;
         gap: 12px;
-        padding: 10px 14px;
+        padding: 12px 14px;
         border-top: 1px solid var(--divider);
       }
 
@@ -803,6 +803,14 @@
 
       .shortcut-row:focus-within {
         background: var(--surface-2);
+      }
+
+      .shortcut-row.is-editing {
+        background: var(--surface-2);
+      }
+
+      .shortcut-name {
+        font-weight: 500;
       }
 
       .shortcut-keys {
@@ -854,13 +862,26 @@
         font-style: italic;
       }
 
-      .shortcut-actions,
-      .shortcut-picker {
+      .shortcut-actions {
         display: flex;
         align-items: center;
         justify-content: flex-end;
         flex-wrap: wrap;
         gap: 8px;
+      }
+
+      .shortcut-row.is-editing .shortcut-actions {
+        grid-column: 1 / -1;
+        padding-top: 12px;
+        border-top: 1px solid var(--divider);
+      }
+
+      .shortcut-picker {
+        display: grid;
+        grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.35fr) auto;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
       }
 
       .shortcut-small-btn {
@@ -875,11 +896,11 @@
       }
 
       .shortcut-capture {
-        height: 30px;
-        padding: 0 12px;
+        height: 36px;
+        padding: 0 14px;
         font-size: 13px;
         background: var(--brand-tint);
-        border: 1px dashed var(--brand-hover);
+        border: 1px solid var(--brand-hover);
         color: var(--brand-ink);
       }
 
@@ -889,9 +910,8 @@
       }
 
       .shortcut-select {
-        flex: none;
-        height: 30px;
-        max-width: 220px;
+        height: 36px;
+        max-width: none;
         padding: 2px 8px;
         font-size: 13px;
       }
@@ -1285,10 +1305,13 @@
           grid-template-columns: 1fr auto;
         }
 
-        .shortcut-actions,
-        .shortcut-picker {
+        .shortcut-actions {
           grid-column: 1 / -1;
           justify-content: flex-start;
+        }
+
+        .shortcut-picker {
+          grid-template-columns: 1fr;
         }
 
         .history-item {
@@ -1641,9 +1664,7 @@
           </div>
           <div class="card-body">
             <p class="lead">
-              Click <strong>+ Add key</strong>, then press a key or pick one from the list. Each key
-              can only do one thing; picking a key that is already in use moves it. Number keys
-              (seek to 0–90%) and Esc are fixed.
+              Each key can control one action. Number keys (seek to 0–90%) and Esc are fixed.
             </p>
             <div id="shortcut-editor" class="shortcut-editor"></div>
           </div>
