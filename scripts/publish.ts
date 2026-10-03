@@ -3,8 +3,6 @@
  * (GitHub Actions secrets in CI). Run `npm run build && npm run zip` first.
  *
  *   tsx scripts/publish.ts chrome | edge | firefox
- *
- * Release notes for Edge are read from RELEASE_NOTES (falls back to a generic message).
  */
 import { createReadStream, existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
@@ -59,7 +57,6 @@ async function publishEdge(): Promise<void> {
   });
   await client.submit({
     filePath: await artifact('chrome'),
-    notes: process.env.RELEASE_NOTES || 'Bug fixes and improvements.',
   });
 }
 

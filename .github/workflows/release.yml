@@ -89,4 +89,3 @@ jobs:
           EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
           WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
           WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
-          RELEASE_NOTES: See https://github.com/${{ github.repository }}/releases/tag/${{ needs.release-please.outputs.tag_name }}
