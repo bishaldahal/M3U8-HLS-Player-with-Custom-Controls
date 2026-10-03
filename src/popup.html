@@ -434,6 +434,39 @@
         width: 12px;
         height: 12px;
       }
+      /* Firefox for Android shows the popup as a full-screen page. */
+      @media (hover: none) and (pointer: coarse) {
+        body {
+          width: auto;
+          max-height: none;
+        }
+        .btn,
+        .btn-secondary {
+          min-height: 48px;
+        }
+        .btn:hover {
+          transform: none;
+          box-shadow: none;
+        }
+        .toggle-label {
+          min-height: 44px;
+        }
+        .toggle-label input[type='checkbox'] {
+          width: 22px;
+          height: 22px;
+        }
+        .history-item,
+        .detected-item {
+          min-height: 56px;
+        }
+        .history-list,
+        .detected-list {
+          max-height: none;
+        }
+        #open-shortcuts {
+          display: none;
+        }
+      }
     </style>
   </head>
   <body>

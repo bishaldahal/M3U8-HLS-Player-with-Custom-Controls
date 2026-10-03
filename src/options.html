@@ -882,6 +882,65 @@
       .search-input::placeholder {
         color: #6e7681;
       }
+
+      @media (max-width: 600px) {
+        body {
+          padding: 20px 12px;
+        }
+        .header h1 {
+          font-size: 24px;
+        }
+        .header img {
+          width: 64px;
+          height: 64px;
+        }
+        .card {
+          padding: 18px 14px;
+        }
+        .btn-group {
+          flex-wrap: wrap;
+        }
+        .btn-group > button {
+          flex: 1 1 140px;
+        }
+        .subtitle-grid > .setting-group:first-child {
+          flex-basis: 100%;
+        }
+        .history-item {
+          flex-wrap: wrap;
+        }
+        .history-actions {
+          margin: 12px 0 0;
+          width: 100%;
+          justify-content: flex-end;
+        }
+        .history-list {
+          max-height: none;
+          padding-right: 0;
+        }
+        .auto-save-indicator {
+          position: fixed;
+          top: auto;
+          bottom: 16px;
+          right: 16px;
+        }
+      }
+
+      @media (hover: none) and (pointer: coarse) {
+        button:hover,
+        .history-item:hover {
+          transform: none;
+          box-shadow: none;
+        }
+        .history-checkbox {
+          width: 22px;
+          height: 22px;
+        }
+        .history-actions button {
+          width: 44px;
+          height: 44px;
+        }
+      }
     </style>
   </head>
 
