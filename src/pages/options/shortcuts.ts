@@ -214,10 +214,12 @@ function render(): void {
       const title = document.createElement('h3');
       title.className = 'shortcut-group-title';
       title.textContent = category;
-      group.appendChild(title);
+      const rows = document.createElement('div');
+      rows.className = 'shortcut-group-rows';
+      group.append(title, rows);
       groups.set(category, group);
     }
-    group.appendChild(renderRow(id));
+    group.lastElementChild!.appendChild(renderRow(id));
   }
   list.replaceChildren(...groups.values());
   resetAllBtn.disabled = isDefaultBindings(bindings);
