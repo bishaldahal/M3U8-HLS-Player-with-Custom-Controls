@@ -158,6 +158,54 @@ media-time-range {
   }
 }
 
+@media (max-width: 600px) {
+  .keyboard-shortcuts {
+    padding: 20px 16px;
+    width: 96vw;
+  }
+
+  .keyboard-shortcuts h1 {
+    font-size: 22px;
+    padding-right: 90px;
+  }
+
+  #close-shortcuts {
+    top: 14px;
+    right: 14px;
+  }
+
+  .overlay {
+    padding: 8px;
+  }
+
+  .overlay-panel {
+    padding: 16px;
+  }
+
+  .drm-header-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .drm-header-row input:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .overlay-actions {
+    flex-wrap: wrap;
+  }
+
+  .overlay-actions .overlay-btn {
+    flex: 1 1 auto;
+  }
+}
+
+@media (pointer: coarse) {
+  .overlay-btn {
+    min-height: 44px;
+    padding-inline: 16px;
+  }
+}
+
 @media (pointer: coarse) and (max-width: 480px) {
   media-playback-rate-button {
     display: none;
@@ -236,7 +284,7 @@ media-time-range {
   padding: 0;
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr));
   gap: 10px;
 }
 
