@@ -18,10 +18,9 @@ describe('buildManifest', () => {
 
   it('declares Firefox for Android support', () => {
     const m = buildManifest('firefox', '1.2.3');
-    expect(m.browser_specific_settings).toMatchObject({
-      gecko: { strict_min_version: '140.0' },
-      gecko_android: { strict_min_version: '142.0' },
-    });
+    const settings = m.browser_specific_settings as Record<string, Record<string, unknown>>;
+    expect(settings.gecko_android).toEqual({});
+    expect(settings.gecko.strict_min_version).toBeUndefined();
   });
 
   it('references files emitted by the build', () => {
