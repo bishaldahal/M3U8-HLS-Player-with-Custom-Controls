@@ -1,31 +1,74 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HLS/DASH Player - Settings</title>
+    <script src="/theme-init.js"></script>
     <style>
       :root {
         --brand: #e6bc48;
         --brand-hover: #d8aa30;
-        --brand-ink: #8a6410;
-        --brand-tint: #fdf6e3;
         --charcoal: #2a292a;
         --charcoal-2: #3a393a;
+        --radius: 4px;
+        --focus: 0 0 0 3px rgba(230, 188, 72, 0.45);
+      }
+
+      html[data-theme='light'] {
+        --brand-ink: #8a6410;
+        --brand-tint: #fdf6e3;
+        --brand-tint-border: #f0dca0;
         --bg: #f3f4f6;
         --surface: #ffffff;
         --surface-2: #f9fafb;
         --border: #dfe2e6;
         --border-strong: #c8cdd3;
+        --divider: #eceef1;
+        --hover: #f1f2f4;
+        --hover-border: #b4bac2;
         --text: #24292f;
         --text-2: #4b5563;
         --muted: #6b7280;
         --danger: #d9534f;
         --danger-hover: #c9302c;
+        --danger-tint: #fdecea;
         --success: #3c9d5d;
-        --radius: 4px;
+        --track: #c4c9d0;
+        --knob: #ffffff;
+        --key-bg: #f6f7f9;
+        --pinned-bg: #fffcf3;
+        --progress-track: #e5e7eb;
         --shadow: 0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.04);
-        --focus: 0 0 0 3px rgba(230, 188, 72, 0.45);
+        --shadow-pop: 0 6px 16px rgba(16, 24, 40, 0.12);
+      }
+
+      html[data-theme='dark'] {
+        --brand-ink: #f3d78b;
+        --brand-tint: #3a3220;
+        --brand-tint-border: #5a4c27;
+        --bg: #1b1c1f;
+        --surface: #242528;
+        --surface-2: #2b2c30;
+        --border: #393a3f;
+        --border-strong: #4a4b51;
+        --divider: #333438;
+        --hover: #323338;
+        --hover-border: #5a5b62;
+        --text: #e6e7ea;
+        --text-2: #b6b8bd;
+        --muted: #8b8d94;
+        --danger: #e4756f;
+        --danger-hover: #ef8a84;
+        --danger-tint: #3b2522;
+        --success: #6cc189;
+        --track: #4c4d53;
+        --knob: #e6e7ea;
+        --key-bg: #2f3034;
+        --pinned-bg: #302a1c;
+        --progress-track: #3a3b40;
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        --shadow-pop: 0 6px 16px rgba(0, 0, 0, 0.5);
       }
 
       * {
@@ -134,6 +177,42 @@
         background: var(--brand);
       }
 
+      .theme-toggle {
+        margin-left: 20px;
+        display: inline-flex;
+        border: 1px solid #555455;
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+
+      .theme-toggle button {
+        padding: 5px 12px;
+        border: none;
+        border-radius: 0;
+        background: transparent;
+        color: #a9a8a9;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          color 0.15s;
+      }
+
+      .theme-toggle button + button {
+        border-left: 1px solid #555455;
+      }
+
+      .theme-toggle button:hover {
+        background: var(--charcoal-2);
+        color: #fff;
+      }
+
+      .theme-toggle button[aria-pressed='true'] {
+        background: var(--brand);
+        color: #4a3607;
+      }
+
       /* ---------- Layout ---------- */
       .layout {
         max-width: 1120px;
@@ -172,7 +251,7 @@
       }
 
       .sidenav a:hover {
-        background: #e8eaed;
+        background: var(--hover);
         color: var(--text);
       }
 
@@ -328,7 +407,7 @@
       }
 
       .search-input::placeholder {
-        color: #9ca3af;
+        color: var(--muted);
       }
 
       .setting-value {
@@ -381,8 +460,8 @@
       }
 
       .btn-secondary:hover:not(:disabled) {
-        background: #f1f2f4;
-        border-color: #b4bac2;
+        background: var(--hover);
+        border-color: var(--hover-border);
       }
 
       .btn-danger {
@@ -433,7 +512,7 @@
 
       .speed-btn:hover,
       .speed-reset:hover {
-        background: #f1f2f4;
+        background: var(--hover);
       }
 
       .speed-display {
@@ -478,7 +557,7 @@
       }
 
       .speed-preset:hover {
-        background: #f1f2f4;
+        background: var(--hover);
       }
 
       .speed-preset.active {
@@ -522,7 +601,7 @@
       .toggle-slider {
         position: absolute;
         inset: 0;
-        background: #c4c9d0;
+        background: var(--track);
         border-radius: 22px;
         transition: background 0.2s;
       }
@@ -534,7 +613,7 @@
         height: 16px;
         left: 3px;
         top: 3px;
-        background: #fff;
+        background: var(--knob);
         border-radius: 50%;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
         transition: transform 0.2s;
@@ -555,7 +634,7 @@
       .divided > .setting-group {
         padding-bottom: 20px;
         margin-bottom: 20px;
-        border-bottom: 1px solid #eceef1;
+        border-bottom: 1px solid var(--divider);
       }
 
       .divided > .setting-group:last-child {
@@ -673,7 +752,7 @@
         align-items: center;
         gap: 12px;
         padding: 10px 14px;
-        border-top: 1px solid #eceef1;
+        border-top: 1px solid var(--divider);
       }
 
       .shortcut-row:first-child {
@@ -693,7 +772,7 @@
       .shortcut-key {
         display: inline-flex;
         align-items: center;
-        background: #f6f7f9;
+        background: var(--key-bg);
         border: 1px solid var(--border-strong);
         border-bottom-width: 2px;
         border-radius: var(--radius);
@@ -724,7 +803,7 @@
 
       .shortcut-key-remove:hover {
         color: var(--danger);
-        background: #fdecea;
+        background: var(--danger-tint);
       }
 
       .shortcut-none {
@@ -814,7 +893,7 @@
         font-weight: 600;
         background: var(--brand-tint);
         color: var(--brand-ink);
-        border: 1px solid #f0dca0;
+        border: 1px solid var(--brand-tint-border);
       }
 
       .site-header-values {
@@ -834,7 +913,7 @@
 
       .site-headers-form {
         padding-top: 20px;
-        border-top: 1px solid #eceef1;
+        border-top: 1px solid var(--divider);
       }
 
       .site-headers-form .setting-label {
@@ -857,7 +936,7 @@
         padding: 8px 8px 8px 14px;
         margin-bottom: 12px;
         background: var(--brand-tint);
-        border: 1px solid #f0dca0;
+        border: 1px solid var(--brand-tint-border);
         border-radius: var(--radius);
       }
 
@@ -887,7 +966,7 @@
         display: flex;
         align-items: center;
         padding: 12px 14px;
-        border-top: 1px solid #eceef1;
+        border-top: 1px solid var(--divider);
         border-left: 3px solid transparent;
         transition: background 0.15s;
       }
@@ -902,7 +981,7 @@
 
       .history-item.pinned {
         border-left-color: var(--brand);
-        background: #fffcf3;
+        background: var(--pinned-bg);
       }
 
       .history-checkbox {
@@ -958,7 +1037,7 @@
         height: 3px;
         max-width: 320px;
         margin-top: 8px;
-        background: #e5e7eb;
+        background: var(--progress-track);
         border-radius: 2px;
         overflow: hidden;
       }
@@ -985,7 +1064,7 @@
       }
 
       .history-actions button:hover:not(:disabled) {
-        background: #f1f2f4;
+        background: var(--hover);
       }
 
       .history-actions .btn-pin.pinned {
@@ -1004,7 +1083,7 @@
       }
 
       .history-actions .btn-delete:hover:not(:disabled) {
-        background: #fdecea;
+        background: var(--danger-tint);
         border-color: var(--danger);
       }
 
@@ -1013,12 +1092,32 @@
         top: 72px;
       }
 
-      .feedback-toast {
+      .feedback-toast,
+      .feedback-toast-success,
+      .feedback-toast-error,
+      .feedback-toast-warning,
+      .feedback-toast-info {
         background: var(--surface);
         border: 1px solid var(--border);
         border-left-width: 4px;
         border-radius: var(--radius);
-        box-shadow: 0 6px 16px rgba(16, 24, 40, 0.12);
+        box-shadow: var(--shadow-pop);
+      }
+
+      .feedback-toast-success {
+        border-left-color: var(--success);
+      }
+
+      .feedback-toast-error {
+        border-left-color: var(--danger);
+      }
+
+      .feedback-toast-warning {
+        border-left-color: var(--brand);
+      }
+
+      .feedback-toast-info {
+        border-left-color: var(--brand-hover);
       }
 
       .feedback-toast-message {
@@ -1027,6 +1126,11 @@
 
       .feedback-toast-close {
         color: var(--muted);
+      }
+
+      .feedback-toast-close:hover {
+        background: var(--hover);
+        color: var(--text);
       }
 
       /* ---------- Responsive ---------- */
@@ -1082,6 +1186,10 @@
 
         .brand-sub {
           display: none;
+        }
+
+        .theme-toggle {
+          margin-left: 10px;
         }
 
         .card-header,
@@ -1179,6 +1287,10 @@
           </svg>
           <span id="auto-save-text">Saved</span>
         </span>
+        <div class="theme-toggle" role="group" aria-label="Color theme">
+          <button type="button" data-theme-choice="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-choice="dark" aria-pressed="true">Dark</button>
+        </div>
       </div>
     </header>
 

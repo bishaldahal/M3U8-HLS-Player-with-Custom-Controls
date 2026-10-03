@@ -29,6 +29,7 @@ import { getEdgeStyleCSS, hexToRgba } from '../../lib/subtitles';
 import { formatRelativeTime, formatTime } from '../../lib/time';
 import { createIcon, createSpinner, toast } from '../../lib/ui-feedback';
 import { setupShortcutEditor } from './shortcuts';
+import { setupThemeToggle } from './theme';
 
 const AUTO_SAVE_DEBOUNCE_MS = 300;
 const MAX_HISTORY_DISPLAY = 50;
@@ -536,6 +537,7 @@ function bindDetectToggle(): void {
 }
 
 async function init(): Promise<void> {
+  setupThemeToggle();
   await populateSettings();
   bindDetectToggle();
   await showDetectState();
