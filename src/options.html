@@ -212,6 +212,128 @@
         font-size: 13px;
       }
 
+      .shortcut-group + .shortcut-group {
+        margin-top: 20px;
+      }
+
+      .shortcut-group-title {
+        color: #58a6ff;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .shortcut-row {
+        display: grid;
+        grid-template-columns: minmax(160px, 1fr) minmax(120px, 1fr) auto;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        background: #0d1117;
+        margin-bottom: 6px;
+      }
+
+      .shortcut-keys {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .shortcut-key {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #30363d;
+        border-radius: 6px;
+        background: #21262d;
+      }
+
+      .shortcut-key kbd {
+        padding: 3px 8px;
+        font:
+          600 12px ui-monospace,
+          monospace;
+        color: #c9d1d9;
+      }
+
+      .shortcut-key-remove,
+      .shortcut-key-remove:hover {
+        flex: none;
+        padding: 2px 8px;
+        border-radius: 0 6px 6px 0;
+        background: transparent;
+        color: #8b949e;
+        font-size: 14px;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .shortcut-key-remove:hover {
+        color: #f85149;
+      }
+
+      .shortcut-none {
+        color: #6e7681;
+        font-size: 13px;
+        font-style: italic;
+      }
+
+      .shortcut-actions,
+      .shortcut-picker {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .shortcut-small-btn {
+        flex: none;
+        padding: 6px 12px;
+        font-size: 13px;
+      }
+
+      .shortcut-small-btn:disabled,
+      #reset-shortcuts:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .shortcut-capture {
+        flex: none;
+        padding: 6px 12px;
+        font-size: 13px;
+        background: rgba(88, 166, 255, 0.1);
+        color: #58a6ff;
+        border: 1px dashed #58a6ff;
+      }
+
+      .shortcut-capture:focus {
+        outline: 2px solid #58a6ff;
+        outline-offset: 2px;
+      }
+
+      .shortcut-select {
+        max-width: 220px;
+      }
+
+      .shortcut-select option.in-use {
+        color: #8b949e;
+      }
+
+      @media (max-width: 600px) {
+        .shortcut-row {
+          grid-template-columns: 1fr auto;
+        }
+
+        .shortcut-actions {
+          grid-column: 1 / -1;
+          justify-content: flex-start;
+        }
+      }
+
       .site-headers-form textarea {
         font-family: ui-monospace, monospace;
         resize: vertical;
@@ -1218,6 +1340,23 @@
             aria-label="Reset subtitle settings to defaults"
           >
             <span>Reset Defaults</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="card" id="shortcuts">
+        <div class="card-header">
+          <h2 class="card-title">Keyboard Shortcuts</h2>
+        </div>
+        <p class="setting-hint" style="margin: 0 0 16px">
+          Click <strong>+ Add key</strong>, then press a key or pick one from the list. Each key can
+          only do one thing; picking a key that is already in use moves it. Number keys (seek to
+          0–90%) and Esc are fixed. Changes apply to open players right away.
+        </p>
+        <div id="shortcut-editor" class="shortcut-editor"></div>
+        <div class="btn-group">
+          <button id="reset-shortcuts" class="btn-secondary" type="button">
+            <span>Reset All Shortcuts</span>
           </button>
         </div>
       </div>
