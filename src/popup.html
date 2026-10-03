@@ -434,6 +434,21 @@
         width: 12px;
         height: 12px;
       }
+      .access-banner {
+        margin: 12px;
+        padding: 12px;
+        border: 1px solid rgba(210, 153, 34, 0.5);
+        border-radius: 10px;
+        background: rgba(210, 153, 34, 0.1);
+      }
+      .access-banner[hidden] {
+        display: none;
+      }
+      .access-banner p {
+        margin: 0 0 10px;
+        font-size: 13px;
+        line-height: 1.4;
+      }
       /* Firefox for Android shows the popup as a full-screen page. */
       @media (hover: none) and (pointer: coarse) {
         body {
@@ -474,6 +489,14 @@
       <h2>
         <img src="./icons/icon.svg" alt="App Icon" width="24" height="24" /> M3U8/HLS/DASH Player
       </h2>
+    </div>
+
+    <div id="access-banner" class="access-banner" hidden>
+      <p>
+        Allow access to all sites so streams can load with the right headers and links open in the
+        player.
+      </p>
+      <button id="grant-access" class="btn">Allow access</button>
     </div>
 
     <div class="section">

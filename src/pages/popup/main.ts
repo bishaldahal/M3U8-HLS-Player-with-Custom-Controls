@@ -7,6 +7,8 @@ import { toast } from '../../lib/ui-feedback';
 
 const DEBOUNCE_MS = 300;
 const RECENT_COUNT = 5;
+// Firefox MV3 leaves host permissions ungranted until the user allows them.
+const HOST_PERMISSIONS: chrome.permissions.Permissions = { origins: ['<all_urls>'] };
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -174,6 +176,22 @@ function bindDetectToggle(): void {
   });
 }
 
+async function renderAccessBanner(): Promise<void> {
+  $<HTMLElement>('access-banner').hidden = await ext.permissions.contains(HOST_PERMISSIONS);
+}
+
+function bindAccessButton(): void {
+  $<HTMLButtonElement>('grant-access').addEventListener('click', () => {
+    void ext.permissions
+      .request(HOST_PERMISSIONS)
+      .catch((error: unknown) => {
+        console.error('Failed to request site access:', error);
+        toast.error('Could not request site access');
+      })
+      .finally(() => void renderAccessBanner());
+  });
+}
+
 async function renderHistory(focusFirst = true): Promise<void> {
   const list = $<HTMLElement>('history-list');
   list.replaceChildren(emptyMessage('Loading...'));
@@ -258,6 +276,11 @@ async function init(): Promise<void> {
     console.error('Error loading subtitle settings:', error);
     toast.error('Failed to load subtitle settings');
   }
+
+  bindAccessButton();
+  void renderAccessBanner().catch((error: unknown) => {
+    console.error('Error checking site access:', error);
+  });
 
   bindDetectToggle();
   const hasDetected = await renderDetected().catch((error) => {
