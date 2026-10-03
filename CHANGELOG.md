@@ -1,5 +1,29 @@
 # Changelog
 
+## [2.1.0](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/compare/v2.0.0...v2.1.0) (2026-10-03)
+
+
+### Features
+
+* **firefox:** declare Firefox for Android support ([81fe49b](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/81fe49b72817cafd21775fa287efa86d3efd5c8f))
+* **options:** add light and dark themes to the settings page ([d2b5b8e](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/d2b5b8eb64760e46873bfa2081a79cfb523cdcae))
+* **options:** polish settings page details ([5661526](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/566152650beb74d71aee22d9d53191277241e2c4))
+* **player:** add touch gestures and a phone layout ([1bf61c5](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/1bf61c5880e20b042a317a22a9da63385195e888))
+* **popup:** ask for site access when it has not been granted ([f869875](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/f869875a0ce07cd088a9a02d7d08aec557dfb66e))
+* **shortcuts:** enhance shortcut editor UI and accessibility ([3871753](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/387175389c73fa2bb5dfa46016af84bfeb3558e6))
+* **shortcuts:** let users customise keyboard shortcuts ([d14779d](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/d14779d3bd796870b7f775eb1b26a77e829a44d6))
+* **ui:** make popup, settings and shortcuts pages fit phone screens ([0c611c3](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/0c611c35c9e31ce26fec3b5d2ed9e1da02455f84))
+
+
+### Bug Fixes
+
+* **background:** open what's new on major and minor updates ([e309c66](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/e309c66790057d76fe45fe2dcf4a2c815a4896b5))
+* **firefox:** drop strict_min_version so older Firefox keeps updates ([5fe3972](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/5fe39720a60b0a69dfa57faae83dbaa4d130c819))
+* improve UI of options page ([7f9c5bc](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/7f9c5bcef3abc5463f07904bfdb20fe9cd2d77c4))
+* **player:** keep the player dialogs usable on narrow screens ([5443a62](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/5443a629edaab2eb04cf7afd81fc1b187e5611da))
+* **publish:** print the store's error response when an upload fails ([7f051c6](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/7f051c62598f32b27e96c25019cc2ac0e4fa6ff9))
+* **ui:** improve toast clarity and feedback ([47ccd75](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/47ccd75c359f59cadda8f5d5c8577b574021ece9))
+
 ## [2.0.0](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/compare/v1.5.0...v2.0.0) (2026-10-02)
 
 
