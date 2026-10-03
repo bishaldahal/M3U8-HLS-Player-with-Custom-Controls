@@ -28,6 +28,7 @@ import {
 import { getEdgeStyleCSS, hexToRgba } from '../../lib/subtitles';
 import { formatRelativeTime, formatTime } from '../../lib/time';
 import { createIcon, createSpinner, toast } from '../../lib/ui-feedback';
+import { setupScrollSpy } from './scrollspy';
 import { setupShortcutEditor } from './shortcuts';
 import { setupThemeToggle } from './theme';
 
@@ -196,6 +197,27 @@ function openPlayer(url: string): void {
   void ext.tabs.create({ url: `${ext.runtime.getURL('player.html')}#${url}` });
 }
 
+const ACTION_ICONS = {
+  pin: 'M10.5 1.5 8.9 3.1l.7.7-3.2 2.5-1.6-.4-1.2 1.2 3.1 3.1-3.3 4.3 4.3-3.3 3.1 3.1 1.2-1.2-.4-1.6 2.5-3.2.7.7 1.6-1.6-5.9-5.9Z',
+  rename:
+    'M2 11.3V14h2.7l8-8-2.7-2.7-8 8ZM14.8 4.2a.7.7 0 0 0 0-1L13.8 2a.7.7 0 0 0-1 0l-1.1 1.1 2.7 2.7 1.4-1.6Z',
+  play: 'M4.5 2.8v10.4L13.5 8 4.5 2.8Z',
+  delete: 'M5 2v1H2v2h12V3h-3V2H5ZM3.5 6l.8 8.1a1 1 0 0 0 1 .9h5.4a1 1 0 0 0 1-.9l.8-8.1h-9Z',
+} as const;
+
+function actionIcon(name: keyof typeof ACTION_ICONS): SVGSVGElement {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 16 16');
+  svg.setAttribute('width', '15');
+  svg.setAttribute('height', '15');
+  svg.setAttribute('aria-hidden', 'true');
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', ACTION_ICONS[name]);
+  path.setAttribute('fill', 'currentColor');
+  svg.appendChild(path);
+  return svg;
+}
+
 function actionButton(className: string, label: string, title: string, onClick: () => void) {
   const btn = document.createElement('button');
   btn.type = 'button';
@@ -210,6 +232,17 @@ function actionButton(className: string, label: string, title: string, onClick: 
   return btn;
 }
 
+function iconButton(
+  className: string,
+  icon: keyof typeof ACTION_ICONS,
+  title: string,
+  onClick: () => void,
+) {
+  const btn = actionButton(className, '', title, onClick);
+  btn.replaceChildren(actionIcon(icon));
+  return btn;
+}
+
 function renderHistoryItem(entry: HistoryEntry): HTMLElement {
   const item = document.createElement('div');
   item.className = 'history-item';
@@ -219,7 +252,7 @@ function renderHistoryItem(entry: HistoryEntry): HTMLElement {
   if (entry.pinned) {
     const pin = document.createElement('div');
     pin.className = 'history-pin-indicator';
-    pin.textContent = '📌';
+    pin.appendChild(actionIcon('pin'));
     pin.title = 'Pinned';
     item.appendChild(pin);
   } else {
@@ -274,22 +307,22 @@ function renderHistoryItem(entry: HistoryEntry): HTMLElement {
 
   const actions = document.createElement('div');
   actions.className = 'history-actions';
-  const deleteBtn = actionButton(
+  const deleteBtn = iconButton(
     'btn-delete',
-    '🗑',
+    'delete',
     entry.pinned ? 'Unpin to delete' : 'Delete',
     () => void deleteOne(entry.url),
   );
   deleteBtn.disabled = entry.pinned;
   actions.append(
-    actionButton(
+    iconButton(
       entry.pinned ? 'btn-pin pinned' : 'btn-pin',
-      '📌',
+      'pin',
       entry.pinned ? 'Unpin' : 'Pin',
       () => void togglePin(entry.url),
     ),
-    actionButton('btn-rename', '✏️', 'Rename', () => void rename(entry)),
-    actionButton('btn-play', '▶', 'Play', () => openPlayer(entry.url)),
+    iconButton('btn-rename', 'rename', 'Rename', () => void rename(entry)),
+    iconButton('btn-play', 'play', 'Play', () => openPlayer(entry.url)),
     deleteBtn,
   );
 
@@ -311,7 +344,9 @@ function renderHistory(): void {
   if (visible.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'history-empty';
-    empty.textContent = 'No watch history';
+    empty.textContent = query
+      ? `No streams match “${dom.historySearch.value.trim()}”`
+      : 'Nothing here yet. Streams you play will show up in this list.';
     dom.historyList.replaceChildren(empty);
     return;
   }
@@ -538,6 +573,7 @@ function bindDetectToggle(): void {
 
 async function init(): Promise<void> {
   setupThemeToggle();
+  setupScrollSpy();
   await populateSettings();
   bindDetectToggle();
   await showDetectState();

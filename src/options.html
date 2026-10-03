@@ -16,6 +16,7 @@
       }
 
       html[data-theme='light'] {
+        color-scheme: light;
         --brand-ink: #8a6410;
         --brand-tint: #fdf6e3;
         --brand-tint-border: #f0dca0;
@@ -44,6 +45,7 @@
       }
 
       html[data-theme='dark'] {
+        color-scheme: dark;
         --brand-ink: #f3d78b;
         --brand-tint: #3a3220;
         --brand-tint-border: #5a4c27;
@@ -257,6 +259,13 @@
 
       .sidenav a:focus-visible {
         border-left-color: var(--brand);
+      }
+
+      .sidenav a.current {
+        background: var(--brand-tint);
+        border-left-color: var(--brand);
+        color: var(--text);
+        font-weight: 600;
       }
 
       .page-head {
@@ -994,10 +1003,11 @@
 
       .history-pin-indicator {
         flex-shrink: 0;
+        display: flex;
+        justify-content: center;
         width: 16px;
         margin-right: 14px;
-        font-size: 13px;
-        text-align: center;
+        color: var(--brand-hover);
       }
 
       .history-info {
@@ -1057,7 +1067,6 @@
         width: 34px;
         height: 34px;
         padding: 0;
-        font-size: 14px;
         background: var(--surface);
         border-color: var(--border-strong);
         color: var(--text-2);
@@ -1065,11 +1074,13 @@
 
       .history-actions button:hover:not(:disabled) {
         background: var(--hover);
+        color: var(--text);
       }
 
       .history-actions .btn-pin.pinned {
         background: var(--brand-tint);
         border-color: var(--brand-hover);
+        color: var(--brand-ink);
       }
 
       .history-actions .btn-play {
@@ -1085,6 +1096,7 @@
       .history-actions .btn-delete:hover:not(:disabled) {
         background: var(--danger-tint);
         border-color: var(--danger);
+        color: var(--danger);
       }
 
       /* ---------- Toasts (light theme) ---------- */
@@ -1161,7 +1173,13 @@
         .sidenav a {
           flex: none;
           border-left: none;
+          border-bottom: 2px solid transparent;
           border-radius: var(--radius);
+        }
+
+        .sidenav a.current {
+          background: transparent;
+          border-bottom-color: var(--brand);
         }
 
         .page-head {
