@@ -1,6 +1,7 @@
 import '../../lib/ui-feedback.css';
 import { ext } from '../../lib/browser';
-import { DETECT_PERMISSIONS, type DetectedStream } from '../../lib/detected';
+import { groupDetected, type DetectedGroup, type DetectedStream } from '../../lib/detected';
+import type { MediaKind, Rendition, RenditionKind } from '../../lib/playlist';
 import { loadHistory, loadSettings, saveSettings, type HistoryEntry } from '../../lib/settings';
 import { formatRelativeTime, formatTime } from '../../lib/time';
 import { toast } from '../../lib/ui-feedback';
@@ -78,43 +79,72 @@ function el<K extends keyof HTMLElementTagNameMap>(
   return node;
 }
 
-function renderDetectedItem(stream: DetectedStream, tabId: number): HTMLElement {
-  const item = el('div', 'detected-item');
-  item.tabIndex = 0;
-  item.setAttribute('role', 'button');
+function streamName(url: string): string {
+  const { pathname } = new URL(url);
+  return decodeURIComponent(pathname.split('/').pop() || pathname);
+}
 
-  const { hostname, pathname } = new URL(stream.url);
-  const name = decodeURIComponent(pathname.split('/').pop() || pathname);
-  const headerCount = Object.keys(stream.headers).length;
-  item.title = stream.url;
-  item.setAttribute(
-    'aria-label',
-    `Play ${stream.type.toUpperCase()} stream ${name} from ${hostname}` +
-      (headerCount ? ` with ${headerCount} site headers` : ''),
-  );
+function shortenStreamName(name: string, maxLength = 30): string {
+  if (name.length <= maxLength) return name;
 
-  const play = el('span', 'detected-play');
-  play.setAttribute('aria-hidden', 'true');
+  const dot = name.lastIndexOf('.');
+  const extension = dot > 0 && name.length - dot <= 8 ? name.slice(dot) : '';
+  const stem = name.slice(0, name.length - extension.length);
+  const tailLength = Math.min(6, Math.max(3, Math.floor((maxLength - extension.length) / 3)));
+  const headLength = maxLength - extension.length - tailLength - 1;
+  return `${stem.slice(0, headLength)}…${stem.slice(-tailLength)}${extension}`;
+}
 
-  const info = el('div', 'detected-info');
-  const top = el('div', 'detected-top');
-  top.append(
-    el('span', `detected-type detected-type-${stream.type}`, stream.type.toUpperCase()),
-    el('span', 'detected-name', name),
-  );
-  const meta = el('div', 'detected-meta');
-  meta.append(
-    el('span', 'detected-host', hostname),
-    el('span', 'detected-time', formatRelativeTime(stream.seenAt)),
-  );
-  if (headerCount) {
-    const badge = el('span', 'detected-headers', `${headerCount} site headers`);
-    badge.title = `Sent the way the page sent them: ${Object.keys(stream.headers).join(', ')}`;
-    meta.append(badge);
+function qualityRange(renditions: Rendition[]): string | null {
+  const heights = renditions.flatMap((r) => (r.height ? [r.height] : []));
+  if (!heights.length) return null;
+  const [min, max] = [Math.min(...heights), Math.max(...heights)];
+  return min === max ? `${max}p` : `${min}p–${max}p`;
+}
+
+const MEDIA_LABEL: Record<MediaKind, string> = {
+  audio: 'Audio',
+  video: 'Video',
+  combined: 'A+V',
+  unknown: 'Unknown',
+};
+
+const MEDIA_DESCRIPTION: Record<MediaKind, string> = {
+  audio: 'Audio only',
+  video: 'Video only',
+  combined: 'Audio and video',
+  unknown: 'Unknown media type',
+};
+
+function masterMediaKind(renditions: Rendition[]): MediaKind {
+  const hasAudio = renditions.some((r) => r.kind === 'audio' || r.kind === 'combined');
+  const hasVideo = renditions.some((r) => r.kind === 'video' || r.kind === 'combined');
+  if (hasAudio && hasVideo) return 'combined';
+  if (hasAudio) return 'audio';
+  if (hasVideo) return 'video';
+  return 'unknown';
+}
+
+function renditionMediaLabel(kind: RenditionKind): string {
+  return kind === 'subtitles' ? 'Subtitles' : MEDIA_LABEL[kind];
+}
+
+/** What a stream holds, as far as its playlist tells. */
+function summarize(stream: DetectedStream): { mediaKind: MediaKind; detail: string | null } {
+  const playlist = stream.playlist;
+  if (playlist?.kind === 'master') {
+    const range = qualityRange(playlist.renditions);
+    const audio = playlist.renditions.filter((r) => r.kind === 'audio').length;
+    const parts = ['Master', range, audio > 1 && `${audio} audio`].filter(Boolean);
+    return { mediaKind: masterMediaKind(playlist.renditions), detail: parts.join(' · ') };
   }
-  info.append(top, meta);
-  item.append(play, info);
+  if (playlist?.kind === 'media') {
+    return { mediaKind: playlist.mediaKind, detail: null };
+  }
+  return { mediaKind: 'unknown', detail: null };
+}
 
+function bindOpen(item: HTMLElement, stream: DetectedStream, tabId: number): void {
   const open = async () => {
     try {
       // Wait for the reply: closing the popup first can drop the message on Firefox.
@@ -131,25 +161,107 @@ function renderDetectedItem(stream: DetectedStream, tabId: number): HTMLElement 
       toast.error('Could not open this stream');
     }
   };
-  item.addEventListener('click', () => void open());
+  item.addEventListener('click', (e) => {
+    e.stopPropagation();
+    void open();
+  });
   item.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
+      e.stopPropagation();
       void open();
     }
   });
+}
+
+function renderTrack(stream: DetectedStream, rendition: Rendition, tabId: number): HTMLElement {
+  const label = [renditionMediaLabel(rendition.kind), rendition.label].filter(Boolean).join(' · ');
+  const item = el('div', `detected-track detected-track-${rendition.kind}`, label);
+  item.tabIndex = 0;
+  item.setAttribute('role', 'button');
+  item.title = stream.url;
+  const description =
+    rendition.kind === 'subtitles' ? 'subtitles' : MEDIA_DESCRIPTION[rendition.kind];
+  item.setAttribute(
+    'aria-label',
+    `Play ${description}${rendition.label ? `, ${rendition.label}` : ''}`,
+  );
+  bindOpen(item, stream, tabId);
   return item;
+}
+
+function renderDetectedItem({ stream, tracks }: DetectedGroup, tabId: number): HTMLElement {
+  const wrap = el('div', 'detected-group');
+  const item = el('div', 'detected-item');
+  item.tabIndex = 0;
+  item.setAttribute('role', 'button');
+
+  const { hostname } = new URL(stream.url);
+  const name = streamName(stream.url);
+  const { mediaKind, detail } = summarize(stream);
+  const badge = MEDIA_LABEL[mediaKind];
+  const mediaDescription = MEDIA_DESCRIPTION[mediaKind];
+  const headerCount = Object.keys(stream.headers).length;
+  item.title = stream.url;
+  item.setAttribute(
+    'aria-label',
+    `Play ${mediaDescription.toLowerCase()} ${stream.type.toUpperCase()} ${name} from ${hostname}` +
+      (detail ? `, ${detail}` : '') +
+      (headerCount ? ` with ${headerCount} site headers` : ''),
+  );
+
+  const play = el('span', 'detected-play');
+  play.setAttribute('aria-hidden', 'true');
+
+  const info = el('div', 'detected-info');
+  const top = el('div', 'detected-top');
+  const displayName = el('span', 'detected-name', shortenStreamName(name));
+  displayName.title = name;
+  top.append(displayName);
+  const summary = el('div', 'detected-summary');
+  const kind = el('span', `detected-kind detected-kind-${mediaKind}`, badge);
+  kind.title = mediaDescription;
+  summary.append(
+    kind,
+    el('span', `detected-type detected-type-${stream.type}`, stream.type.toUpperCase()),
+  );
+  if (detail) summary.append(el('span', 'detected-detail', detail));
+  info.append(top, summary);
+  const meta = el('div', 'detected-meta');
+  meta.append(
+    el('span', 'detected-host', hostname),
+    el('span', 'detected-time', formatRelativeTime(stream.seenAt)),
+  );
+  if (headerCount) {
+    const headers = el('span', 'detected-headers', `${headerCount} site headers`);
+    headers.title = `Sent the way the page sent them: ${Object.keys(stream.headers).join(', ')}`;
+    meta.append(headers);
+  }
+  info.append(meta);
+  item.append(play, info);
+  bindOpen(item, stream, tabId);
+  wrap.append(item);
+
+  if (tracks.length) {
+    const details = el('details', 'detected-tracks');
+    details.append(
+      el('summary', 'detected-tracks-summary', `Tracks · ${tracks.length}`),
+      ...tracks.map((t) => renderTrack(t.stream, t.rendition, tabId)),
+    );
+    wrap.append(details);
+  }
+  return wrap;
 }
 
 async function renderDetected(): Promise<boolean> {
   const list = $<HTMLElement>('detected-list');
   const hint = $<HTMLElement>('detect-hint');
-  const enabled = await ext.permissions.contains(DETECT_PERMISSIONS);
+  const { detectStreams: enabled, inspectHlsPlaylists } = await loadSettings();
   $<HTMLInputElement>('detect-streams').checked = enabled;
+  $<HTMLButtonElement>('advanced-detection-options').hidden = !enabled || inspectHlsPlaylists;
   list.replaceChildren();
   if (!enabled) {
-    hint.textContent =
-      'Off. Turn on to list streams that pages play and open them here with the same headers.';
+    hint.textContent = 'Off. Turn on to list the streams pages play and open them here.';
     return false;
   }
   const [tab] = await ext.tabs.query({ active: true, currentWindow: true });
@@ -162,19 +274,17 @@ async function renderDetected(): Promise<boolean> {
     hint.textContent = 'None yet. Start the video on the page, then open this again.';
     return false;
   }
-  hint.textContent = `${streams.length} found on this tab`;
-  list.replaceChildren(...[...streams].reverse().map((s) => renderDetectedItem(s, tab!.id!)));
+  const groups = groupDetected(streams);
+  hint.textContent =
+    groups.length === 1 ? '1 stream on this tab' : `${groups.length} streams on this tab`;
+  list.replaceChildren(...groups.map((g) => renderDetectedItem(g, tab!.id!)));
   return true;
 }
 
 function bindDetectToggle(): void {
   const toggle = $<HTMLInputElement>('detect-streams');
   toggle.addEventListener('change', () => {
-    // Must run straight from the click: browsers only show the prompt during a user gesture.
-    const change = toggle.checked
-      ? ext.permissions.request(DETECT_PERMISSIONS)
-      : ext.permissions.remove(DETECT_PERMISSIONS).then((removed) => !removed);
-    void change
+    void saveSettings({ detectStreams: toggle.checked })
       .catch((error: unknown) => {
         console.error('Failed to change stream detection:', error);
         toast.error('Could not change stream detection');
@@ -247,6 +357,11 @@ function saveSubtitleSize(fontSize: number): void {
 async function init(): Promise<void> {
   $<HTMLButtonElement>('open-options').addEventListener('click', () => {
     void ext.runtime.openOptionsPage();
+    window.close();
+  });
+
+  $<HTMLButtonElement>('advanced-detection-options').addEventListener('click', () => {
+    void ext.tabs.create({ url: ext.runtime.getURL('options.html#advanced-detection') });
     window.close();
   });
 

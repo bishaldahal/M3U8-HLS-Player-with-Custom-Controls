@@ -1,6 +1,5 @@
 import '../../lib/ui-feedback.css';
 import { ext } from '../../lib/browser';
-import { DETECT_PERMISSIONS } from '../../lib/detected';
 import {
   DEFAULT_SETTINGS,
   MAX_LIVE_BUFFER_MINUTES,
@@ -54,6 +53,7 @@ const dom = {
   liveBufferMinutes: byId<HTMLInputElement>('live-buffer-minutes'),
   autoSiteHeaders: byId<HTMLInputElement>('auto-site-headers'),
   detectStreams: byId<HTMLInputElement>('detect-streams'),
+  inspectHlsPlaylists: byId<HTMLInputElement>('inspect-hls-playlists'),
   siteHeadersList: byId<HTMLElement>('site-headers-list'),
   siteHeadersForm: byId<HTMLFormElement>('site-headers-form'),
   siteHeadersHost: byId<HTMLInputElement>('site-headers-host'),
@@ -135,6 +135,8 @@ function autoSave(): void {
         saveHistory: dom.saveHistoryToggle.checked,
         liveBufferWhilePausedMinutes: readLiveBufferMinutes(),
         rememberLinkSiteHeaders: dom.autoSiteHeaders.checked,
+        detectStreams: dom.detectStreams.checked,
+        inspectHlsPlaylists: dom.inspectHlsPlaylists.checked,
         subtitleSettings: readSubtitleSettings(),
       });
       showSaved();
@@ -176,6 +178,8 @@ async function populateSettings(): Promise<void> {
     dom.saveHistoryToggle.checked = settings.saveHistory !== false;
     dom.liveBufferMinutes.value = String(settings.liveBufferWhilePausedMinutes);
     dom.autoSiteHeaders.checked = settings.rememberLinkSiteHeaders;
+    dom.detectStreams.checked = settings.detectStreams;
+    dom.inspectHlsPlaylists.checked = settings.inspectHlsPlaylists;
 
     const s = settings.subtitleSettings;
     dom.subtitleFontSize.value = dom.subtitleFontSizeNumber.value = String(s.fontSize);
@@ -550,33 +554,16 @@ function bindColor(input: HTMLInputElement, label: HTMLElement): void {
   });
 }
 
-async function showDetectState(): Promise<void> {
-  dom.detectStreams.checked = await ext.permissions.contains(DETECT_PERMISSIONS);
-}
-
-function bindDetectToggle(): void {
-  dom.detectStreams.addEventListener('change', () => {
-    // Must run straight from the click: browsers only show the prompt during a user gesture.
-    const change = dom.detectStreams.checked
-      ? ext.permissions.request(DETECT_PERMISSIONS)
-      : ext.permissions.remove(DETECT_PERMISSIONS);
-    void change
-      .catch((error: unknown) => {
-        console.error('Failed to change stream detection:', error);
-        toast.error('Could not change stream detection');
-      })
-      .finally(() => void showDetectState());
-  });
-  ext.permissions.onAdded.addListener(() => void showDetectState());
-  ext.permissions.onRemoved.addListener(() => void showDetectState());
+function prioritizeSettingsSections(): void {
+  const main = document.querySelector('main');
+  main?.append(byId('subtitles'), byId('shortcuts'));
 }
 
 async function init(): Promise<void> {
+  prioritizeSettingsSections();
   setupThemeToggle();
   setupScrollSpy();
   await populateSettings();
-  bindDetectToggle();
-  await showDetectState();
 
   dom.volumeInput.addEventListener('input', () => {
     dom.volumeLabel.textContent = `${Math.round(Number(dom.volumeInput.value) * 100)}%`;
@@ -599,6 +586,8 @@ async function init(): Promise<void> {
   );
 
   dom.saveHistoryToggle.addEventListener('change', autoSave);
+  dom.detectStreams.addEventListener('change', autoSave);
+  dom.inspectHlsPlaylists.addEventListener('change', autoSave);
   dom.autoSiteHeaders.addEventListener('change', () => {
     autoSave();
     void renderSiteHeaders();

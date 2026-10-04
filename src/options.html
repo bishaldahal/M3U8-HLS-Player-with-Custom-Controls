@@ -681,6 +681,28 @@
         border-bottom: none;
       }
 
+      #advanced-detection {
+        scroll-margin-top: 96px;
+      }
+
+      #advanced-detection:target {
+        outline: 2px solid var(--brand-hover);
+        outline-offset: 8px;
+        border-radius: 2px;
+      }
+
+      .advanced-detection-consequence {
+        display: block;
+        margin-top: 8px;
+        padding: 8px 10px;
+        border: 1px solid var(--brand-tint-border);
+        border-radius: var(--radius);
+        background: var(--brand-tint);
+        color: var(--brand-ink);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
       /* ---------- Subtitles ---------- */
       .subtitle-preview-container {
         display: flex;
@@ -1391,10 +1413,10 @@
       <nav class="sidenav" aria-label="Settings sections">
         <div class="sidenav-title">Settings</div>
         <a href="#playback">Playback</a>
-        <a href="#subtitles">Subtitles</a>
-        <a href="#shortcuts">Keyboard Shortcuts</a>
         <a href="#site-headers">Site Headers</a>
         <a href="#history">Watch History</a>
+        <a href="#subtitles">Subtitles</a>
+        <a href="#shortcuts">Keyboard Shortcuts</a>
       </nav>
 
       <main>
@@ -1722,10 +1744,36 @@
                   </label>
                 </div>
                 <span class="setting-hint" id="detect-streams-hint"
-                  >Lists the streams a page plays in the toolbar popup, so you can open them here
-                  with the headers the page used (Referer, cookies, tokens). Needs permission to
-                  read request headers. Captured headers stay in memory, are only sent from the
-                  player tab, and are cleared when you leave the page.</span
+                  >On by default. Lists the streams a page plays in the toolbar popup, so you can
+                  open them here with the headers the page used (Referer, cookies, tokens). Captured
+                  headers stay in memory, are only sent from the player tab, and are cleared when
+                  you leave the page or turn this off.</span
+                >
+              </div>
+
+              <div class="setting-group" id="advanced-detection">
+                <div class="toggle-row">
+                  <label class="toggle-label" for="inspect-hls-playlists"
+                    >Advanced HLS detection</label
+                  >
+                  <label class="toggle-switch">
+                    <input
+                      type="checkbox"
+                      id="inspect-hls-playlists"
+                      aria-label="Enable advanced HLS detection"
+                      aria-describedby="inspect-hls-playlists-hint"
+                    />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <span class="setting-hint" id="inspect-hls-playlists-hint"
+                  >Off by default. Improves quality and audio-track labels for detected HLS
+                  streams.</span
+                >
+                <span class="advanced-detection-consequence"
+                  ><strong>Network consequence:</strong> the extension sends one additional request
+                  to each detected HLS playlist. Leave this off for observation-only
+                  detection.</span
                 >
               </div>
             </div>
