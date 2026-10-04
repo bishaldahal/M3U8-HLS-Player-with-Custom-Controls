@@ -23,6 +23,14 @@ describe('buildManifest', () => {
     expect(settings.gecko.strict_min_version).toBeUndefined();
   });
 
+  it('requests webRequest up front so detection works by default', () => {
+    for (const browser of ['chrome', 'firefox'] as const) {
+      const m = buildManifest(browser, '1.0.0');
+      expect(m.permissions).toContain('webRequest');
+      expect(m.optional_permissions).toBeUndefined();
+    }
+  });
+
   it('references files emitted by the build', () => {
     const m = buildManifest('chrome', '1.0.0');
     expect(m.content_scripts?.[0]?.js).toEqual(['js/content.js']);

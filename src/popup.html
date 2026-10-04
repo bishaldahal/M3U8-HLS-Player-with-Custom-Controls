@@ -166,11 +166,11 @@
       .detected-item {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 10px;
+        gap: 9px;
+        padding: 9px 10px;
         border: 1px solid #30363d;
-        border-radius: 8px;
-        background: #161b22;
+        border-radius: 6px;
+        background: #0d1117;
         cursor: pointer;
         outline: none;
         transition:
@@ -179,8 +179,8 @@
       }
       .detected-item:hover,
       .detected-item:focus-visible {
-        border-color: #3fb950;
-        background: #1b2a1f;
+        border-color: #58a6ff;
+        background: #161b22;
       }
       .detected-item:focus-visible {
         outline: 2px solid #1f6feb;
@@ -188,8 +188,8 @@
       }
       .detected-play {
         flex: none;
-        width: 30px;
-        height: 30px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
         background: #238636;
         position: relative;
@@ -198,10 +198,10 @@
       .detected-play::after {
         content: '';
         position: absolute;
-        left: 11px;
-        top: 9px;
+        left: 10px;
+        top: 8px;
         border-style: solid;
-        border-width: 6px 0 6px 10px;
+        border-width: 6px 0 6px 9px;
         border-color: transparent transparent transparent #fff;
       }
       .detected-item:hover .detected-play {
@@ -214,16 +214,23 @@
       .detected-top {
         display: flex;
         align-items: center;
-        gap: 6px;
-        margin-bottom: 4px;
+        min-width: 0;
+        margin-bottom: 3px;
+      }
+      .detected-summary {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        min-width: 0;
+        margin-bottom: 3px;
       }
       .detected-type {
         flex: none;
-        padding: 1px 6px;
+        padding: 0 4px;
         border-radius: 4px;
-        font-size: 10px;
+        font-size: 9px;
         font-weight: 700;
-        letter-spacing: 0.5px;
+        letter-spacing: 0;
       }
       .detected-type-hls {
         background: rgba(88, 166, 255, 0.15);
@@ -233,9 +240,90 @@
         background: rgba(188, 140, 255, 0.15);
         color: #bc8cff;
       }
+      .detected-group {
+        display: flex;
+        flex-direction: column;
+      }
+      .detected-kind {
+        flex: none;
+        min-width: 34px;
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 700;
+        text-align: center;
+      }
+      .detected-kind-combined {
+        background: rgba(63, 185, 80, 0.15);
+        color: #3fb950;
+      }
+      .detected-kind-video {
+        background: rgba(210, 153, 34, 0.15);
+        color: #d29922;
+      }
+      .detected-kind-audio {
+        background: rgba(88, 166, 255, 0.15);
+        color: #58a6ff;
+      }
+      .detected-kind-unknown {
+        background: rgba(139, 148, 158, 0.15);
+        color: #8b949e;
+      }
+      .detected-detail {
+        color: #8b949e;
+        font-size: 11px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .detected-tracks {
+        margin: 2px 0 0 38px;
+        font-size: 12px;
+      }
+      .detected-tracks-summary {
+        padding: 4px 0;
+        color: #8b949e;
+        cursor: pointer;
+      }
+      .detected-tracks-summary:focus-visible {
+        outline: 2px solid #1f6feb;
+        outline-offset: 1px;
+      }
+      .detected-track {
+        padding: 6px 9px;
+        margin-top: 4px;
+        border: 1px solid #30363d;
+        border-left-width: 3px;
+        border-radius: 4px;
+        background: #0d1117;
+        color: #c9d1d9;
+        cursor: pointer;
+        outline: none;
+      }
+      .detected-track:hover,
+      .detected-track:focus-visible {
+        background: #161b22;
+        border-color: #58a6ff;
+      }
+      .detected-track:focus-visible {
+        outline: 2px solid #1f6feb;
+        outline-offset: 1px;
+      }
+      .detected-track-combined {
+        border-left-color: #3fb950;
+      }
+      .detected-track-video {
+        border-left-color: #d29922;
+      }
+      .detected-track-audio {
+        border-left-color: #58a6ff;
+      }
+      .detected-track-subtitles {
+        border-left-color: #8b949e;
+      }
       .detected-name {
         font-size: 13px;
-        font-weight: 500;
+        font-weight: 600;
         color: #fff;
         white-space: nowrap;
         overflow: hidden;
@@ -283,6 +371,41 @@
       }
       .detect-hint:empty {
         display: none;
+      }
+      .detect-options-prompt {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        width: calc(100% - 16px);
+        margin: 0 8px 8px;
+        padding: 9px 10px;
+        border: 1px solid rgba(88, 166, 255, 0.28);
+        border-radius: 6px;
+        background: rgba(88, 166, 255, 0.07);
+        color: #f0f6fc;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
+      }
+      .detect-options-prompt[hidden] {
+        display: none;
+      }
+      .detect-options-prompt:hover {
+        border-color: rgba(88, 166, 255, 0.55);
+        background: rgba(88, 166, 255, 0.12);
+      }
+      .detect-options-prompt:focus-visible {
+        outline: 2px solid #58a6ff;
+        outline-offset: 2px;
+      }
+      .detect-options-arrow {
+        flex: none;
+        color: #58a6ff;
+        font-size: 18px;
+        line-height: 1;
       }
       .history-empty {
         color: #6e7681;
@@ -474,6 +597,14 @@
         .detected-item {
           min-height: 56px;
         }
+        .detected-track {
+          min-height: 44px;
+          display: flex;
+          align-items: center;
+        }
+        .detected-tracks-summary {
+          line-height: 36px;
+        }
         .history-list,
         .detected-list {
           max-height: none;
@@ -497,6 +628,24 @@
         player.
       </p>
       <button id="grant-access" class="btn">Allow access</button>
+    </div>
+
+    <div id="detected-section" class="detected-section">
+      <div class="history-header detect-header">
+        <span class="detect-title"
+          ><span class="live-dot" aria-hidden="true"></span>On this page</span
+        >
+        <label class="toggle-label" title="Lists streams that pages load so you can open them here">
+          <input type="checkbox" id="detect-streams" aria-describedby="detect-hint" />
+          <span>Detect</span>
+        </label>
+      </div>
+      <p id="detect-hint" class="detect-hint"></p>
+      <button id="advanced-detection-options" class="detect-options-prompt" type="button" hidden>
+        <span>Advanced HLS detection</span>
+        <span class="detect-options-arrow" aria-hidden="true">&#8250;</span>
+      </button>
+      <div id="detected-list" class="detected-list"></div>
     </div>
 
     <div class="section">
@@ -562,20 +711,6 @@
           <span>Saved</span>
         </div>
       </div>
-    </div>
-
-    <div id="detected-section" class="detected-section">
-      <div class="history-header detect-header">
-        <span class="detect-title"
-          ><span class="live-dot" aria-hidden="true"></span>On this page</span
-        >
-        <label class="toggle-label" title="Lists streams that pages load so you can open them here">
-          <input type="checkbox" id="detect-streams" aria-describedby="detect-hint" />
-          <span>Detect</span>
-        </label>
-      </div>
-      <p id="detect-hint" class="detect-hint"></p>
-      <div id="detected-list" class="detected-list"></div>
     </div>
 
     <div class="history-header">Recent History</div>
