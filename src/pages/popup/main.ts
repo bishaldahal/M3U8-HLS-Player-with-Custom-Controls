@@ -115,20 +115,27 @@ function renderDetectedItem(stream: DetectedStream, tabId: number): HTMLElement 
   info.append(top, meta);
   item.append(play, info);
 
-  const open = () => {
-    void ext.runtime.sendMessage({
-      command: 'PLAY_STREAM',
-      url: stream.url,
-      streamType: stream.type,
-      tabId,
-    });
-    window.close();
+  const open = async () => {
+    try {
+      // Wait for the reply: closing the popup first can drop the message on Firefox.
+      const res = (await ext.runtime.sendMessage({
+        command: 'PLAY_STREAM',
+        url: stream.url,
+        streamType: stream.type,
+        tabId,
+      })) as { success?: boolean; error?: string } | undefined;
+      if (res && !res.success) throw new Error(res.error);
+      window.close();
+    } catch (error) {
+      console.error('Failed to open detected stream:', error);
+      toast.error('Could not open this stream');
+    }
   };
-  item.addEventListener('click', open);
+  item.addEventListener('click', () => void open());
   item.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      open();
+      void open();
     }
   });
   return item;
