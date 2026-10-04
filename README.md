@@ -38,7 +38,7 @@ A browser extension that plays **M3U8/HLS** and **MPD/DASH** streams directly in
 
 Some hosts answer with **403 Forbidden** unless the request looks like it came from their own page.
 
-- **Detect streams on pages** (off by default): turn it on from the popup or Settings. The browser asks for permission to read request headers. Start the video on the site, then open the popup and pick it from **On this page**. The player sends the same headers the page did, from its own tab only, and forgets them when that tab closes.
+- **Detect streams on pages** is on by default and can be turned off in the popup or Settings. Start the video on a site, then open the popup and pick its stream from **On this page**. The player sends the same headers the page did, from its own tab only, and forgets them when that tab closes.
 - **Site headers**: in Settings, or from the **Site headers** button on a player error, save headers for a stream host. They are sent with every request the player makes to that host.
 
 Nothing captured or saved here leaves your browser. See [PRIVACY.md](PRIVACY.md).

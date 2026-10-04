@@ -5,7 +5,7 @@ src/
 ├── manifest.ts          # buildManifest(browser, version) → manifest.json per target
 ├── background/
 │   ├── index.ts         # service worker / event page: redirects, play requests, header rules
-│   └── detect.ts        # opt-in stream detection (webRequest) kept in storage.session per tab
+│   └── detect.ts        # opt-out stream detection (webRequest) kept in storage.session per tab
 ├── content/index.ts     # intercepts clicks on .m3u8/.mpd links
 ├── lib/                 # shared, framework-free modules (unit-tested)
 │   ├── browser.ts       # `ext` = browser ?? chrome
@@ -46,13 +46,13 @@ flowchart LR
 
 The player never edits page requests. Headers are added with `declarativeNetRequest` rules that only match requests initiated by the extension:
 
-| Source                   | Rules             | IDs     | Scope                                                                       |
-| ------------------------ | ----------------- | ------- | --------------------------------------------------------------------------- |
-| Manifest redirect        | dynamic           | 1       | top-level `.m3u8`/`.mpd` navigations                                        |
-| Site headers (Settings)  | dynamic           | 1000+   | the saved host and its subdomains                                           |
-| Detected stream (opt-in) | session, `tabIds` | max + 1 | all headers to the manifest host; `Referer`/`Origin`/`User-Agent` to others |
+| Source                  | Rules             | IDs     | Scope                                                                       |
+| ----------------------- | ----------------- | ------- | --------------------------------------------------------------------------- |
+| Manifest redirect       | dynamic           | 1       | top-level `.m3u8`/`.mpd` navigations                                        |
+| Site headers (Settings) | dynamic           | 1000+   | the saved host and its subdomains                                           |
+| Detected stream         | session, `tabIds` | max + 1 | all headers to the manifest host; `Referer`/`Origin`/`User-Agent` to others |
 
-Detection needs the optional `webRequest` permission. Captured headers live in `storage.session` and are dropped when the tab navigates or closes, or the permission is revoked.
+Detection uses the required `webRequest` permission and is on by default. Captured headers live in `storage.session` and are dropped when the tab navigates or closes, or detection is turned off.
 
 ## Vendor libraries
 
