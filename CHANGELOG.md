@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.2.0](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/compare/v2.1.1...v2.2.0) (2026-10-04)
+
+
+### Features
+
+* **detection:** add HLS playlist parsing ([c147078](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/c147078c108272e12350c6183c65636302834ca3))
+* **detection:** group and classify detected streams ([e25dff0](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/e25dff009b8641de05d36a5fa842db83111f4e47))
+* **ui:** surface grouped streams and advanced detection ([bd5c3b1](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/bd5c3b17628b184cbfaa44c73a1a1b15909801cb))
+
 ## [2.1.1](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/compare/v2.1.0...v2.1.1) (2026-10-04)
 
 

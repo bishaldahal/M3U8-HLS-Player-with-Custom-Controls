@@ -1,7 +1,7 @@
 {
   "name": "m3u8-hls-player",
   "displayName": "M3U8/HLS/DASH Player with Custom Keyboard Shortcuts",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "Browser extension that plays M3U8/HLS and MPD/DASH streams directly in the browser with keyboard shortcuts, subtitles, PiP and watch history.",
   "private": true,
   "type": "module",
