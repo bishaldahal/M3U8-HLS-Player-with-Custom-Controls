@@ -30,12 +30,24 @@ function playerUrlFor(url: string): string {
   return `${ext.runtime.getURL('player.html')}#${url}`;
 }
 
+async function createTabNextTo(
+  url: string,
+  opener?: { id?: number; index?: number },
+): Promise<chrome.tabs.Tab> {
+  const index = opener?.index !== undefined ? { index: opener.index + 1 } : {};
+  if (opener?.id === undefined) return ext.tabs.create({ url, ...index });
+  try {
+    return await ext.tabs.create({ url, ...index, openerTabId: opener.id });
+  } catch {
+    // Firefox for Android's schema marks `openerTabId` unsupported and rejects the call.
+    return ext.tabs.create({ url, ...index });
+  }
+}
+
 function openInNewTab(url: string, opener?: { id?: number; index?: number }): void {
-  void ext.tabs.create({
-    url: playerUrlFor(url),
-    ...(opener?.id !== undefined && { openerTabId: opener.id }),
-    ...(opener?.index !== undefined && { index: opener.index + 1 }),
-  });
+  void createTabNextTo(playerUrlFor(url), opener).catch((error) =>
+    console.error('Failed to open the player:', error),
+  );
 }
 
 function openInPlayer(message: PlayMessage, tab?: { id?: number; index?: number }): void {
@@ -95,11 +107,7 @@ async function removeTabRules(tabId: number): Promise<void> {
  * for that tab only, since they can carry cookies and tokens.
  */
 async function playDetected(stream: DetectedStream, opener?: chrome.tabs.Tab): Promise<void> {
-  const tab = await ext.tabs.create({
-    url: 'about:blank',
-    ...(opener?.id !== undefined && { openerTabId: opener.id }),
-    ...(opener?.index !== undefined && { index: opener.index + 1 }),
-  });
+  const tab = await createTabNextTo('about:blank', opener);
   try {
     if (hasDnr() && tab.id !== undefined) {
       const existing = await ext.declarativeNetRequest.getSessionRules();
@@ -148,7 +156,13 @@ ext.runtime.onMessage.addListener((message: PlayMessage, sender, sendResponse) =
       sendResponse({ success: false, error: 'Unsupported stream type' });
       return;
     }
-    void handlePlay(message, sender).then(() => sendResponse({ success: true }));
+    void handlePlay(message, sender).then(
+      () => sendResponse({ success: true }),
+      (error: unknown) => {
+        console.error('Failed to play stream:', error);
+        sendResponse({ success: false, error: String(error) });
+      },
+    );
     return true;
   }
 
