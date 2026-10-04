@@ -20,6 +20,10 @@ export interface PlayerSettings {
   liveBufferWhilePausedMinutes: number;
   /** Remember the Referer/Origin of the page a stream link was opened from (opt-in). */
   rememberLinkSiteHeaders: boolean;
+  /** List the streams pages play in the popup (opt-out). */
+  detectStreams: boolean;
+  /** Fetch detected HLS playlists once to identify their qualities and audio tracks (opt-in). */
+  inspectHlsPlaylists: boolean;
   subtitlesEnabled: boolean;
   subtitleSettings: SubtitleSettings;
 }
@@ -50,6 +54,8 @@ export const DEFAULT_SETTINGS: Readonly<PlayerSettings> = Object.freeze({
   // ~3 min of 1080p stays within the browser's ~150 MB SourceBuffer quota.
   liveBufferWhilePausedMinutes: 3,
   rememberLinkSiteHeaders: false,
+  detectStreams: true,
+  inspectHlsPlaylists: false,
   subtitlesEnabled: true,
   subtitleSettings: Object.freeze({
     fontSize: 100,
