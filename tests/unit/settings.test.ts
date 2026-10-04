@@ -87,6 +87,7 @@ describe('deepMerge', () => {
 describe('loadSettings / saveSettings', () => {
   it('returns defaults when storage is empty', async () => {
     expect(await loadSettings()).toEqual(DEFAULT_SETTINGS);
+    expect((await loadSettings()).inspectHlsPlaylists).toBe(false);
   });
 
   it('merges partial updates with stored settings', async () => {

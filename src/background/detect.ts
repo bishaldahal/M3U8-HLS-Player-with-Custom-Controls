@@ -1,5 +1,14 @@
 import { ext } from '../lib/browser';
-import { addDetected, pickReplayHeaders, streamKey, type DetectedStream } from '../lib/detected';
+import {
+  addDetected,
+  findMatchingStream,
+  isKnownTrack,
+  pickReplayHeaders,
+  streamKey,
+  type DetectedStream,
+} from '../lib/detected';
+import { parsePlaylist } from '../lib/playlist';
+import { SETTINGS_KEY, loadSettings, type PlayerSettings } from '../lib/settings';
 import { detectStreamType } from '../lib/stream';
 
 const sessionKey = (tabId: number) => `detected:${tabId}`;
@@ -10,12 +19,13 @@ const writes = new Map<number, Promise<void>>();
 
 function updateTab(
   tabId: number,
-  change: (list: DetectedStream[]) => DetectedStream[] | null,
+  change: (list: DetectedStream[]) => DetectedStream[] | null | undefined,
 ): Promise<void> {
   const run = async () => {
     const key = sessionKey(tabId);
     const list = ((await ext.storage.session.get(key))[key] as DetectedStream[] | undefined) ?? [];
     const next = change(list);
+    if (next === undefined) return;
     if (next === null) await ext.storage.session.remove(key);
     else await ext.storage.session.set({ [key]: next });
     const count = next?.length ?? 0;
@@ -39,9 +49,65 @@ export async function findDetected(
   url: string,
 ): Promise<DetectedStream | undefined> {
   if (tabId === undefined) return undefined;
-  const key = streamKey(url);
-  return (await getDetected(tabId)).find((s) => streamKey(s.url) === key);
+  return findMatchingStream(await getDetected(tabId), url);
 }
+
+const PROBE_TIMEOUT_MS = 5000;
+const attemptedProbes = new Set<string>();
+let detectionGeneration = 0;
+const tabGenerations = new Map<number, number>();
+
+const getTabGeneration = (tabId: number) => tabGenerations.get(tabId) ?? 0;
+const isCurrent = (tabId: number, detection: number, navigation: number) =>
+  detection === detectionGeneration && navigation === getTabGeneration(tabId);
+
+/** Reads an HLS playlist to tell a full stream from a single quality or audio track. */
+async function probePlaylist(
+  tabId: number,
+  stream: DetectedStream,
+  detection: number,
+  navigation: number,
+): Promise<void> {
+  const probeKey = `${tabId}:${stream.url}`;
+  if (attemptedProbes.has(probeKey)) return;
+  attemptedProbes.add(probeKey);
+  try {
+    // Cookie and Referer are forbidden fetch headers; the browser drops them and sends its own.
+    const res = await fetch(stream.url, {
+      headers: stream.headers,
+      credentials: 'include',
+      signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
+    });
+    if (!res.ok) return;
+    const playlist = parsePlaylist(await res.text(), res.url || stream.url);
+    if (!playlist) return;
+    await updateTab(tabId, (list) => {
+      if (!isCurrent(tabId, detection, navigation)) return undefined;
+      const match = findMatchingStream(list, stream.url);
+      return match ? list.map((item) => (item === match ? { ...item, playlist } : item)) : list;
+    });
+  } catch {
+    // Unreachable without the page's cookies or tokens; it is listed without track details.
+  }
+}
+
+function clearProbeAttempts(tabId?: number): void {
+  if (tabId === undefined) attemptedProbes.clear();
+  else {
+    const prefix = `${tabId}:`;
+    for (const key of attemptedProbes) if (key.startsWith(prefix)) attemptedProbes.delete(key);
+  }
+}
+
+type DetectionSettings = Pick<PlayerSettings, 'detectStreams' | 'inspectHlsPlaylists'>;
+
+let detectionSettings: Promise<DetectionSettings> | undefined;
+let clearingDetected = Promise.resolve();
+const getDetectionSettings = () =>
+  (detectionSettings ??= loadSettings().then(({ detectStreams, inspectHlsPlaylists }) => ({
+    detectStreams,
+    inspectHlsPlaylists,
+  })));
 
 function onRequest(details: chrome.webRequest.OnBeforeSendHeadersDetails): undefined {
   if (details.tabId < 0) return;
@@ -50,13 +116,33 @@ function onRequest(details: chrome.webRequest.OnBeforeSendHeadersDetails): undef
   if (initiator?.startsWith(ownOrigin)) return;
   const type = detectStreamType(details.url);
   if (!type) return;
+  const { tabId } = details;
   const stream: DetectedStream = {
     url: details.url,
     type,
     headers: pickReplayHeaders(details.requestHeaders),
     seenAt: Date.now(),
   };
-  void updateTab(details.tabId, (list) => addDetected(list, stream));
+  const detection = detectionGeneration;
+  const navigation = getTabGeneration(tabId);
+  void getDetectionSettings().then(async ({ detectStreams, inspectHlsPlaylists }) => {
+    await clearingDetected;
+    if (!detectStreams || !isCurrent(tabId, detection, navigation)) return;
+    let needsProbe = false;
+    await updateTab(tabId, (list) => {
+      if (!isCurrent(tabId, detection, navigation)) return undefined;
+      const known = list.find((s) => streamKey(s.url) === streamKey(stream.url));
+      needsProbe =
+        inspectHlsPlaylists &&
+        type === 'hls' &&
+        !known?.playlist &&
+        !isKnownTrack(list, stream.url);
+      return addDetected(list, stream);
+    });
+    if (needsProbe && isCurrent(tabId, detection, navigation)) {
+      await probePlaylist(tabId, stream, detection, navigation);
+    }
+  });
 }
 
 function listen(): void {
@@ -78,40 +164,48 @@ async function forgetAll(): Promise<void> {
   const keys = Object.keys(await ext.storage.session.get(null)).filter((k) =>
     k.startsWith('detected:'),
   );
-  await ext.storage.session.remove(keys);
-  for (const key of keys) {
-    const tabId = Number(key.slice('detected:'.length));
-    void ext.action.setBadgeText({ tabId, text: '' }).catch(() => {});
-  }
+  const tabIds = new Set([
+    ...writes.keys(),
+    ...keys.map((key) => Number(key.slice('detected:'.length))),
+  ]);
+  await Promise.all([...tabIds].map((tabId) => updateTab(tabId, () => null)));
 }
-
-const isDetectPermission = (p: chrome.permissions.Permissions) =>
-  p.permissions?.includes('webRequest') ?? false;
 
 export function startStreamDetection(): void {
   if (!ext.storage.session) return;
   ext.storage.session.setAccessLevel?.({ accessLevel: 'TRUSTED_CONTEXTS' }).catch(() => {});
 
-  // Synchronous on startup so an already granted permission can wake the service worker.
+  // Synchronous on startup so requests can wake the service worker; the setting is checked per hit.
   listen();
-  ext.permissions.onAdded.addListener((p) => {
-    if (isDetectPermission(p)) listen();
-  });
-  ext.permissions.onRemoved.addListener((p) => {
-    if (!isDetectPermission(p)) return;
-    try {
-      ext.webRequest?.onBeforeSendHeaders.removeListener(onRequest);
-    } catch {
-      // The API is already gone along with the permission.
-    }
-    void forgetAll();
+  ext.storage.onChanged.addListener((changes, areaName) => {
+    const change = changes[SETTINGS_KEY];
+    if (areaName !== 'local' || !change) return;
+    const next = change.newValue as PlayerSettings | undefined;
+    const on = next?.detectStreams ?? true;
+    detectionGeneration++;
+    clearProbeAttempts();
+    detectionSettings = Promise.resolve({
+      detectStreams: on,
+      inspectHlsPlaylists: next?.inspectHlsPlaylists ?? false,
+    });
+    if (!on) clearingDetected = clearingDetected.then(forgetAll).catch(() => {});
   });
 
   ext.webNavigation.onCommitted.addListener((details) => {
-    if (details.frameId === 0) void updateTab(details.tabId, () => null);
+    if (details.frameId !== 0) return;
+    tabGenerations.set(details.tabId, getTabGeneration(details.tabId) + 1);
+    clearProbeAttempts(details.tabId);
+    void updateTab(details.tabId, () => null);
   });
   ext.tabs.onRemoved.addListener((tabId) => {
-    void ext.storage.session.remove(sessionKey(tabId));
-    writes.delete(tabId);
+    const generation = getTabGeneration(tabId) + 1;
+    tabGenerations.set(tabId, generation);
+    clearProbeAttempts(tabId);
+    const removal = updateTab(tabId, () => null);
+    void removal.finally(() => {
+      if (writes.get(tabId) !== removal) return;
+      writes.delete(tabId);
+      if (getTabGeneration(tabId) === generation) tabGenerations.delete(tabId);
+    });
   });
 }
