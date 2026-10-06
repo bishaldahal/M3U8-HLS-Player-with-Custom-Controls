@@ -1009,6 +1009,23 @@
       }
 
       /* ---------- History ---------- */
+      .history-private-option {
+        display: grid;
+        grid-template-columns: 16px minmax(0, 1fr);
+        align-items: start;
+        gap: 8px;
+        margin-top: 12px;
+        line-height: 20px;
+        cursor: pointer;
+      }
+
+      .history-private-option input {
+        width: 16px;
+        height: 16px;
+        margin: 2px 0 0;
+        accent-color: var(--brand-hover);
+      }
+
       .search-box {
         margin-bottom: 16px;
       }
@@ -1113,6 +1130,7 @@
 
       .history-meta {
         display: flex;
+        flex-wrap: wrap;
         gap: 12px;
         font-size: 12px;
         color: var(--text-2);
@@ -1469,26 +1487,6 @@
             </div>
 
             <div class="setting-group">
-              <div class="toggle-row">
-                <div>
-                  <span class="setting-label">Watch history</span>
-                  <label class="toggle-label" for="save-history"
-                    >Save streams you play and where you stopped</label
-                  >
-                </div>
-                <label class="toggle-switch">
-                  <input
-                    type="checkbox"
-                    id="save-history"
-                    checked
-                    aria-label="Toggle watch history saving"
-                  />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-            </div>
-
-            <div class="setting-group">
               <label for="live-buffer-minutes" class="setting-label"
                 >Keep live stream while paused (minutes)</label
               >
@@ -1813,6 +1811,19 @@
             <p class="card-desc">Pin streams to keep them; pinned items can't be deleted.</p>
           </div>
           <div class="card-body">
+            <div class="setting-group">
+              <div class="toggle-row">
+                <label class="toggle-label" for="save-history">Save watch history</label>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="save-history" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <label class="history-private-option" for="save-private-history">
+                <input type="checkbox" id="save-private-history" />
+                <span>Save history in private/incognito windows</span>
+              </label>
+            </div>
             <div class="search-box">
               <input
                 type="search"

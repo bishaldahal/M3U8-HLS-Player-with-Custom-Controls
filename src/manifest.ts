@@ -40,7 +40,11 @@ export function buildManifest(browser: Browser, version: string): Manifest {
   };
 
   if (browser === 'chrome') {
-    return { ...base, background: { service_worker: 'js/background.js', type: 'module' } };
+    return {
+      ...base,
+      incognito: 'split',
+      background: { service_worker: 'js/background.js', type: 'module' },
+    };
   }
 
   return {

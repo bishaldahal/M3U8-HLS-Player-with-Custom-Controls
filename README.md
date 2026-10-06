@@ -19,7 +19,7 @@ A browser extension that plays **M3U8/HLS** and **MPD/DASH** streams directly in
 - Controls built on [media-chrome](https://github.com/muxinc/media-chrome), plus keyboard shortcuts
 - Picture-in-Picture, frame-by-frame navigation, playback speed from 0.1× to 10×
 - Subtitle styling: size, color, background, font and edge style
-- Watch history with resume, pinning and renaming
+- Watch history with resume, pinning and renaming (on by default in regular windows, off in private windows)
 - Widevine license configuration for DASH DRM on Chromium browsers
 
 ## Keyboard shortcuts
@@ -42,6 +42,12 @@ Some hosts answer with **403 Forbidden** unless the request looks like it came f
 - **Site headers**: in Settings, or from the **Site headers** button on a player error, save headers for a stream host. They are sent with every request the player makes to that host.
 
 Nothing captured or saved here leaves your browser. See [PRIVACY.md](PRIVACY.md).
+
+## History and private windows
+
+Watch history is on by default in regular windows. **Settings → Watch History → Save history in private/incognito windows** is unchecked by default, so private playback does not save history or resume positions. Check that box to opt into shared history in private windows. The main watch-history switch disables saving everywhere. Existing saved preferences are preserved on upgrade, and disabling history does not delete earlier entries.
+
+For private-window detection, enable **Allow in incognito / InPrivate** (Chrome / Edge) or **Run in Private Windows** (Firefox) in the browser's extension settings, then reload the page and start playback. Detection is independent of history and works even when history is off. Detected streams open in the same private window. Advanced HLS inspection is skipped in Firefox private windows; basic HLS/DASH detection remains available.
 
 ## DASH DRM (Chromium)
 

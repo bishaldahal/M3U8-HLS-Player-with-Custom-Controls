@@ -20,6 +20,9 @@ import {
 } from '../../src/lib/settings';
 import { setStorage, type KeyValueStorage } from '../../src/lib/storage';
 
+const extensionContext = vi.hoisted(() => ({ inIncognitoContext: false }));
+vi.mock('../../src/lib/browser', () => ({ ext: { extension: extensionContext } }));
+
 function memoryStorage(initial: Record<string, unknown> = {}) {
   const data: Record<string, unknown> = structuredClone(initial);
   const storage: KeyValueStorage = {
@@ -46,6 +49,7 @@ const entry = (overrides: Partial<HistoryEntry>): HistoryEntry => ({
 let data: Record<string, unknown>;
 
 beforeEach(() => {
+  extensionContext.inIncognitoContext = false;
   const mem = memoryStorage();
   data = mem.data;
   setStorage(mem.storage);
@@ -88,6 +92,16 @@ describe('loadSettings / saveSettings', () => {
   it('returns defaults when storage is empty', async () => {
     expect(await loadSettings()).toEqual(DEFAULT_SETTINGS);
     expect((await loadSettings()).inspectHlsPlaylists).toBe(false);
+    expect((await loadSettings()).saveHistory).toBe(true);
+    expect((await loadSettings()).saveHistoryInIncognito).toBe(false);
+  });
+
+  it('defaults existing users to no private history without changing normal history', async () => {
+    data[SETTINGS_KEY] = { saveHistory: true };
+    expect(await loadSettings()).toMatchObject({
+      saveHistory: true,
+      saveHistoryInIncognito: false,
+    });
   });
 
   it('merges partial updates with stored settings', async () => {
@@ -136,6 +150,38 @@ describe('history', () => {
   it('respects the saveHistory setting', async () => {
     await saveSettings({ saveHistory: false });
     await saveToHistory('https://x.test/a.m3u8', 'A', 1, 2);
+    expect(await loadHistory()).toEqual([]);
+  });
+
+  it('does not save history or resume when history is disabled', async () => {
+    await saveSettings({ saveHistory: false });
+    data[HISTORY_KEY] = [entry({ currentTime: 42 })];
+    expect((await loadSettings()).saveHistory).toBe(false);
+    await saveToHistory('https://x.test/new.m3u8', 'New', 10, 100);
+    expect(await loadHistory()).toEqual([entry({ currentTime: 42 })]);
+    expect(await getResumePosition('https://x.test/a.m3u8')).toBe(0);
+  });
+
+  it('does not save or resume in private windows by default', async () => {
+    data[HISTORY_KEY] = [entry({ currentTime: 42 })];
+    extensionContext.inIncognitoContext = true;
+    await saveToHistory('https://x.test/a.m3u8', 'Private', 80, 100);
+    expect(await loadHistory()).toEqual([entry({ currentTime: 42 })]);
+    expect(await getResumePosition('https://x.test/a.m3u8')).toBe(0);
+  });
+
+  it('allows explicitly opting into private history and resume', async () => {
+    extensionContext.inIncognitoContext = true;
+    await saveSettings({ saveHistoryInIncognito: true });
+    await saveToHistory('https://x.test/a.m3u8', 'Private', 80, 100);
+    expect(await loadHistory()).toMatchObject([{ title: 'Private', currentTime: 80 }]);
+    expect(await getResumePosition('https://x.test/a.m3u8')).toBe(80);
+  });
+
+  it('the master history switch also disables opted-in private history', async () => {
+    extensionContext.inIncognitoContext = true;
+    await saveSettings({ saveHistory: false, saveHistoryInIncognito: true });
+    await saveToHistory('https://x.test/a.m3u8', 'Private', 80, 100);
     expect(await loadHistory()).toEqual([]);
   });
 

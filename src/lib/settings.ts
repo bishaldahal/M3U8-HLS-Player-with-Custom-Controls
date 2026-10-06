@@ -1,3 +1,4 @@
+import { ext } from './browser';
 import { getStorage } from './storage';
 import { getUrlKey } from './stream';
 
@@ -16,6 +17,7 @@ export interface PlayerSettings {
   playbackRate: number;
   preferredQuality: 'auto' | 'highest' | 'lowest';
   saveHistory: boolean;
+  saveHistoryInIncognito: boolean;
   /** Minutes of live stream to keep buffering and retain while paused; 0 uses engine defaults. */
   liveBufferWhilePausedMinutes: number;
   /** Remember the Referer/Origin of the page a stream link was opened from (opt-in). */
@@ -51,6 +53,7 @@ export const DEFAULT_SETTINGS: Readonly<PlayerSettings> = Object.freeze({
   playbackRate: 1.0,
   preferredQuality: 'auto',
   saveHistory: true,
+  saveHistoryInIncognito: false,
   // ~3 min of 1080p stays within the browser's ~150 MB SourceBuffer quota.
   liveBufferWhilePausedMinutes: 3,
   rememberLinkSiteHeaders: false,
@@ -180,6 +183,13 @@ async function writeHistory(history: HistoryEntry[]): Promise<void> {
   await getStorage().set({ [HISTORY_KEY]: history });
 }
 
+async function isHistoryEnabled(): Promise<boolean> {
+  const settings = await loadSettings();
+  return (
+    settings.saveHistory && (!ext?.extension?.inIncognitoContext || settings.saveHistoryInIncognito)
+  );
+}
+
 export async function saveToHistory(
   url: string,
   title: string,
@@ -187,8 +197,7 @@ export async function saveToHistory(
   duration: number,
 ): Promise<void> {
   try {
-    const settings = await loadSettings();
-    if (!settings.saveHistory) return;
+    if (!(await isHistoryEnabled())) return;
 
     const history = await loadHistory();
     const urlKey = getUrlKey(url);
@@ -212,6 +221,7 @@ export async function saveToHistory(
 }
 
 export async function getResumePosition(url: string): Promise<number> {
+  if (!(await isHistoryEnabled())) return 0;
   const urlKey = getUrlKey(url);
   const entry = (await loadHistory()).find((h) => h.url === urlKey);
   return entry?.currentTime ?? 0;
