@@ -32,25 +32,35 @@ function playerUrlFor(url: string): string {
 
 async function createTabNextTo(
   url: string,
-  opener?: { id?: number; index?: number },
+  opener?: { id?: number; index?: number; windowId?: number },
 ): Promise<chrome.tabs.Tab> {
   const index = opener?.index !== undefined ? { index: opener.index + 1 } : {};
-  if (opener?.id === undefined) return ext.tabs.create({ url, ...index });
+  const target = {
+    ...index,
+    ...(opener?.windowId !== undefined ? { windowId: opener.windowId } : {}),
+  };
+  if (opener?.id === undefined) return ext.tabs.create({ url, ...target });
   try {
-    return await ext.tabs.create({ url, ...index, openerTabId: opener.id });
+    return await ext.tabs.create({ url, ...target, openerTabId: opener.id });
   } catch {
     // Firefox for Android's schema marks `openerTabId` unsupported and rejects the call.
-    return ext.tabs.create({ url, ...index });
+    return ext.tabs.create({ url, ...target });
   }
 }
 
-function openInNewTab(url: string, opener?: { id?: number; index?: number }): void {
+function openInNewTab(
+  url: string,
+  opener?: { id?: number; index?: number; windowId?: number },
+): void {
   void createTabNextTo(playerUrlFor(url), opener).catch((error) =>
     console.error('Failed to open the player:', error),
   );
 }
 
-function openInPlayer(message: PlayMessage, tab?: { id?: number; index?: number }): void {
+function openInPlayer(
+  message: PlayMessage,
+  tab?: { id?: number; index?: number; windowId?: number },
+): void {
   if (message.replaceTab && tab?.id !== undefined) {
     void ext.tabs.update(tab.id, { url: playerUrlFor(message.url!) });
   } else {

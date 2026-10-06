@@ -72,6 +72,7 @@ async function probePlaylist(
   if (attemptedProbes.has(probeKey)) return;
   attemptedProbes.add(probeKey);
   try {
+    if (!ext.extension.inIncognitoContext && (await ext.tabs.get(tabId)).incognito) return;
     // Cookie and Referer are forbidden fetch headers; the browser drops them and sends its own.
     const res = await fetch(stream.url, {
       headers: stream.headers,

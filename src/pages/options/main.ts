@@ -50,6 +50,7 @@ const dom = {
   speedReset: byId<HTMLButtonElement>('speed-reset'),
   speedPresets: document.querySelectorAll<HTMLButtonElement>('.speed-preset'),
   saveHistoryToggle: byId<HTMLInputElement>('save-history'),
+  privateHistoryToggle: byId<HTMLInputElement>('save-private-history'),
   liveBufferMinutes: byId<HTMLInputElement>('live-buffer-minutes'),
   autoSiteHeaders: byId<HTMLInputElement>('auto-site-headers'),
   detectStreams: byId<HTMLInputElement>('detect-streams'),
@@ -133,6 +134,7 @@ function autoSave(): void {
         volume: Number.parseFloat(dom.volumeInput.value),
         playbackRate: currentSpeed,
         saveHistory: dom.saveHistoryToggle.checked,
+        saveHistoryInIncognito: dom.privateHistoryToggle.checked,
         liveBufferWhilePausedMinutes: readLiveBufferMinutes(),
         rememberLinkSiteHeaders: dom.autoSiteHeaders.checked,
         detectStreams: dom.detectStreams.checked,
@@ -175,7 +177,8 @@ async function populateSettings(): Promise<void> {
     dom.volumeInput.value = String(settings.volume);
     dom.volumeLabel.textContent = `${Math.round(settings.volume * 100)}%`;
     setSpeed(settings.playbackRate || 1);
-    dom.saveHistoryToggle.checked = settings.saveHistory !== false;
+    dom.saveHistoryToggle.checked = settings.saveHistory;
+    dom.privateHistoryToggle.checked = settings.saveHistoryInIncognito;
     dom.liveBufferMinutes.value = String(settings.liveBufferWhilePausedMinutes);
     dom.autoSiteHeaders.checked = settings.rememberLinkSiteHeaders;
     dom.detectStreams.checked = settings.detectStreams;
@@ -350,7 +353,7 @@ function renderHistory(): void {
     empty.className = 'history-empty';
     empty.textContent = query
       ? `No streams match “${dom.historySearch.value.trim()}”`
-      : 'Nothing here yet. Streams you play will show up in this list.';
+      : 'No saved streams';
     dom.historyList.replaceChildren(empty);
     return;
   }
@@ -586,6 +589,7 @@ async function init(): Promise<void> {
   );
 
   dom.saveHistoryToggle.addEventListener('change', autoSave);
+  dom.privateHistoryToggle.addEventListener('change', autoSave);
   dom.detectStreams.addEventListener('change', autoSave);
   dom.inspectHlsPlaylists.addEventListener('change', autoSave);
   dom.autoSiteHeaders.addEventListener('change', () => {

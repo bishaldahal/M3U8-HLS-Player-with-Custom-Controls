@@ -7,12 +7,14 @@ describe('buildManifest', () => {
     expect(m.version).toBe('1.2.3');
     expect(m.manifest_version).toBe(3);
     expect(m.background).toEqual({ service_worker: 'js/background.js', type: 'module' });
+    expect(m.incognito).toBe('split');
     expect(m.browser_specific_settings).toBeUndefined();
   });
 
   it('uses background scripts and gecko settings for Firefox', () => {
     const m = buildManifest('firefox', '1.2.3');
     expect(m.background).toEqual({ scripts: ['js/background.js'] });
+    expect(m.incognito).toBeUndefined();
     expect(m.browser_specific_settings).toMatchObject({ gecko: { id: FIREFOX_ADDON_ID } });
   });
 
