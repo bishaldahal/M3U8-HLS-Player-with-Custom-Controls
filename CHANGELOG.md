@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.3](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/compare/v2.1.2...v2.1.3) (2026-10-06)
+
+
+### Bug Fixes
+
+* **incognito:** correct stream detection and private history defaults ([0dd5bbe](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/commit/0dd5bbef7c78c3a92ac078b98fac74d42bd7f144))
+
 ## [2.1.2](https://github.com/bishaldahal/M3U8-HLS-Player-with-Custom-Controls/compare/v2.1.1...v2.1.2) (2026-10-04)
 
 
